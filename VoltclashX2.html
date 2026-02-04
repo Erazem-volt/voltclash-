@@ -1,0 +1,1297 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Combat Électrique — V4 Final (30×30)</title>
+  <style>
+    body { margin:0; background:#111; color:#eee; font-family:system-ui, Arial, sans-serif; }
+    .wrap { max-width: 1450px; margin: 0 auto; padding: 16px; }
+    .top { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .panel { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .badge { padding:6px 10px; border:1px solid #333; border-radius:999px; background:#151515; font-size:14px; }
+    button {
+      padding:8px 10px; border-radius:10px; border:1px solid #333;
+      background:#1b1b1b; color:#eee; cursor:pointer;
+    }
+    button:hover { background:#222; }
+    .note { color:#cfcfcf; font-size:14px; line-height:1.45; margin:10px 0 12px 0; }
+    .sheet { background:#0b0b0b; border:1px solid #333; border-radius: 10px; padding: 12px; }
+    canvas { width: 1040px; max-width: 100%; height: auto; display:block; background:#0b0b0b; border-radius:8px; }
+    .help { margin-top:10px; color:#cfcfcf; font-size:13px; line-height:1.55; }
+    .warn { color:#ffcf7a; }
+    .ok { color:#9dffb6; }
+    code { background:#1b1b1b; padding:2px 6px; border-radius:6px; border:1px solid #2b2b2b; }
+
+    .players { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .pchip { padding:6px 10px; border-radius:999px; border:1px solid #333; background:#151515; font-size:13px; display:flex; align-items:center; gap:8px; }
+    .dot { width:10px; height:10px; border-radius:999px; display:inline-block; }
+    select { background:#151515; color:#eee; border:1px solid #333; border-radius:8px; padding:4px 8px; }
+
+    /* Banner animation */
+    .banner {
+      position: fixed;
+      left: 50%; top: 18%;
+      transform: translate(-50%, -50%);
+      background: rgba(10,10,10,0.92);
+      border: 1px solid #333;
+      border-radius: 14px;
+      padding: 14px 18px;
+      min-width: 360px;
+      text-align: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    }
+    .banner.show { animation: pop 1.35s ease forwards; }
+    .banner .title { font-weight: 850; font-size: 20px; margin-bottom: 6px; }
+    .banner .sub { font-size: 13px; color: #cfcfcf; }
+    @keyframes pop {
+      0% { opacity: 0; transform: translate(-50%, -60%) scale(0.96); }
+      18% { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+      65% { opacity: 1; transform: translate(-50%, -50%) scale(1.00); }
+      100% { opacity: 0; transform: translate(-50%, -44%) scale(0.99); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="banner" class="banner">
+  <div class="title" id="bTitle"></div>
+  <div class="sub" id="bSub"></div>
+</div>
+
+<div class="wrap">
+  <div class="top">
+    <h2 style="margin:0;">Combat Électrique — V4 Final (4 joueurs, 30×30)</h2>
+    <div class="panel">
+      <span class="badge" id="turn">Joueur: A</span>
+      <span class="badge" id="moves">Coups restants: 5</span>
+      <button id="endturn">W = Fin de tour</button>
+      <button id="reset">Réinitialiser</button>
+      <button id="togglebg">Fond: Noir</button>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>Commandes :</b>
+    <code>o</code>=haut, <code>l</code>=bas, <code>k</code>=gauche, <code>m</code>=droite,
+    <code>Espace</code>=valider, <code>w</code>=fin de tour.<br/>
+    <b>Règle élimination :</b> un joueur est éliminé <b>uniquement</b> si un adversaire pose une <b>CROIX</b> sur un nœud de sa <b>base</b>.<br/>
+    <b>Départ :</b> une croix est posée automatiquement sur le nœud adjacent “diagonale vers le centre” pour chaque joueur.
+  </div>
+
+  <div class="players" id="playersRow"></div>
+
+  <div class="sheet">
+    <canvas id="c"></canvas>
+  </div>
+
+  <div class="help" id="status"></div>
+</div>
+
+<script>
+(() => {
+  // ----------------------------
+  // Config
+  // ----------------------------
+  const GRID_CELLS = 30;
+  const NODES = GRID_CELLS + 1;
+  const BASE_CELLS = 2;          // base = 3x3 nœuds
+  const MOVES_PER_TURN = 5;
+
+  const CELL_PX = 22;
+  const MARGIN_PX = 24;
+
+  // Halo plus intense
+  const HALO_WIDE = 11;
+  const HALO_THIN = 3.4;
+  const HALO_ALPHA_WIDE = 0.22;
+  const HALO_ALPHA_THIN = 0.38;
+
+  // IA: seuil de "menace" (défense si ennemi trop proche de la base)
+  const DEFENSE_RADIUS = 7;              // en nœuds (Manhattan approximé via dist2)
+  const DEFENSE_RADIUS2 = DEFENSE_RADIUS * DEFENSE_RADIUS;
+
+  // IA: zone bouclier autour de base (nœuds proches à privilégier)
+  const SHIELD_RADIUS = 5;
+  const SHIELD_RADIUS2 = SHIELD_RADIUS * SHIELD_RADIUS;
+
+  const PLAYERS = [
+    { id:"A", color:"#ff5d5d", name:"A (Rouge)" }, // TL
+    { id:"B", color:"#3ddc84", name:"B (Vert)"  }, // BR
+    { id:"C", color:"#ffd84d", name:"C (Jaune)" }, // TR
+    { id:"D", color:"#4da6ff", name:"D (Bleu)"  }, // BL
+  ];
+
+  // Par défaut : 1 humain + 3 IA
+  const control = new Map([
+    ["A", "HUMAN"],
+    ["B", "AI"],
+    ["C", "AI"],
+    ["D", "AI"],
+  ]);
+
+  
+  // ----------------------------
+  // Plateau background (toggle noir/blanc)
+  // ----------------------------
+  let boardBg = "#0b0b0b"; // fond actuel du plateau
+  function toggleBoardBg(){
+    boardBg = (boardBg === "#0b0b0b") ? "#ffffff" : "#0b0b0b";
+    updateBgButton();
+    requestRedraw();
+  }
+  function updateBgButton(){
+    const btn = document.getElementById("togglebg");
+    if (!btn) return;
+    btn.textContent = (boardBg === "#0b0b0b") ? "Fond: Noir" : "Fond: Blanc";
+  }
+
+// ----------------------------
+  // Banner
+  // ----------------------------
+  const banner = document.getElementById("banner");
+  const bTitle = document.getElementById("bTitle");
+  const bSub = document.getElementById("bSub");
+  let bannerTimer = null;
+  function showBanner(title, sub, color="#eee") {
+    bTitle.textContent = title;
+    bSub.textContent = sub || "";
+    bTitle.style.color = color;
+    banner.classList.remove("show");
+    void banner.offsetWidth;
+    banner.classList.add("show");
+    clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(() => banner.classList.remove("show"), 1400);
+  }
+
+  // ----------------------------
+  // Geometry
+  // ----------------------------
+  function baseRectFor(pid){
+    switch(pid){
+      case "A": return { ix: 0, iy: 0, cells: BASE_CELLS };
+      case "B": return { ix: NODES - 1 - BASE_CELLS, iy: NODES - 1 - BASE_CELLS, cells: BASE_CELLS };
+      case "C": return { ix: NODES - 1 - BASE_CELLS, iy: 0, cells: BASE_CELLS };
+      case "D": return { ix: 0, iy: NODES - 1 - BASE_CELLS, cells: BASE_CELLS };
+    }
+  }
+  function baseCenter(pid){
+    const b = baseRectFor(pid);
+    return { ix: b.ix + 1, iy: b.iy + 1 }; // centre du 3x3
+  }
+  function startNodeFor(pid){
+    // nœud adjacent vers centre (diagonale)
+    const b = baseRectFor(pid);
+    const step = b.cells + 1; // 3
+    if (pid === "A") return { ix: b.ix + step, iy: b.iy + step };
+    if (pid === "B") return { ix: b.ix - 1,    iy: b.iy - 1 };
+    if (pid === "C") return { ix: b.ix - 1,    iy: b.iy + step };
+    if (pid === "D") return { ix: b.ix + step, iy: b.iy - 1 };
+    return { ix: 0, iy: 0 };
+  }
+
+  // ----------------------------
+  // Canvas
+  // ----------------------------
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+
+  const displayW = MARGIN_PX*2 + GRID_CELLS * CELL_PX;
+  const displayH = MARGIN_PX*2 + GRID_CELLS * CELL_PX;
+
+  canvas.style.width = displayW + "px";
+  canvas.style.height = displayH + "px";
+  canvas.width = Math.round(displayW * dpr);
+  canvas.height = Math.round(displayH * dpr);
+  ctx.scale(dpr, dpr);
+
+  function nodeToPx(ix, iy) { return { x: MARGIN_PX + ix * CELL_PX, y: MARGIN_PX + iy * CELL_PX }; }
+  function keyOf(ix, iy) { return `${ix},${iy}`; }
+  function parseKey(k) { const [ix,iy] = k.split(",").map(Number); return {ix,iy}; }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function dist2(a,b){ const dx=a.ix-b.ix, dy=a.iy-b.iy; return dx*dx+dy*dy; }
+
+  // ----------------------------
+  // Mouse -> node (snap)
+  // ----------------------------
+  function mouseToNode(clientX, clientY){
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    const ix = clamp(Math.round((x - MARGIN_PX) / CELL_PX), 0, NODES - 1);
+    const iy = clamp(Math.round((y - MARGIN_PX) / CELL_PX), 0, NODES - 1);
+    return { ix, iy };
+  }
+
+
+  const dirs8 = [
+    {dx: 1, dy: 0}, {dx:-1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy:-1},
+    {dx: 1, dy: 1}, {dx: 1, dy:-1}, {dx:-1, dy: 1}, {dx:-1, dy:-1},
+  ];
+  const neigh4 = [
+    {dx: 1, dy: 0}, {dx:-1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy:-1},
+  ];
+
+  // ----------------------------
+  // State
+  // ----------------------------
+  const marks = new Map(); // nodeKey -> { owner, kind:"X"|"O" }
+  const walls = new Map(); // edgeKey -> owner (derived from O-O)
+
+  const alive = new Map(PLAYERS.map(p => [p.id, true]));
+  const started = new Map(PLAYERS.map(p => [p.id, false]));
+
+  let currentIdx = 0;
+  let movesLeft = MOVES_PER_TURN;
+  let message = "";
+  let gameOver = false;
+
+  const cursors = new Map(PLAYERS.map(p => [p.id, { ...startNodeFor(p.id) } ]));
+
+  function playerById(pid){ return PLAYERS.find(p => p.id === pid); }
+  function currentPlayerId(){ return PLAYERS[currentIdx].id; }
+  function currentPlayer(){ return playerById(currentPlayerId()); }
+  function activeCursor(){ return cursors.get(currentPlayerId()); }
+
+  // IA scheduler (anti-blocage)
+  let aiTimer = null;
+  function stopAI() {
+    if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; }
+  }
+
+  // ----------------------------
+  // Base helpers
+  // ----------------------------
+  function inBase(ix, iy, base) {
+    return ix >= base.ix && ix <= base.ix + base.cells && iy >= base.iy && iy <= base.iy + base.cells;
+  }
+  function isOwnBase(pid, ix, iy){
+    if (!alive.get(pid)) return false;
+    return inBase(ix, iy, baseRectFor(pid));
+  }
+  function baseOwnerAt(ix, iy) {
+    for (const p of PLAYERS) {
+      if (!alive.get(p.id)) continue;
+      if (inBase(ix, iy, baseRectFor(p.id))) return p.id;
+    }
+    return null;
+  }
+
+  // ----------------------------
+  // Walls
+  // ----------------------------
+  function edgeKey(a, b) {
+    const k1 = keyOf(a.ix, a.iy);
+    const k2 = keyOf(b.ix, b.iy);
+    return (k1 < k2) ? `${k1}|${k2}` : `${k2}|${k1}`;
+  }
+
+  function rebuildWallsFromCircles() {
+    walls.clear();
+    for (const [k, m] of marks.entries()) {
+      if (m.kind !== "O") continue;
+      const a = parseKey(k);
+      for (const d of neigh4) {
+        const b = { ix: a.ix + d.dx, iy: a.iy + d.dy };
+        if (b.ix < 0 || b.iy < 0 || b.ix >= NODES || b.iy >= NODES) continue;
+        const mb = marks.get(keyOf(b.ix, b.iy));
+        if (!mb) continue;
+        if (mb.kind === "O" && mb.owner === m.owner) {
+          walls.set(edgeKey(a, b), m.owner);
+        }
+      }
+    }
+  }
+
+  function isBlockedByEnemyWall(from, to, pid, dx, dy) {
+    const isOrth = (Math.abs(dx) + Math.abs(dy)) === 1;
+    if (!isOrth) return false;
+    const ek = edgeKey(from, to);
+    const owner = walls.get(ek);
+    if (!owner) return false;
+    return owner !== pid;
+  }
+
+  // ----------------------------
+  // Conduction model
+  // ----------------------------
+  function conductiveForPlayer(ix, iy, pid) {
+    const k = keyOf(ix, iy);
+    const m = marks.get(k);
+    if (m && m.owner === pid) return true;
+    if (!alive.get(pid)) return false;
+    return inBase(ix, iy, baseRectFor(pid));
+  }
+
+  function computePoweredSet(pid) {
+    const powered = new Set();
+    const q = [];
+    if (!alive.get(pid)) return powered;
+
+    const base = baseRectFor(pid);
+    for (let y = base.iy; y <= base.iy + base.cells; y++) {
+      for (let x = base.ix; x <= base.ix + base.cells; x++) {
+        const k = keyOf(x, y);
+        powered.add(k);
+        q.push({ix:x, iy:y});
+      }
+    }
+
+    while (q.length) {
+      const cur = q.shift();
+      for (const d of dirs8) {
+        const nx = cur.ix + d.dx;
+        const ny = cur.iy + d.dy;
+        if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+
+        if (!conductiveForPlayer(nx, ny, pid)) continue;
+        if (isBlockedByEnemyWall(cur, {ix:nx, iy:ny}, pid, d.dx, d.dy)) continue;
+
+        const nk = keyOf(nx, ny);
+        if (powered.has(nk)) continue;
+        powered.add(nk);
+        q.push({ix:nx, iy:ny});
+      }
+    }
+    return powered;
+  }
+
+  function hasAdjacentFriendlyOrBase(pid, ix, iy) {
+    if (!alive.get(pid)) return false;
+    const base = baseRectFor(pid);
+    for (const d of dirs8) {
+      const nx = ix + d.dx, ny = iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      if (inBase(nx, ny, base)) return true;
+      const m = marks.get(keyOf(nx, ny));
+      if (m && m.owner === pid) return true;
+    }
+    return false;
+  }
+
+  // ----------------------------
+  // Move legality
+  // ----------------------------
+  function canPlaceCross(pid, ix, iy) {
+    if (gameOver || !alive.get(pid)) return false;
+    const k = keyOf(ix, iy);
+    if (marks.has(k)) return false;
+    if (isOwnBase(pid, ix, iy)) return false;
+
+    // must remain powered after placement
+    marks.set(k, { owner: pid, kind:"X" });
+    rebuildWallsFromCircles();
+    const powered = computePoweredSet(pid);
+    const ok = powered.has(k);
+    marks.delete(k);
+    rebuildWallsFromCircles();
+    return ok;
+  }
+
+  function canCircle(pid, targetKey) {
+    if (gameOver || !alive.get(pid)) return false;
+    const t = marks.get(targetKey);
+    if (!t) return false;
+    if (t.owner === pid) return false;
+    if (t.kind !== "X") return false;
+
+    const {ix, iy} = parseKey(targetKey);
+    if (!hasAdjacentFriendlyOrBase(pid, ix, iy)) return false;
+
+    marks.set(targetKey, { owner: pid, kind:"O" });
+    rebuildWallsFromCircles();
+    const powered = computePoweredSet(pid);
+    const ok = powered.has(targetKey);
+    marks.set(targetKey, t);
+    rebuildWallsFromCircles();
+    return ok;
+  }
+
+  function placeCross(pid, ix, iy) {
+    const k = keyOf(ix, iy);
+    marks.set(k, { owner: pid, kind:"X" });
+    started.set(pid, true);
+    rebuildWallsFromCircles();
+    return { ix, iy, key:k, kind:"X" };
+  }
+
+  function placeCircle(pid, key) {
+    marks.set(key, { owner: pid, kind:"O" });
+    started.set(pid, true);
+    rebuildWallsFromCircles();
+    const {ix, iy} = parseKey(key);
+    return { ix, iy, key, kind:"O" };
+  }
+
+  // ----------------------------
+  // Elimination (base by CROSS only)
+  // ----------------------------
+  function transferEliminatedPieces(elimPid, winnerPid) {
+    for (const [k, m] of marks.entries()) {
+      if (m.owner === elimPid) {
+        marks.set(k, { owner: winnerPid, kind: m.kind });
+      }
+    }
+    rebuildWallsFromCircles();
+  }
+
+  function eliminatePlayer(elimPid, eliminatorPid, reason) {
+    if (!alive.get(elimPid)) return false;
+    alive.set(elimPid, false);                // base disappears (not alive => not drawn, not conductive)
+    transferEliminatedPieces(elimPid, eliminatorPid);
+
+    showBanner(
+      `ÉLIMINATION : ${elimPid}`,
+      `${elimPid} éliminé par ${eliminatorPid} — ${reason}`,
+      playerById(eliminatorPid).color
+    );
+    return true;
+  }
+
+  function checkVictory() {
+    let aliveCount = 0, last = null;
+    for (const p of PLAYERS) {
+      if (alive.get(p.id)) { aliveCount++; last = p.id; }
+    }
+    if (aliveCount <= 1) {
+      gameOver = true;
+      if (last) {
+        showBanner("C’EST GAGNÉ !", `Victoire : ${last}`, playerById(last).color);
+        message = `C’est gagné ! Victoire : ${last}`;
+      } else {
+        showBanner("FIN", "Fin de partie.", "#eee");
+        message = "Fin de partie.";
+      }
+      setBadges();
+      requestRedraw();
+      stopAI();
+      return true;
+    }
+    return false;
+  }
+
+  function afterMove(actorPid, moveInfo) {
+    if (gameOver) return;
+
+    // Elimination ONLY if X is placed on an enemy base node
+    if (moveInfo && moveInfo.kind === "X") {
+      const owner = baseOwnerAt(moveInfo.ix, moveInfo.iy);
+      if (owner && owner !== actorPid) {
+        eliminatePlayer(owner, actorPid, "croix posée dans la base");
+        if (checkVictory()) return;
+      }
+    }
+
+    // No "coupure de courant" here (removed)
+    checkVictory();
+  }
+
+  // ----------------------------
+  // Turns / Scheduler
+  // ----------------------------
+  function nextAliveIndex(fromIdx) {
+    for (let i = 1; i <= PLAYERS.length; i++) {
+      const idx = (fromIdx + i) % PLAYERS.length;
+      if (alive.get(PLAYERS[idx].id)) return idx;
+    }
+    return fromIdx;
+  }
+
+  function endTurn(silent=false) {
+    if (gameOver) return;
+    stopAI();
+
+    currentIdx = nextAliveIndex(currentIdx);
+    movesLeft = MOVES_PER_TURN;
+    if (!silent) message = "";
+    setBadges();
+    requestRedraw();
+    maybeStartAITurn();
+  }
+
+  function maybeStartAITurn() {
+    if (gameOver) return;
+    const pid = currentPlayerId();
+    if (!alive.get(pid)) { endTurn(true); return; }
+    if (control.get(pid) === "AI") {
+      scheduleAITick(0);
+    }
+  }
+
+  function scheduleAITick(ms) {
+    stopAI();
+    aiTimer = setTimeout(aiTick, ms);
+  }
+
+  // ----------------------------
+  // Defensive AI
+  // ----------------------------
+  function getThreatInfo(defPid) {
+    // Menace = distance la plus courte entre une pièce ennemie et le centre de la base defPid
+    const c = baseCenter(defPid);
+    let bestD2 = Infinity;
+    let bestPos = null;
+
+    for (const [k, m] of marks.entries()) {
+      if (!alive.get(m.owner)) continue;
+      if (m.owner === defPid) continue;  // only enemy pieces
+      const pos = parseKey(k);
+      const d2 = dist2(pos, c);
+      if (d2 < bestD2) { bestD2 = d2; bestPos = pos; }
+    }
+
+    return { threatD2: bestD2, threatPos: bestPos, baseCenter: c };
+  }
+
+  function opponentTargetPoint(pid) {
+    // nearest alive enemy base center
+    const selfStart = startNodeFor(pid);
+    let best = null;
+    for (const p of PLAYERS) {
+      if (p.id === pid) continue;
+      if (!alive.get(p.id)) continue;
+      const center = baseCenter(p.id);
+      if (!best || dist2(selfStart, center) < dist2(selfStart, best)) best = center;
+    }
+    return best || { ix: Math.floor(NODES/2), iy: Math.floor(NODES/2) };
+  }
+
+  function generateAICandidates(pid) {
+    const powered = computePoweredSet(pid);
+
+    const circles = [];
+    for (const [k, m] of marks.entries()) {
+      if (!alive.get(m.owner)) continue;
+      if (m.kind === "X" && m.owner !== pid) {
+        if (canCircle(pid, k)) circles.push({ type:"CIRCLE", key:k });
+      }
+    }
+
+    const crosses = [];
+    const seen = new Set();
+    for (const pk of powered) {
+      const a = parseKey(pk);
+      for (const d of dirs8) {
+        const nx = a.ix + d.dx, ny = a.iy + d.dy;
+        if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+        const kk = keyOf(nx, ny);
+        if (seen.has(kk)) continue;
+        seen.add(kk);
+        if (marks.has(kk)) continue;
+        if (!canPlaceCross(pid, nx, ny)) continue;
+        crosses.push({ type:"CROSS", ix:nx, iy:ny });
+      }
+    }
+
+    return { circles, crosses };
+  }
+
+
+  function hasOrthAdjacentOwnMark(pid, ix, iy){
+    for (const d of neigh4){
+      const nx = ix + d.dx, ny = iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      const m = marks.get(keyOf(nx, ny));
+      if (m && m.owner === pid) return true;
+    }
+    return false;
+  }
+  function diagonalPreferenceBonus(ix, iy){
+    // Motif en diagonale (damier) : évite les alignements qui facilitent la formation de murs adverses
+    return (((ix + iy) & 1) === 0) ? 9000 : 0;
+  }
+  function scoreMove(pid, mv, mode, threat) {
+    // NOTE: "mode" et "threat" ignorés volontairement (NO DEFENSE)
+    // priorité absolue: capture immédiate de base via CROIX
+    if (mv.type === "CROSS") {
+      const owner = baseOwnerAt(mv.ix, mv.iy);
+      if (owner && owner !== pid) return 1_000_000_000;
+    }
+    const myC = threat.baseCenter;
+    const tgt = opponentTargetPoint(pid);
+
+    if (mode === "DEFENSE") {
+      // Défense : privilégier actions proches de sa base, surtout côté menace
+      if (mv.type === "CIRCLE") {
+        const pos = parseKey(mv.key);
+        const nearBase = dist2(pos, myC);
+        const towardThreat = threat.threatPos ? dist2(pos, threat.threatPos) : 999999;
+
+        // voler près base est très fort
+        let s = 200_000;
+        s += (nearBase <= SHIELD_RADIUS2) ? 90_000 : 0;
+        s += (nearBase <= DEFENSE_RADIUS2) ? 40_000 : 0;
+
+        // bonus si le vol est près de la menace (pour casser une infiltration)
+        s += (towardThreat <= 16) ? 30_000 : 0; // 4^2
+
+        // un petit biais pour rester "compact"
+        s -= nearBase * 6;
+        return s;
+      }
+
+      if (mv.type === "CROSS") {
+        const pos = { ix: mv.ix, iy: mv.iy };
+        const nearBase = dist2(pos, myC);
+        const towardThreat = threat.threatPos ? dist2(pos, threat.threatPos) : 999999;
+
+        // En défense : on NE perd PAS de temps à "encercler" la base.
+        // On place plutôt des croix dans l'axe de la menace (ou vers l'extérieur), et en diagonale (damier),
+        // en évitant les alignements orthogonaux qui favorisent la formation de murs adverses.
+        let s = 110_000;
+
+        // priorité : casser l'infiltration (se rapprocher de la menace), pas coller à la base
+        s += (towardThreat <= 25) ? 70_000 : 0;   // 5^2
+        s += (towardThreat <= 9)  ? 55_000 : 0;   // 3^2
+
+        // forte pénalité : croix trop proches de la base en mode défense (le "ring" est contre-productif)
+        if (nearBase <= SHIELD_RADIUS2) s -= 120_000;
+        else if (nearBase <= DEFENSE_RADIUS2) s -= 35_000;
+
+        // pattern diagonal (par défaut)
+        s += diagonalPreferenceBonus(mv.ix, mv.iy);
+
+        // évite les lignes (adjacence orthogonale à ses propres marques)
+        if (hasOrthAdjacentOwnMark(pid, mv.ix, mv.iy)) s -= 24_000;
+
+        // léger biais : ne pas s'éloigner infiniment (mais bien moins que l'ancien "bouclier")
+        s -= nearBase * 6;
+
+        return s;
+      }
+    }
+
+    // Attaque (mode normal)
+    if (mv.type === "CIRCLE") {
+      const pos = parseKey(mv.key);
+      // voler est fort, surtout si près de la base adverse (agressif)
+      const d = dist2(pos, tgt);
+      return 160_000 - d * 7;
+    }
+
+    if (mv.type === "CROSS") {
+      const pos = { ix: mv.ix, iy: mv.iy };
+      const d = dist2(pos, tgt);
+      let s = 80_000 - d * 7;
+      s += diagonalPreferenceBonus(mv.ix, mv.iy);
+      if (hasOrthAdjacentOwnMark(pid, mv.ix, mv.iy)) s -= 18_000;
+      return s;
+    }
+
+    return -Infinity;
+  }
+const expertAIState = new Map(); // pid -> rng
+
+function assignExpertStyles() {
+  const styles = ['STRATEGY_A', 'STRATEGY_B', 'STRATEGY_C'];
+  const ids = PLAYERS.map(p => p.id).filter(pid => control.get(pid) === 'AI');
+  for (let i = 0; i < ids.length; i++) {
+    expertStyles.set(ids[i], styles[i % styles.length]);
+  }
+}
+
+function ensureExpertState(pid) {
+  if (!expertAIState.has(pid)) {
+    const seed = Date.now() ^ pid.charCodeAt(0);
+    let x = seed | 0;
+    const rng = () => {
+      x ^= x << 13; x |= 0;
+      x ^= x >>> 17;
+      x ^= x << 5; x |= 0;
+      return (x >>> 0) / 4294967296;
+    };
+    expertAIState.set(pid, { rng });
+  }
+  return expertAIState.get(pid);
+}
+function bestAttackTarget(pid, poweredSet, st) {
+  let best = null;
+  let bestScore = -Infinity;
+
+  for (const [k, m] of marks.entries()) {
+    if (!alive.get(m.owner)) continue;
+    if (m.owner === pid) continue;
+    if (m.kind !== "X") continue;
+
+    const { ix, iy } = parseKey(k);
+
+    // lien direct possible ?
+    let adj = false;
+    for (const d of dirs8) {
+      const nx = ix + d.dx, ny = iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      if (poweredSet.has(keyOf(nx, ny))) {
+        adj = true;
+        break;
+      }
+    }
+    if (!adj) continue;
+
+    const bc = baseCenter(pid);
+    const d = Math.max(Math.abs(ix - bc.ix), Math.abs(iy - bc.iy));
+
+    let s = 100_000 - d * 3000;
+    s += (st.rng() - 0.5) * 2000;
+
+    if (s > bestScore) {
+      bestScore = s;
+      best = { ix, iy };
+    }
+  }
+
+  return best;
+}
+
+function pickAIMove(pid) {
+  const st = ensureExpertState(pid);
+
+  const powered = computePoweredSet(pid);
+  const { circles, crosses } = generateAICandidates(pid);
+
+  const actions = [];
+  for (const mv of crosses) actions.push(mv);
+  for (const mv of circles) actions.push(mv);
+
+  if (!actions.length) return { mv:null, mode:"ATTACK", threat:null };
+
+  // 👉 NOUVEAU : choix de cible opportuniste (base OU croix)
+  const target = bestAttackTarget(pid, powered, st);
+
+  let best = null;
+  let bestS = -Infinity;
+
+  for (const mv of actions) {
+    let s = 0;
+
+    if (mv.type === "CROSS") {
+      const pos = { ix: mv.ix, iy: mv.iy };
+
+      let tx, ty;
+      if (target) {
+        tx = target.ix;
+        ty = target.iy;
+      } else {
+        tx = Math.floor(NODES / 2);
+        ty = Math.floor(NODES / 2);
+      }
+
+      const d = Math.max(Math.abs(pos.ix - tx), Math.abs(pos.iy - ty));
+      s = 100000 - d * 6000;
+
+      // bonus diagonale (structure naturelle)
+      if (Math.abs(pos.ix - tx) === 1 && Math.abs(pos.iy - ty) === 1) {
+        s += 4000;
+      }
+
+      // évite les lignes orthogonales faciles à couper
+      if (hasOrthAdjacentOwnMark(pid, pos.ix, pos.iy)) {
+        s -= 8000;
+      }
+    }
+
+    if (mv.type === "CIRCLE") {
+      const pos = parseKey(mv.key);
+      let d = 9999;
+      if (target) d = Math.max(Math.abs(pos.ix - target.ix), Math.abs(pos.iy - target.iy));
+
+      // ronds UNIQUEMENT si utiles pour couper
+      s = 50000 - d * 7000;
+    }
+
+    // bruit léger pour éviter les miroirs IA
+    s += (st.rng() - 0.5) * 3000;
+
+    if (s > bestS) {
+      bestS = s;
+      best = mv;
+    }
+  }
+
+  return { mv: best, mode:"ATTACK", threat: null };
+}
+
+  function aiTick() {
+    aiTimer = null;
+    if (gameOver) return;
+
+    const pid = currentPlayerId();
+    if (!alive.get(pid)) { endTurn(true); return; }
+    if (control.get(pid) !== "AI") return;
+    if (movesLeft <= 0) { endTurn(true); return; }
+
+    const pick = pickAIMove(pid);
+    const mv = pick.mv;
+
+    if (!mv) {
+      message = `IA ${pid} : aucun coup possible, fin de tour.`;
+      setBadges();
+      requestRedraw();
+      endTurn(true);
+      return;
+    }
+
+    let moveInfo = null;
+    if (mv.type === "CIRCLE") moveInfo = placeCircle(pid, mv.key);
+    else moveInfo = placeCross(pid, mv.ix, mv.iy);
+
+    movesLeft--;
+    afterMove(pid, moveInfo);
+
+    message = (pick.mode === "DEFENSE")
+      ? `IA ${pid} (défense)`
+      : `IA ${pid} (attaque)`;
+
+    setBadges();
+    requestRedraw();
+
+    if (gameOver) return;
+
+    if (movesLeft <= 0) {
+      endTurn(true);
+      return;
+    }
+
+    scheduleAITick(90);
+  }
+
+  // ----------------------------
+  // Human move
+  // ----------------------------
+  function validateMoveHuman() {
+    if (gameOver) return;
+
+    const pid = currentPlayerId();
+    if (!alive.get(pid)) { endTurn(true); return; }
+    if (control.get(pid) !== "HUMAN") return;
+    if (movesLeft <= 0) { endTurn(true); return; }
+
+    const cur = activeCursor();
+    const k = keyOf(cur.ix, cur.iy);
+    const existing = marks.get(k);
+
+    let moveInfo = null;
+
+    if (!existing) {
+      if (!canPlaceCross(pid, cur.ix, cur.iy)) {
+        message = isOwnBase(pid, cur.ix, cur.iy)
+          ? "Interdit : pas de croix dans ta base."
+          : "Coup refusé : doit rester alimenté (connecté à ta base).";
+        setBadges();
+        requestRedraw();
+        return;
+      }
+      moveInfo = placeCross(pid, cur.ix, cur.iy);
+    } else if (existing.owner !== pid && existing.kind === "X") {
+      if (!canCircle(pid, k)) {
+        message = "Rond interdit : adjacency base/pièce + rester alimenté.";
+        setBadges();
+        requestRedraw();
+        return;
+      }
+      moveInfo = placeCircle(pid, k);
+    } else {
+      message = "Action impossible ici.";
+      setBadges();
+      requestRedraw();
+      return;
+    }
+
+    movesLeft--;
+    afterMove(pid, moveInfo);
+
+    message = "";
+    setBadges();
+    requestRedraw();
+
+    if (gameOver) return;
+    if (movesLeft <= 0) endTurn(true);
+  }
+
+  // ----------------------------
+  // UI
+  // ----------------------------
+  function setBadges() {
+    const p = currentPlayer();
+    document.getElementById("turn").textContent = `Joueur: ${p.id}`;
+    document.getElementById("moves").textContent = `Coups restants: ${movesLeft}`;
+    renderPlayersRow();
+    renderStatus();
+  }
+  function renderPlayersRow() {
+    const row = document.getElementById("playersRow");
+    row.innerHTML = "";
+
+    for (const p of PLAYERS) {
+      const chip = document.createElement("div");
+      chip.className = "pchip";
+      chip.style.opacity = alive.get(p.id) ? "1" : "0.35";
+      chip.style.borderColor = (p.id === currentPlayerId()) ? p.color : "#333";
+      chip.style.boxShadow = (p.id === currentPlayerId()) ? `0 0 0 2px ${p.color}33 inset` : "none";
+
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = p.color;
+
+      const label = document.createElement("span");
+      const st = alive.get(p.id) ? "EN JEU" : "ÉLIMINÉ";
+      label.textContent = `${p.name} — ${st}`;
+
+      const sel = document.createElement("select");
+      sel.innerHTML = `<option value="HUMAN">Humain</option><option value="AI">IA</option>`;
+      sel.value = control.get(p.id);
+      sel.addEventListener("change", () => {
+        control.set(p.id, sel.value);
+        stopAI();
+        setBadges();
+        requestRedraw();
+        maybeStartAITurn();
+      });
+
+      chip.appendChild(dot);
+      chip.appendChild(label);
+      chip.appendChild(sel);
+      row.appendChild(chip);
+    }
+  }
+
+  function renderStatus() {
+    const pid = currentPlayerId();
+    if (gameOver) {
+      document.getElementById("status").innerHTML = `<span class="ok">${message}</span>`;
+      return;
+    }
+    if (control.get(pid) === "AI") {
+      document.getElementById("status").innerHTML = `<span class="warn">IA ${pid} joue… ${message ? "— " + message : ""}</span>`;
+      return;
+    }
+    if (message) {
+      document.getElementById("status").innerHTML = `<span class="warn">${message}</span>`;
+      return;
+    }
+    document.getElementById("status").innerHTML = `<span class="ok">À toi de jouer.</span>`;
+  }
+
+  // ----------------------------
+  // Drawing
+  // ----------------------------
+  let rafPending = false;
+  function requestRedraw() {
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(() => {
+      rafPending = false;
+      redraw();
+    });
+  }
+
+  function drawGrid() {
+    ctx.save();
+    ctx.clearRect(0, 0, displayW, displayH);
+    ctx.fillStyle = boardBg;
+    ctx.fillRect(0, 0, displayW, displayH);
+
+    ctx.strokeStyle = "#1f1f1f";
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= GRID_CELLS; i++) {
+      const x = MARGIN_PX + i * CELL_PX;
+      ctx.beginPath(); ctx.moveTo(x, MARGIN_PX); ctx.lineTo(x, MARGIN_PX + GRID_CELLS * CELL_PX); ctx.stroke();
+      const y = MARGIN_PX + i * CELL_PX;
+      ctx.beginPath(); ctx.moveTo(MARGIN_PX, y); ctx.lineTo(MARGIN_PX + GRID_CELLS * CELL_PX, y); ctx.stroke();
+    }
+
+    ctx.fillStyle = "#2e2e2e";
+    for (let y = 0; y < NODES; y++) for (let x = 0; x < NODES; x++) {
+      const p = nodeToPx(x, y);
+      ctx.beginPath(); ctx.arc(p.x, p.y, 1.1, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawBase(pid) {
+    if (!alive.get(pid)) return;
+    const p = playerById(pid);
+    const base = baseRectFor(pid);
+    const tl = nodeToPx(base.ix, base.iy);
+    const br = nodeToPx(base.ix + base.cells, base.iy + base.cells);
+
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = p.color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+
+    ctx.fillStyle = p.color;
+    ctx.font = "bold 12px system-ui, Arial";
+    ctx.fillText(`Base ${pid}`, tl.x + 6, tl.y + 16);
+    ctx.restore();
+  }
+
+  function drawCircuitGlow(pid, poweredSet) {
+    const p = playerById(pid);
+    for (const pass of [0, 1]) {
+      ctx.save();
+      ctx.strokeStyle = p.color;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      if (pass === 0) { ctx.globalAlpha = HALO_ALPHA_WIDE; ctx.lineWidth = HALO_WIDE; }
+      else { ctx.globalAlpha = HALO_ALPHA_THIN; ctx.lineWidth = HALO_THIN; }
+
+      for (const k of poweredSet) {
+        const a = parseKey(k);
+        for (const d of dirs8) {
+          const b = { ix: a.ix + d.dx, iy: a.iy + d.dy };
+          if (b.ix < 0 || b.iy < 0 || b.ix >= NODES || b.iy >= NODES) continue;
+          const nk = keyOf(b.ix, b.iy);
+          if (!poweredSet.has(nk)) continue;
+          if (isBlockedByEnemyWall(a, b, pid, d.dx, d.dy)) continue;
+          if (k >= nk) continue;
+
+          const p1 = nodeToPx(a.ix, a.iy);
+          const p2 = nodeToPx(b.ix, b.iy);
+          ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawWall(edgeK, ownerPid, poweredOwnerSet) {
+    const owner = playerById(ownerPid);
+    const [k1, k2] = edgeK.split("|");
+    const a = parseKey(k1), b = parseKey(k2);
+    const p1 = nodeToPx(a.ix, a.iy);
+    const p2 = nodeToPx(b.ix, b.iy);
+    const powered = poweredOwnerSet.has(k1) && poweredOwnerSet.has(k2);
+
+    ctx.save();
+    ctx.strokeStyle = owner.color;
+    ctx.lineCap = "round";
+    ctx.globalAlpha = powered ? 0.25 : 0.18;
+    ctx.lineWidth = powered ? 13 : 11;
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+
+    ctx.globalAlpha = powered ? 0.98 : 0.88;
+    ctx.lineWidth = powered ? 7 : 5.5;
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawCross(ix, iy, color, powered=false) {
+    const p = nodeToPx(ix, iy);
+    const s = 6;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = powered ? 3.2 : 2.0;
+    ctx.beginPath();
+    ctx.moveTo(p.x - s, p.y - s); ctx.lineTo(p.x + s, p.y + s);
+    ctx.moveTo(p.x + s, p.y - s); ctx.lineTo(p.x - s, p.y + s);
+    ctx.stroke();
+    if (powered) {
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawCircle(ix, iy, color, powered=false) {
+    const p = nodeToPx(ix, iy);
+    ctx.save();
+    ctx.globalAlpha = powered ? 0.38 : 0.24;
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 9.6, 0, Math.PI*2); ctx.fill();
+
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = powered ? 3.0 : 1.9;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 9.6, 0, Math.PI*2); ctx.stroke();
+
+    if (powered) {
+      ctx.globalAlpha = 0.14;
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 13, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawCursor(pid, active=false) {
+    const p = playerById(pid);
+    const cur = cursors.get(pid);
+    const pos = nodeToPx(cur.ix, cur.iy);
+
+    ctx.save();
+    if (!active) {
+      ctx.strokeStyle = p.color;
+      ctx.globalAlpha = alive.get(pid) ? 0.28 : 0.10;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(pos.x, pos.y, 8.5, 0, Math.PI*2); ctx.stroke();
+      ctx.restore();
+      return;
+    }
+
+    const pidNow = currentPlayerId();
+    const kk = keyOf(cur.ix, cur.iy);
+    const existing = marks.get(kk);
+    let ok = false;
+    if (!existing) ok = canPlaceCross(pidNow, cur.ix, cur.iy);
+    else if (existing.owner !== pidNow && existing.kind === "X") ok = canCircle(pidNow, kk);
+
+    ctx.strokeStyle = ok ? "#9dffb6" : "#ff8a8a";
+    ctx.globalAlpha = 0.95;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 13, 0, Math.PI*2); ctx.stroke();
+
+    ctx.strokeStyle = p.color;
+    ctx.globalAlpha = 0.9;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 6.2, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+  }
+
+  function redraw() {
+    rebuildWallsFromCircles();
+    const powered = new Map();
+    for (const p of PLAYERS) powered.set(p.id, computePoweredSet(p.id));
+
+    drawGrid();
+    for (const p of PLAYERS) drawBase(p.id);
+
+    for (const p of PLAYERS) {
+      if (!alive.get(p.id)) continue;
+      if (!started.get(p.id)) continue;
+      drawCircuitGlow(p.id, powered.get(p.id));
+    }
+
+    for (const [ek, ownerPid] of walls.entries()) {
+      drawWall(ek, ownerPid, powered.get(ownerPid));
+    }
+
+    for (const [k, m] of marks.entries()) {
+      const {ix, iy} = parseKey(k);
+      const col = playerById(m.owner).color;
+      const isPow = powered.get(m.owner).has(k);
+      if (m.kind === "X") drawCross(ix, iy, col, isPow);
+      else drawCircle(ix, iy, col, isPow);
+    }
+
+    for (const p of PLAYERS) drawCursor(p.id, p.id === currentPlayerId());
+  }
+
+  // ----------------------------
+  // Inputs / Buttons
+  // ----------------------------
+  function onKey(e) {
+    const k = e.key.toLowerCase();
+    if (k === " ") e.preventDefault();
+    if (gameOver) return;
+
+    const pid = currentPlayerId();
+    if (!alive.get(pid)) { endTurn(true); return; }
+    if (control.get(pid) === "AI") return;
+
+    const cur = activeCursor();
+    if (k === "o") { cur.iy = clamp(cur.iy - 1, 0, NODES - 1); message=""; setBadges(); requestRedraw(); return; }
+    if (k === "l") { cur.iy = clamp(cur.iy + 1, 0, NODES - 1); message=""; setBadges(); requestRedraw(); return; }
+    if (k === "k") { cur.ix = clamp(cur.ix - 1, 0, NODES - 1); message=""; setBadges(); requestRedraw(); return; }
+    if (k === "m") { cur.ix = clamp(cur.ix + 1, 0, NODES - 1); message=""; setBadges(); requestRedraw(); return; }
+    if (k === " ") { validateMoveHuman(); return; }
+    if (k === "b") { toggleBoardBg(); return; }
+    if (k === "w") { endTurn(); return; }
+  }
+
+  document.getElementById("endturn").addEventListener("click", () => endTurn());
+  document.getElementById("reset").addEventListener("click", reset);
+  document.getElementById("togglebg").addEventListener("click", toggleBoardBg);
+  window.addEventListener("keydown", onKey);
+
+  // ----------------------------
+  // Mouse controls (snap cursor + click to validate)
+  // ----------------------------
+  canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  canvas.addEventListener("mousemove", (e) => {
+    if (gameOver) return;
+    const pid = currentPlayerId();
+    if (control.get(pid) === "AI") return;
+    if (!alive.get(pid)) return;
+
+    const n = mouseToNode(e.clientX, e.clientY);
+    const cur = cursors.get(pid);
+    cur.ix = n.ix;
+    cur.iy = n.iy;
+    message = "";
+    setBadges();
+    requestRedraw();
+  });
+
+  canvas.addEventListener("mousedown", (e) => {
+    if (gameOver) return;
+    const pid = currentPlayerId();
+    if (control.get(pid) === "AI") return;
+    if (!alive.get(pid)) return;
+
+    const n = mouseToNode(e.clientX, e.clientY);
+    const cur = cursors.get(pid);
+    cur.ix = n.ix;
+    cur.iy = n.iy;
+
+    if (e.button === 0) {          // clic gauche = valider (comme Espace)
+      validateMoveHuman();
+      return;
+    }
+    if (e.button === 2) {          // clic droit = fin de tour (comme W)
+      endTurn();
+      return;
+    }
+  });
+
+
+  // ----------------------------
+  // Reset
+  // ----------------------------
+  function reset() {
+    stopAI();
+
+    marks.clear();
+    walls.clear();
+    for (const p of PLAYERS) {
+      alive.set(p.id, true);
+      started.set(p.id, true); // tous démarrent avec une croix initiale
+      cursors.set(p.id, { ...startNodeFor(p.id) });
+    }
+
+    // croix initiales (une par joueur)
+    for (const p of PLAYERS) {
+      const s = startNodeFor(p.id);
+      marks.set(keyOf(s.ix, s.iy), { owner: p.id, kind:"X" });
+    }
+
+    rebuildWallsFromCircles();
+
+    currentIdx = 0;
+    movesLeft = MOVES_PER_TURN;
+    message = "";
+    gameOver = false;
+
+    assignExpertStyles();
+    buildPlayersRow()
+
+    setBadges();
+    requestRedraw();
+    maybeStartAITurn();
+  }
+
+  // Init
+  reset();
+})();
+</script>
+</body>
+</html>

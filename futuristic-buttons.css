@@ -1,0 +1,187 @@
+/* ================================
+   BOUTONS FUTURISTES - VOLT CLASH
+   ================================ */
+
+/* Import de la police Orbitron */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+/* Style principal des boutons */
+.futuristic-btn {
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  
+  /* Fond sombre et bordure */
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  
+  /* Dimensions et espacement */
+  padding: 12px 24px;
+  min-width: 120px;
+  
+  /* Texte */
+  color: #00ffff;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+  
+  /* Curseur et transition */
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Position relative pour les pseudo-éléments */
+  position: relative;
+  overflow: hidden;
+  
+  /* Effet de base */
+  box-shadow: 
+    0 0 20px rgba(0, 255, 255, 0.3),
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
+}
+
+/* Effet de survol (hover) */
+.futuristic-btn:hover {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-color: #00ffff;
+  color: #ffffff;
+  
+  /* Lueur accentuée au survol */
+  box-shadow: 
+    0 0 30px rgba(0, 255, 255, 0.6),
+    0 0 60px rgba(0, 255, 255, 0.4),
+    inset 0 0 30px rgba(0, 255, 255, 0.2);
+  
+  /* Légère augmentation de taille */
+  transform: translateY(-2px);
+}
+
+/* Effet de clic (active) */
+.futuristic-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 
+    0 0 15px rgba(0, 255, 255, 0.4),
+    inset 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+/* Effet de focus (accessibilité) */
+.futuristic-btn:focus {
+  outline: none;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 255, 0.8),
+    0 0 60px rgba(0, 255, 255, 0.4),
+    inset 0 0 30px rgba(0, 255, 255, 0.2);
+}
+
+/* Variante pour bouton principal */
+.futuristic-btn.primary {
+  background: linear-gradient(135deg, #00ffff 0%, #0088cc 100%);
+  color: #0a0a0a;
+  border-color: #00ffff;
+  
+  box-shadow: 
+    0 0 25px rgba(0, 255, 255, 0.5),
+    inset 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.futuristic-btn.primary:hover {
+  background: linear-gradient(135deg, #00ffff 0%, #00aaff 100%);
+  box-shadow: 
+    0 0 40px rgba(0, 255, 255, 0.8),
+    0 0 80px rgba(0, 255, 255, 0.4),
+    inset 0 0 25px rgba(255, 255, 255, 0.3);
+}
+
+/* Variante pour bouton danger */
+.futuristic-btn.danger {
+  background: linear-gradient(135deg, #0a0a0a 0%, #2e0a0a 100%);
+  border-color: #ff0040;
+  color: #ff0040;
+  
+  box-shadow: 
+    0 0 20px rgba(255, 0, 64, 0.3),
+    inset 0 0 20px rgba(255, 0, 64, 0.1);
+}
+
+.futuristic-btn.danger:hover {
+  background: linear-gradient(135deg, #2e0a0a 0%, #3e0a0a 100%);
+  box-shadow: 
+    0 0 30px rgba(255, 0, 64, 0.6),
+    0 0 60px rgba(255, 0, 64, 0.4),
+    inset 0 0 30px rgba(255, 0, 64, 0.2);
+}
+
+/* Variante pour bouton succès */
+.futuristic-btn.success {
+  background: linear-gradient(135deg, #0a0a0a 0%, #0a2e0a 100%);
+  border-color: #00ff88;
+  color: #00ff88;
+  
+  box-shadow: 
+    0 0 20px rgba(0, 255, 136, 0.3),
+    inset 0 0 20px rgba(0, 255, 136, 0.1);
+}
+
+.futuristic-btn.success:hover {
+  background: linear-gradient(135deg, #0a2e0a 0%, #0a3e0a 100%);
+  box-shadow: 
+    0 0 30px rgba(0, 255, 136, 0.6),
+    0 0 60px rgba(0, 255, 136, 0.4),
+    inset 0 0 30px rgba(0, 255, 136, 0.2);
+}
+
+/* Animation de pulsation subtile */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(0, 255, 255, 0.3),
+      inset 0 0 20px rgba(0, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 25px rgba(0, 255, 255, 0.4),
+      inset 0 0 25px rgba(0, 255, 255, 0.15);
+  }
+}
+
+/* Effet de pulsation pour les boutons importants */
+.futuristic-btn.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Conteneur pour les boutons */
+.button-container {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Boutons plus petits */
+.futuristic-btn.small {
+  font-size: 12px;
+  padding: 8px 16px;
+  min-width: 80px;
+}
+
+/* Boutons plus grands */
+.futuristic-btn.large {
+  font-size: 16px;
+  padding: 16px 32px;
+  min-width: 160px;
+}
+
+/* Effet désactivé */
+.futuristic-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.futuristic-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
