@@ -1,0 +1,4264 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <head>
+  <meta charset="UTF-8">
+  <title>Volt Clash</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Combat Électrique — V4 Final (30×30)</title>
+  <style>
+    /* ================================
+       BOUTONS FUTURISTES - VOLT CLASH
+       ================================ */
+
+    /* Style principal des boutons */
+    .futuristic-btn {
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      
+      /* Fond sombre et bordure */
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+      border: 2px solid #00ffff;
+      border-radius: 8px;
+      
+      /* Dimensions et espacement */
+      padding: 12px 24px;
+      min-width: 120px;
+      
+      /* Texte */
+      color: #00ffff;
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+      
+      /* Curseur et transition */
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      /* Position relative pour les pseudo-éléments */
+      position: relative;
+      overflow: hidden;
+      
+      /* Effet de base */
+      box-shadow: 
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 20px rgba(0, 255, 255, 0.1);
+    }
+
+    /* Effet de survol (hover) */
+    .futuristic-btn:disabled {
+      opacity: 0.5 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      transform: none !important;
+      box-shadow: 
+        0 0 10px rgba(0, 255, 255, 0.1),
+        inset 0 0 10px rgba(0, 255, 255, 0.05) !important;
+    }
+    
+    .futuristic-btn:disabled:hover {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%) !important;
+    }
+    
+    .futuristic-btn:hover {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-color: #00ffff;
+      color: #ffffff;
+      
+      /* Lueur accentuée au survol */
+      box-shadow: 
+        0 0 30px rgba(0, 255, 255, 0.6),
+        0 0 60px rgba(0, 255, 255, 0.4),
+        inset 0 0 30px rgba(0, 255, 255, 0.2);
+      
+      transform: translateY(-2px);
+    }
+
+    /* Effet de clic (active) */
+    .futuristic-btn:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 
+        0 0 15px rgba(0, 255, 255, 0.4),
+        inset 0 0 20px rgba(0, 255, 255, 0.3);
+    }
+
+    /* Variante pour bouton principal */
+    .futuristic-btn.primary {
+      background: linear-gradient(135deg, #00ffff 0%, #0088cc 100%);
+      color: #0a0a0a;
+      border-color: #00ffff;
+      
+      box-shadow: 
+        0 0 25px rgba(0, 255, 255, 0.5),
+        inset 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+
+    .futuristic-btn.primary:hover {
+      background: linear-gradient(135deg, #00ffff 0%, #00aaff 100%);
+      box-shadow: 
+        0 0 40px rgba(0, 255, 255, 0.8),
+        0 0 80px rgba(0, 255, 255, 0.4),
+        inset 0 0 25px rgba(255, 255, 255, 0.3);
+    }
+
+    /* Variante pour bouton danger */
+    .futuristic-btn.danger {
+      background: linear-gradient(135deg, #0a0a0a 0%, #2e0a0a 100%);
+      border-color: #ff0040;
+      color: #ff0040;
+      
+      box-shadow: 
+        0 0 20px rgba(255, 0, 64, 0.3),
+        inset 0 0 20px rgba(255, 0, 64, 0.1);
+    }
+
+    .futuristic-btn.danger:hover {
+      background: linear-gradient(135deg, #2e0a0a 0%, #3e0a0a 100%);
+      box-shadow: 
+        0 0 30px rgba(255, 0, 64, 0.6),
+        0 0 60px rgba(255, 0, 64, 0.4),
+        inset 0 0 30px rgba(255, 0, 64, 0.2);
+    }
+
+    /* Animation de pulsation subtile */
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 
+          0 0 20px rgba(0, 255, 255, 0.3),
+          inset 0 0 20px rgba(0, 255, 255, 0.1);
+      }
+      50% {
+        box-shadow: 
+          0 0 25px rgba(0, 255, 255, 0.4),
+          inset 0 0 25px rgba(0, 255, 255, 0.15);
+      }
+    }
+
+    /* Effet de pulsation pour les boutons importants */
+    .futuristic-btn.pulse {
+      animation: pulse 2s infinite;
+    }
+
+    /* Style par défaut pour tous les boutons */
+    button {
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* S'assurer que les boutons sans classe ont un style de base */
+    button:not(.futuristic-btn) {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+      border: 2px solid #00ffff;
+      border-radius: 8px;
+      padding: 12px 24px;
+      min-width: 120px;
+      color: #00ffff;
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+      box-shadow: 
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 20px rgba(0, 255, 255, 0.1);
+    }
+
+    button:not(.futuristic-btn):hover {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-color: #00ffff;
+      color: #ffffff;
+      box-shadow: 
+        0 0 30px rgba(0, 255, 255, 0.6),
+        0 0 60px rgba(0, 255, 255, 0.4),
+        inset 0 0 30px rgba(0, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    button:not(.futuristic-btn):active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 
+        0 0 15px rgba(0, 255, 255, 0.4),
+        inset 0 0 20px rgba(0, 255, 255, 0.3);
+    }
+    body { 
+      margin:0; 
+      background:#111; 
+      color:#eee; 
+      font-family:system-ui, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Centrer horizontalement */
+      min-height: 100vh;
+    }
+    .wrap { 
+      max-width: 1450px; 
+      margin: 0 auto; 
+      padding: 16px; 
+      width: 100%;
+      text-align: center; /* Centrer le contenu */
+    }
+    .top { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .panel { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .badge { padding:6px 10px; border:1px solid #333; border-radius:999px; background:#151515; font-size:14px; }
+    .note { color:#cfcfcf; font-size:14px; line-height:1.45; margin:10px 0 12px 0; }
+    
+    /* MODIFICATION ICI : On fixe la taille de la sheet pour qu'elle reste toujours grande */
+    .sheet { 
+      background:#0b0b0b; 
+      border:1px solid #333; 
+      border-radius: 10px; 
+      padding: 12px; 
+      position: relative; 
+      display: flex; /* Utiliser flex pour centrer le canvas */
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto; /* Centrer la sheet */
+      
+      /* Fixer la taille basée sur la grille 30x30 : 24*2 + 30*22 = 708px */
+      width: 708px;
+      height: 708px;
+    }
+
+    canvas { 
+      width: auto; 
+      max-width: 100%; 
+      height: auto; 
+      display: block; 
+      background:#0b0b0b; 
+      border-radius:8px; 
+      margin: 0 auto; /* Centrer horizontalement */
+    }
+    .help { 
+  margin-top:10px; 
+  color:#cfcfcf; 
+  font-size:13px; 
+  line-height:1.55; 
+}
+
+/* Styles pour la modale Options */
+.modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  margin: 5% auto;
+  padding: 0;
+  border: 2px solid #444;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 0 30px rgba(157, 78, 221, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid #444;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 13px 13px 0 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.modal-close:hover {
+  color: #ff9999;
+}
+
+.modal-body {
+  padding: 25px;
+}
+
+.option-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 1px solid #333;
+}
+
+.option-section:last-child {
+  margin-bottom: 0;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.shortcut-item {
+  color: #cfcfcf;
+  font-size: 13px;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 5px;
+  border: 1px solid #333;
+}
+
+.key {
+  color: #9d4edd;
+  font-weight: bold;
+  background: rgba(157, 78, 221, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Styles pour les inputs des joueurs */
+.player-input {
+  width: 100%;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #444;
+  border-radius: 8px;
+  color: #00ffff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 10;
+}
+
+.player-input:focus {
+  outline: none;
+  border-color: #9d4edd;
+  box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
+}
+
+.player-input::placeholder {
+  color: #666;
+  font-style: italic;
+}
+
+/* Styles pour le classement */
+.ranking-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: rgba(157, 78, 221, 0.1);
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: #cfcfcf;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.ranking-item:first-child {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #ffd700;
+}
+
+.ranking-item:nth-child(2) {
+  background: rgba(192, 192, 192, 0.2);
+  border-color: #c0c0c0;
+}
+
+.ranking-item:nth-child(3) {
+  background: rgba(205, 127, 50, 0.2);
+  border-color: #cd7f32;
+}
+
+.ranking-position {
+  font-weight: bold;
+  color: #9d4edd;
+  min-width: 30px;
+}
+
+.ranking-name {
+  flex: 1;
+  text-align: left;
+  margin: 0 15px;
+}
+
+.ranking-stats {
+  display: flex;
+  gap: 15px;
+  font-size: 12px;
+}
+
+.ranking-wins {
+  color: #9dffb6;
+  font-weight: bold;
+}
+
+.ranking-losses {
+  color: #ffcf7a;
+}
+
+.ranking-ratio {
+  color: #00ffff;
+  font-size: 11px;
+}
+    .warn { color:#ffcf7a; }
+    .ok { color:#9dffb6; }
+    code { background:#1b1b1b; padding:2px 6px; border-radius:6px; border:1px solid #2b2b2b; }
+
+    .players { 
+      display:flex; 
+      gap:10px; 
+      flex-wrap:wrap; 
+      align-items:center; 
+      justify-content: center; /* Centrer horizontalement */
+      margin: 10px 0;
+    }
+    .pchip { padding:6px 10px; border-radius:999px; border:1px solid #333; background:#151515; font-size:13px; display:flex; align-items:center; gap:8px; }
+    .dot { width:10px; height:10px; border-radius:999px; display:inline-block; }
+    select { background:#151515; color:#eee; border:1px solid #333; border-radius:8px; padding:4px 8px; }
+
+    /* --- TON NOUVEAU CODE CSS POUR LE MENU --- */
+    .menu-overlay {
+      position: absolute;
+      top: 12px; left: 12px; /* On s'aligne sur le padding de la .sheet */
+      right: 12px; bottom: 12px;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 100;
+      border-radius: 8px;
+    }
+
+    .glow-text {
+      font-family: 'Orbitron', sans-serif;
+      color: #00f2ff;
+      text-shadow: 0 0 20px #00f2ff;
+      font-size: 3.5rem;
+      margin-bottom: 30px;
+    }
+
+    .game-title-main {
+      font-family: 'Orbitron', sans-serif;
+      color: #00f2ff;
+      text-shadow: 0 0 20px #00f2ff;
+      font-size: 2.5rem;
+      margin: 15px 0;
+      text-align: center;
+    }
+
+    .menu-section { margin: 15px; text-align: center; }
+    .menu-section h3 { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #888; margin-bottom: 10px; }
+</style>
+  
+</head>
+<body>
+
+<!-- Canvas d'arrière-plan spatial -->
+<canvas id="starfield" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: #000; pointer-events: none;"></canvas>
+
+<!-- S'assurer que les menus sont au-dessus du canvas -->
+<div style="position: relative; z-index: 1;">
+  <!-- Badges joueurs cachés quand le menu est affiché -->
+  <div class="players" id="playersRow" style="display: none;"></div>
+  
+  <!-- Titre et contrôles cachés quand le menu est affiché -->
+  <div class="top" id="gameControls" style="display: none;">
+    <h2 class="game-title-main">VOLT CLASH</h2>
+    <div class="panel" style="justify-content: center;">
+      <button class="futuristic-btn danger small" id="reset">Réinitialiser</button>
+      <button class="futuristic-btn small" id="togglebg">Fond: Noir</button>
+      <button class="futuristic-btn small" id="toggleExpert">IA: Normal</button>
+      <button class="futuristic-btn small" id="menu">Menu</button>
+      <button class="futuristic-btn small" id="options-btn">⚙️ Options</button>
+    </div>
+    
+    <!-- Case options verticale côté droit -->
+    <div id="options-panel" style="display: none; position: fixed; top: 50%; right: 20px; transform: translateY(-50%); width: 250px; padding: 20px; background: rgba(0,0,0,0.95); border: 2px solid #444; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.7); z-index: 100;">
+      <div style="color: #9d4edd; font-weight: bold; margin-bottom: 15px; font-family: 'Orbitron'; text-align: center; font-size: 14px;">⚙️ OPTIONS</div>
+      
+      <!-- Section Musique -->
+      <div style="margin-bottom: 20px; padding: 15px; background: rgba(157, 78, 221, 0.1); border-radius: 8px; border: 1px solid #444;">
+        <div style="color: #9d4edd; font-weight: bold; margin-bottom: 10px; font-family: 'Orbitron'; text-align: center;">🎵 MUSIQUE</div>
+        <button id="panel-music-toggle" class="futuristic-btn" onclick="toggleMusic()" style="width: 100%; padding: 6px; font-size: 11px; margin-bottom: 10px;">🎵 ON</button>
+        <div style="text-align: center;">
+          <label style="color: #888; font-size: 11px;">Volume:</label>
+          <input type="range" id="panel-music-volume" min="0" max="100" value="30" style="width: 120px; margin: 5px 0; display: block;" onchange="updateMusicVolume(this.value)">
+          <span id="panel-volume-display" style="color: #00ffff; font-weight: bold; font-size: 12px;">30%</span>
+        </div>
+      </div>
+      
+      <!-- Section Sons -->
+      <div style="margin-bottom: 20px; padding: 15px; background: rgba(157, 78, 221, 0.1); border-radius: 8px; border: 1px solid #444;">
+        <div style="color: #9d4edd; font-weight: bold; margin-bottom: 10px; font-family: 'Orbitron'; text-align: center;">🔊 SONS</div>
+        <button id="panel-sounds-toggle" class="futuristic-btn" onclick="toggleSounds()" style="width: 100%; padding: 6px; font-size: 11px; margin-bottom: 10px;">🔊 ON</button>
+        <div style="text-align: center;">
+          <label style="color: #888; font-size: 11px;">Volume:</label>
+          <input type="range" id="panel-sounds-volume" min="0" max="100" value="50" style="width: 120px; margin: 5px 0; display: block;" onchange="updateSoundsVolume(this.value)">
+          <span id="panel-sounds-volume-display" style="color: #00ffff; font-weight: bold; font-size: 12px;">50%</span>
+        </div>
+      </div>
+      
+      <!-- Section Raccourcis -->
+      <div style="padding: 15px; background: rgba(157, 78, 221, 0.1); border-radius: 8px; border: 1px solid #444;">
+        <div style="color: #9d4edd; font-weight: bold; margin-bottom: 10px; font-family: 'Orbitron'; text-align: center;">⌨️ RACCOURCIS</div>
+        <div style="text-align: left; line-height: 1.8; font-size: 11px;">
+          <div><span style="color: #9d4edd; font-weight: bold;">O/L</span> : Haut/Bas</div>
+          <div><span style="color: #9d4edd; font-weight: bold;">K/M</span> : Gauche/Droite</div>
+          <div><span style="color: #9d4edd; font-weight: bold;">Espace</span> : Placer</div>
+          <div><span style="color: #9d4edd; font-weight: bold;">P</span> : Musique</div>
+          <div><span style="color: #9d4edd; font-weight: bold;">↑/↓</span> : Volume</div>
+          <div><span style="color: #9d4edd; font-weight: bold;">R</span> : Reset</div>
+          <div><span style="color: #9d4edd; font-weight: bold;">ESC</span> : Menu</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet">
+    <!-- Écran de saisie des pseudos -->
+<div id="player-names-screen" class="menu-overlay" style="display: none;">
+  <h1 class="glow-text">VOLT CLASH</h1>
+  
+  <div class="menu-section">
+    <p style="color: #888; font-family: Orbitron; margin-bottom: 20px;">SAISIR LES PSEUDOS</p>
+    
+    <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+      <div>
+        <label style="color: #9d4edd; font-family: Orbitron; font-size: 14px;">JOUEUR 1:</label>
+        <input type="text" id="player1-name" class="player-input" placeholder="Entrez votre pseudo" maxlength="15">
+      </div>
+      <div>
+        <label style="color: #9d4edd; font-family: Orbitron; font-size: 14px;">JOUEUR 2:</label>
+        <input type="text" id="player2-name" class="player-input" placeholder="Entrez votre pseudo" maxlength="15">
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; justify-content: center;">
+      <button class="futuristic-btn" onclick="startGameWithNames()">COMMENCER</button>
+      <button class="futuristic-btn" onclick="backToMenu()">RETOUR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Écran de classement -->
+<div id="ranking-screen" class="menu-overlay" style="display: none;">
+  <h1 class="glow-text">CLASSEMENT</h1>
+  
+  <div class="menu-section">
+    <p style="color: #888; font-family: Orbitron; margin-bottom: 20px;">TABLEAU DES SCORES</p>
+    
+    <div id="ranking-list" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid #444; max-height: 400px; overflow-y: auto;">
+      <!-- Le classement sera généré ici -->
+    </div>
+    
+    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+      <button class="futuristic-btn danger" onclick="clearRanking()">EFFACER</button>
+      <button class="futuristic-btn" onclick="backToMenu()">RETOUR</button>
+    </div>
+  </div>
+</div>
+
+    <div id="main-menu" class="menu-overlay">
+  <h1 class="glow-text">VOLT CLASH</h1>
+  
+  <div class="menu-section">
+    <p style="color: #888; font-family: Orbitron;">NOMBRE DE JOUEURS</p>
+    <button id="btn-2players" class="futuristic-btn" onclick="showPlayerNamesScreen()">2 JOUEURS</button>
+    <button id="btn-3players" class="futuristic-btn" onclick="setPlayerCount(3)">3 JOUEURS</button>
+    <button id="btn-4players" class="futuristic-btn" onclick="setPlayerCount(4)">4 JOUEURS</button>
+  </div>
+
+  <div class="menu-section">
+    <p style="color: #888; font-family: Orbitron;">MUSIQUE</p>
+    <button id="btn-music-toggle" class="futuristic-btn" onclick="toggleMusic()">🎵 MUSIQUE ON</button>
+    <div style="margin-top: 10px;">
+      <label style="color: #888; font-family: Orbitron; font-size: 12px;">VOLUME:</label>
+      <input type="range" id="music-volume" min="0" max="100" value="30" style="width: 100px; margin-left: 10px;" onchange="updateMusicVolume(this.value)">
+      <span id="volume-display" style="color: #00ffff; font-family: Orbitron; font-size: 12px; margin-left: 5px;">30%</span>
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <button class="futuristic-btn" onclick="showRankingScreen()">🏆 CLASSEMENT</button>
+  </div>
+
+  <button class="futuristic-btn primary pulse" onclick="startGame()">LANCER</button>
+</div>
+    <canvas id="c"></canvas>
+  </div>
+
+<!-- Fenêtre modale Options -->
+<div id="options-modal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 style="color: #00ffff; font-family: 'Orbitron', sans-serif; margin: 0;">⚙️ OPTIONS</h2>
+      <button class="modal-close" onclick="closeOptions()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Section Musique -->
+      <div class="option-section">
+        <h3 style="color: #9d4edd; font-family: 'Orbitron', sans-serif; margin-bottom: 15px;">🎵 MUSIQUE</h3>
+        <div style="margin-bottom: 10px;">
+          <button id="modal-music-toggle" class="futuristic-btn" onclick="toggleMusic()">🎵 MUSIQUE ON</button>
+        </div>
+        <div>
+          <label style="color: #888; font-family: Orbitron; font-size: 14px;">VOLUME:</label>
+          <input type="range" id="modal-music-volume" min="0" max="100" value="30" style="width: 120px; margin-left: 10px;" onchange="updateMusicVolume(this.value)">
+          <span id="modal-volume-display" style="color: #00ffff; font-family: Orbitron; font-size: 14px; margin-left: 5px;">30%</span>
+        </div>
+      </div>
+      
+      <!-- Section Sons -->
+      <div class="option-section">
+        <h3 style="color: #9d4edd; font-family: 'Orbitron', sans-serif; margin-bottom: 15px;">🔊 SONS</h3>
+        <div style="margin-bottom: 10px;">
+          <button id="modal-sounds-toggle" class="futuristic-btn" onclick="toggleSounds()">🔊 SONS ON</button>
+        </div>
+        <div>
+          <label style="color: #888; font-family: Orbitron; font-size: 14px;">VOLUME:</label>
+          <input type="range" id="modal-sounds-volume" min="0" max="100" value="50" style="width: 120px; margin-left: 10px;" onchange="updateSoundsVolume(this.value)">
+          <span id="modal-sounds-volume-display" style="color: #00ffff; font-family: Orbitron; font-size: 14px; margin-left: 5px;">50%</span>
+        </div>
+      </div>
+      
+      <!-- Section Raccourcis -->
+      <div class="option-section">
+        <h3 style="color: #9d4edd; font-family: 'Orbitron', sans-serif; margin-bottom: 15px;">⌨️ RACCOURCIS CLAVIER</h3>
+        <div class="shortcuts-grid">
+          <div class="shortcut-item">
+            <span class="key">O/L</span> : Haut/Bas
+          </div>
+          <div class="shortcut-item">
+            <span class="key">K/M</span> : Gauche/Droite
+          </div>
+          <div class="shortcut-item">
+            <span class="key">Espace</span> : Placer croix
+          </div>
+          <div class="shortcut-item">
+            <span class="key">P</span> : Musique ON/OFF
+          </div>
+          <div class="shortcut-item">
+            <span class="key">↑/↓</span> : Volume musique
+          </div>
+          <div class="shortcut-item">
+            <span class="key">R</span> : Réinitialiser
+          </div>
+          <div class="shortcut-item">
+            <span class="key">ESC</span> : Menu
+          </div>
+          <div class="shortcut-item">
+            <span class="key">B</span> : Toggle fond
+          </div>
+          <div class="shortcut-item">
+            <span class="key">X</span> : Mode expert
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="help" id="status"></div>
+</div>
+
+<script>
+// Variables globales définies en dehors de l'IIFE
+let GRID_CELLS = 20;
+let NODES = 21;
+let PLAYER_COUNT = 4;
+let displayW, displayH;
+
+(() => {
+  // ----------------------------
+  // Config
+  // ----------------------------
+  // GRID_CELLS, NODES, PLAYER_COUNT sont déjà définies globalement
+  const BASE_CELLS = 2;          // base = 3x3 nœuds
+  const MOVES_PER_TURN = 5;
+
+  const CELL_PX = 22;
+  const MARGIN_PX = 24;
+
+  // Halo plus intense
+  const HALO_WIDE = 11;
+  const HALO_THIN = 3.4;
+  const HALO_ALPHA_WIDE = 0.22;
+  const HALO_ALPHA_THIN = 0.38;
+
+  // IA: seuil de "menace" (défense si ennemi trop proche de la base)
+  const DEFENSE_RADIUS = 7;              // en nœuds (Manhattan approximé via dist2)
+  const DEFENSE_RADIUS2 = DEFENSE_RADIUS * DEFENSE_RADIUS;
+
+  // IA: zone bouclier autour de base (nœuds proches à privilégier)
+  const SHIELD_RADIUS = 5;
+  const SHIELD_RADIUS2 = SHIELD_RADIUS * SHIELD_RADIUS;
+
+  const PLAYERS = [
+    { id:"A", color:"#ff5d5d", name:"A (Rouge)" }, // TL
+    { id:"B", color:"#3ddc84", name:"B (Vert)"  }, // BR
+    { id:"C", color:"#ffd84d", name:"C (Jaune)" }, // TR
+    { id:"D", color:"#4da6ff", name:"D (Bleu)"  }, // BL
+  ];
+
+  // Par défaut : 1 humain + 3 IA
+  const control = new Map([
+    ["A", "HUMAN"],
+    ["B", "AI"],
+    ["C", "AI"],
+    ["D", "AI"],
+  ]);
+
+
+
+// ----------------------------
+// Mode IA Expert (Beam Search) — toggle
+// ----------------------------
+let expertMode = false; // false = IA normale (scoring simple), true = Beam Search
+const AI_BEAM = {
+  depth: 3,           // lookahead (coups simulés du même joueur dans son tour)
+  beamWidth: 18,      // K
+  maxBranch: 50,      // top-N coups évalués par niveau
+  wAttack: 1.0,
+  wDefense: 0.25,
+  tieNoise: 0.02      // brise les égalités
+};
+// ----------------------------
+// IA profiles (styles différents)
+// ----------------------------
+// Chaque IA reçoit un profil distinct au reset, pour éviter les schémas identiques en début de partie.
+// Les profils influencent : choix de cible, appétence CROSS vs CIRCLE, et mélange diagonale/ligne.
+const AI_PROFILE_DEFS = {
+  RAIDER:    { name:"RAIDER",    circleBiasAttack: 0.08, circleBiasDefense: 0.55, diagWeight: 0.55, lineWeight: 1.10, targetMode: "HUMAN_FIRST", noise: 1400 },
+  BALANCED:  { name:"BALANCED",  circleBiasAttack: 0.12, circleBiasDefense: 0.62, diagWeight: 0.70, lineWeight: 1.00, targetMode: "NEAREST",     noise: 1200 },
+  SWARM:     { name:"SWARM",     circleBiasAttack: 0.10, circleBiasDefense: 0.58, diagWeight: 0.85, lineWeight: 0.92, targetMode: "WEAKEST",     noise: 1700 },
+  SIEGER:    { name:"SIEGER",    circleBiasAttack: 0.06, circleBiasDefense: 0.50, diagWeight: 0.45, lineWeight: 1.20, targetMode: "RANDOM_ROTATE", noise: 1500 },
+};
+const aiProfile = new Map();          // pid -> profile object
+const aiTargetOverride = new Map();   // pid -> targetPid (pour RANDOM_ROTATE)
+
+function shuffle(arr){
+  for (let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function assignAIProfiles(){
+  const pool = shuffle(Object.keys(AI_PROFILE_DEFS).slice());
+  for (const p of PLAYERS){
+    if (control.get(p.id) !== "AI") continue;
+    const key = pool.length ? pool.pop() : "BALANCED";
+    aiProfile.set(p.id, AI_PROFILE_DEFS[key]);
+    aiTargetOverride.delete(p.id);
+  }
+  // Si plusieurs IA et pool insuffisant, on mélange quand même via noise/target rotate.
+}
+
+function marksCount(pid){
+  let c = 0;
+  for (const m of marks.values()) if (m.owner === pid) c++;
+  return c;
+}
+
+function chooseTargetPid(pid, prof){
+  const aliveEnemies = PLAYERS.map(p => p.id).filter(id => id !== pid && alive.get(id));
+  if (!aliveEnemies.length) return null;
+
+  if (prof.targetMode === "HUMAN_FIRST"){
+    if (alive.get("A") && pid !== "A") return "A";
+    // fallback nearest
+  }
+
+  if (prof.targetMode === "WEAKEST"){
+    let best = null, bestVal = Infinity;
+    for (const eid of aliveEnemies){
+      const v = marksCount(eid); // moins de présence => plus faible
+      if (v < bestVal) { bestVal = v; best = eid; }
+    }
+    return best || aliveEnemies[0];
+  }
+
+  if (prof.targetMode === "RANDOM_ROTATE"){
+    // Garde une cible quelques tours : évite que toutes les IA convergent pareil
+    const keep = aiTargetOverride.get(pid);
+    if (keep && alive.get(keep)) return keep;
+    const pick = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+    aiTargetOverride.set(pid, pick);
+    return pick;
+  }
+
+  // NEAREST (par défaut)
+  const selfStart = startNodeFor(pid);
+  let best = null, bestD2 = Infinity;
+  for (const eid of aliveEnemies){
+    const c = baseCenter(eid);
+    const d2 = dist2(selfStart, c);
+    if (d2 < bestD2) { bestD2 = d2; best = eid; }
+  }
+  return best || aliveEnemies[0];
+}
+
+function opponentTargetPoint(pid, prof) {
+  const p = prof || aiProfile.get(pid) || AI_PROFILE_DEFS.BALANCED;
+  const tPid = chooseTargetPid(pid, p);
+  return tPid ? baseCenter(tPid) : { ix: Math.floor(NODES/2), iy: Math.floor(NODES/2) };
+}
+
+  
+  // ----------------------------
+  // Plateau background (toggle noir/blanc)
+  // ----------------------------
+  let boardBg = "#0b0b0b"; // fond actuel du plateau
+  function toggleBoardBg(){
+    boardBg = (boardBg === "#0b0b0b") ? "#ffffff" : "#0b0b0b";
+    updateBgButton();
+    const exBtn = document.getElementById('toggleExpert');
+    if (exBtn) exBtn.textContent = expertMode ? 'IA: Expert' : 'IA: Normal';
+    requestRedraw();
+  }
+  function updateBgButton(){
+    const btn = document.getElementById("togglebg");
+    if (!btn) return;
+    btn.textContent = (boardBg === "#0b0b0b") ? "Fond: Noir" : "Fond: Blanc";
+  }
+  // Toggle Expert AI (Beam Search)
+  function toggleExpertMode(){
+    expertMode = !expertMode;
+    const btn = document.getElementById("toggleExpert");
+    if (btn) btn.textContent = expertMode ? "IA: Expert" : "IA: Normal";
+    message = expertMode ? "Mode Expert (Beam) activé." : "Mode Normal activé.";
+    setBadges();
+    requestRedraw();
+    // si c'est au tour d'une IA, relancer proprement
+    if (!gameOver && control.get(currentPlayerId()) === "AI") scheduleAITick(110);
+  }
+
+
+// ----------------------------
+  // Configuration du jeu
+  // ----------------------------
+  function setPlayerCount(count) {
+    PLAYER_COUNT = count;
+    
+    // Adapter la taille de la grille
+    if (count === 2) {
+      GRID_CELLS = 20;  // Grille 20x20 pour 2 joueurs
+    } else {
+      GRID_CELLS = 30;  // Grille 30x30 pour 4 joueurs
+    }
+    NODES = GRID_CELLS + 1;
+    
+    // Gérer le grisé des boutons (mais permettre de cliquer pour changer d'avis)
+    const btn2Players = document.getElementById('btn-2players');
+    const btn4Players = document.getElementById('btn-4players');
+    
+    if (count === 2) {
+      // Mode 2 joueurs : griser le bouton 4 joueurs mais permettre le clic
+      btn2Players.style.opacity = '1';
+      btn2Players.style.cursor = 'pointer';
+      
+      btn4Players.style.opacity = '0.5';
+      btn4Players.style.cursor = 'pointer'; // Garder pointer pour permettre le clic
+    } else {
+      // Mode 4 joueurs : griser le bouton 2 joueurs mais permettre le clic
+      btn4Players.style.opacity = '1';
+      btn4Players.style.cursor = 'pointer';
+      
+      btn2Players.style.opacity = '0.5';
+      btn2Players.style.cursor = 'pointer'; // Garder pointer pour permettre le clic
+    }
+    
+    // Mettre à jour l'affichage du nombre de joueurs
+    const display = document.getElementById('player-count-display');
+    if (display) {
+      display.textContent = `Mode ${PLAYER_COUNT} joueurs sélectionné`;
+    }
+    
+    // Nettoyage COMPLET pour éviter les conflits
+    marks.clear();
+    walls.clear();
+    
+    // Réinitialiser tous les curseurs
+    for (const p of PLAYERS) {
+      cursors.set(p.id, { ...startNodeFor(p.id) });
+    }
+    
+    // Mettre à jour les contrôles par défaut
+    for (const p of PLAYERS.slice(0, PLAYER_COUNT)) {
+      const sel = document.getElementById(`control-${p.id}`);
+      if (sel) sel.value = control.get(p.id);
+      control.set("D", "AI");
+    }
+    
+    // Forcer la réinitialisation du canvas
+    updateCanvasSize();
+    
+    // Redessiner si le jeu est en cours
+    if (!gameOver) {
+      requestRedraw();
+    }
+  }
+
+  function setGameMode(mode) {
+    if (PLAYER_COUNT === 2) {
+      if (mode === 'pvp') {
+        // 1 vs 1
+        control.set("A", "HUMAN");
+        control.set("B", "HUMAN");
+      } else if (mode === 'pve') {
+        // 1 vs IA
+        control.set("A", "HUMAN");
+        control.set("B", "AI");
+      }
+    }
+  }
+
+  function startGame() {
+    console.log('startGame appelé');
+    
+    // Cacher le menu
+    const menu = document.getElementById('main-menu');
+    if (menu) {
+      console.log('Cache le menu principal');
+      menu.style.display = 'none';
+      menu.style.visibility = 'hidden';
+      menu.style.pointerEvents = 'none';
+      menu.style.opacity = '0';
+    }
+    
+    // Afficher les éléments du jeu
+    console.log('Affiche les éléments du jeu');
+    const playersRow = document.getElementById('playersRow');
+    const gameControls = document.getElementById('gameControls');
+    
+    if (playersRow) {
+      playersRow.style.display = 'flex';
+      console.log('playersRow affiché');
+    } else {
+      console.log('ERREUR: playersRow non trouvé');
+    }
+    
+    if (gameControls) {
+      gameControls.style.display = 'block';
+      console.log('gameControls affiché');
+    } else {
+      console.log('ERREUR: gameControls non trouvé');
+    }
+    
+    // Mettre à jour la taille du canvas avant de démarrer
+    console.log('Met à jour la taille du canvas');
+    updateCanvasSize();
+    
+    // La musique est déjà lancée au chargement, pas besoin de la relancer
+    
+    // Démarrer le jeu avec la version originale de reset
+    console.log('Démarrage du jeu');
+    gameOver = false;
+    originalReset();
+    
+    console.log('startGame terminé');
+  }
+
+  // Rendre les fonctions accessibles globalement
+  window.setPlayerCount = setPlayerCount;
+  window.setGameMode = setGameMode;
+  window.startGame = startGame;
+  window.updateCanvasSize = updateCanvasSize;
+  window.toggleMusic = toggleMusic;
+  window.updateMusicVolume = updateMusicVolume;
+  window.showOptions = showOptions;
+  window.closeOptions = closeOptions;
+  window.toggleSounds = toggleSounds;
+  window.updateSoundsVolume = updateSoundsVolume;
+  window.toggleGameOptions = toggleGameOptions;
+  window.showPlayerNamesScreen = showPlayerNamesScreen;
+  window.startGameWithNames = startGameWithNames;
+  window.backToMenu = backToMenu;
+  window.showRankingScreen = showRankingScreen;
+  window.clearRanking = clearRanking;
+  
+  // Initialiser les événements sur les inputs
+  document.addEventListener('DOMContentLoaded', function() {
+    const player1Input = document.getElementById('player1-name');
+    const player2Input = document.getElementById('player2-name');
+    
+    if (player1Input) {
+      player1Input.addEventListener('input', function() {
+        console.log('Input Joueur 1:', this.value);
+      });
+    }
+    
+    if (player2Input) {
+      player2Input.addEventListener('input', function() {
+        console.log('Input Joueur 2:', this.value);
+      });
+    }
+  });
+  
+  // Variables globales pour les joueurs
+  let playerNames = {
+    player1: '',
+    player2: ''
+  };
+  
+  // Fonctions de gestion des joueurs et classement
+  function showPlayerNamesScreen() {
+    const menu = document.getElementById('main-menu');
+    const namesScreen = document.getElementById('player-names-screen');
+    
+    // Charger les derniers pseudos sauvegardés
+    loadSavedNames();
+    
+    menu.style.display = 'none';
+    namesScreen.style.display = 'flex';
+    namesScreen.style.visibility = 'visible';
+    namesScreen.style.pointerEvents = 'auto';
+    namesScreen.style.opacity = '1';
+  }
+  
+  function loadSavedNames() {
+    const savedPlayer1 = localStorage.getItem('player1_name') || '';
+    const savedPlayer2 = localStorage.getItem('player2_name') || '';
+    
+    document.getElementById('player1-name').value = savedPlayer1;
+    document.getElementById('player2-name').value = savedPlayer2;
+  }
+  
+  function saveNames() {
+    const player1Name = document.getElementById('player1-name').value.trim();
+    const player2Name = document.getElementById('player2-name').value.trim();
+    
+    if (player1Name) {
+      localStorage.setItem('player1_name', player1Name);
+      playerNames.player1 = player1Name;
+    }
+    if (player2Name) {
+      localStorage.setItem('player2_name', player2Name);
+      playerNames.player2 = player2Name;
+    }
+  }
+  
+  function startGameWithNames() {
+    console.log('startGameWithNames appelé');
+    
+    const player1Name = document.getElementById('player1-name').value.trim();
+    const player2Name = document.getElementById('player2-name').value.trim();
+    
+    console.log('Pseudos:', player1Name, player2Name);
+    
+    if (!player1Name || !player2Name) {
+      alert('Veuillez entrer un pseudo pour chaque joueur');
+      return;
+    }
+    
+    saveNames();
+    console.log('Noms sauvegardés');
+    
+    // Cacher l'écran de saisie
+    const namesScreen = document.getElementById('player-names-screen');
+    if (namesScreen) {
+      console.log('Cache l\'écran de saisie');
+      namesScreen.style.display = 'none';
+      namesScreen.style.visibility = 'hidden';
+      namesScreen.style.pointerEvents = 'none';
+      namesScreen.style.opacity = '0';
+    }
+    
+    console.log('Appel setPlayerCount(2)');
+    setPlayerCount(2);
+    
+    console.log('Appel startGame()');
+    startGame();
+    
+    console.log('startGameWithNames terminé');
+  }
+  
+  function backToMenu() {
+    const menu = document.getElementById('main-menu');
+    const namesScreen = document.getElementById('player-names-screen');
+    const rankingScreen = document.getElementById('ranking-screen');
+    
+    // Cacher tous les écrans
+    namesScreen.style.display = 'none';
+    rankingScreen.style.display = 'none';
+    
+    // Afficher le menu principal
+    menu.style.display = 'flex';
+    menu.style.visibility = 'visible';
+    menu.style.pointerEvents = 'auto';
+    menu.style.opacity = '1';
+  }
+  
+  function showRankingScreen() {
+    const menu = document.getElementById('main-menu');
+    const rankingScreen = document.getElementById('ranking-screen');
+    
+    menu.style.display = 'none';
+    rankingScreen.style.display = 'flex';
+    rankingScreen.style.visibility = 'visible';
+    rankingScreen.style.pointerEvents = 'auto';
+    rankingScreen.style.opacity = '1';
+    
+    displayRanking();
+  }
+  
+  function saveResult(winnerName, loserName) {
+    // Charger les statistiques existantes
+    let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+    
+    // Mettre à jour le gagnant
+    if (!stats[winnerName]) {
+      stats[winnerName] = { wins: 0, losses: 0 };
+    }
+    stats[winnerName].wins++;
+    
+    // Mettre à jour le perdant
+    if (!stats[loserName]) {
+      stats[loserName] = { wins: 0, losses: 0 };
+    }
+    stats[loserName].losses++;
+    
+    // Sauvegarder
+    localStorage.setItem('voltclash_stats', JSON.stringify(stats));
+    console.log(`Résultat sauvegardé: ${winnerName} bat ${loserName}`);
+  }
+  
+  function displayRanking() {
+    const stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+    const rankingList = document.getElementById('ranking-list');
+    
+    // Convertir en tableau et trier par victoires
+    const players = Object.entries(stats).map(([name, data]) => ({
+      name,
+      wins: data.wins,
+      losses: data.losses,
+      ratio: data.losses > 0 ? (data.wins / data.losses).toFixed(2) : data.wins
+    }));
+    
+    players.sort((a, b) => b.wins - a.wins);
+    
+    // Générer le HTML
+    if (players.length === 0) {
+      rankingList.innerHTML = '<p style="color: #888; text-align: center;">Aucune statistique enregistrée</p>';
+      return;
+    }
+    
+    let html = '';
+    players.forEach((player, index) => {
+      const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+      html += `
+        <div class="ranking-item">
+          <span class="ranking-position">#${index + 1} ${medal}</span>
+          <span class="ranking-name">${player.name}</span>
+          <div class="ranking-stats">
+            <span class="ranking-wins">V: ${player.wins}</span>
+            <span class="ranking-losses">D: ${player.losses}</span>
+            <span class="ranking-ratio">R: ${player.ratio}</span>
+          </div>
+        </div>
+      `;
+    });
+    
+    rankingList.innerHTML = html;
+  }
+  
+  function clearRanking() {
+    if (confirm('Êtes-vous sûr de vouloir effacer toutes les statistiques ?')) {
+      localStorage.removeItem('voltclash_stats');
+      displayRanking();
+    }
+  }
+  
+  // Variable globale pour l'état de la musique
+  let musicEnabled = true;
+  let soundsEnabled = true;
+  let gameOptionsVisible = false;
+  
+  // Fonction pour basculer la musique
+  function toggleMusic() {
+    const btn = document.getElementById('btn-music-toggle');
+    const modalBtn = document.getElementById('modal-music-toggle');
+    const panelBtn = document.getElementById('panel-music-toggle');
+    
+    musicEnabled = !musicEnabled;
+    
+    const text = musicEnabled ? '🎵 MUSIQUE ON' : '🔇 MUSIQUE OFF';
+    const shortText = musicEnabled ? '🎵 ON' : '🔇 OFF';
+    
+    if (btn) {
+      btn.textContent = text;
+      btn.style.opacity = musicEnabled ? '1' : '0.5';
+    }
+    if (modalBtn) {
+      modalBtn.textContent = text;
+      modalBtn.style.opacity = musicEnabled ? '1' : '0.5';
+    }
+    if (panelBtn) {
+      panelBtn.textContent = shortText;
+      panelBtn.style.opacity = musicEnabled ? '1' : '0.5';
+    }
+    
+    if (musicEnabled) {
+      soundSystem.playBackgroundMusic();
+    } else {
+      soundSystem.stopBackgroundMusic();
+    }
+  }
+  
+  // Fonction pour basculer les sons
+  function toggleSounds() {
+    const modalBtn = document.getElementById('modal-sounds-toggle');
+    const panelBtn = document.getElementById('panel-sounds-toggle');
+    
+    soundsEnabled = !soundsEnabled;
+    
+    const text = soundsEnabled ? '🔊 SONS ON' : '🔇 SONS OFF';
+    const shortText = soundsEnabled ? '🔊 ON' : '🔇 OFF';
+    
+    if (modalBtn) {
+      modalBtn.textContent = text;
+      modalBtn.style.opacity = soundsEnabled ? '1' : '0.5';
+    }
+    if (panelBtn) {
+      panelBtn.textContent = shortText;
+      panelBtn.style.opacity = soundsEnabled ? '1' : '0.5';
+    }
+  }
+  
+  // Fonction pour basculer les options dans le jeu
+  function toggleGameOptions() {
+    const optionsDiv = document.getElementById('game-options');
+    if (optionsDiv) {
+      gameOptionsVisible = !gameOptionsVisible;
+      optionsDiv.style.display = gameOptionsVisible ? 'block' : 'none';
+    }
+  }
+  
+  // Fonction pour basculer le panneau options principal
+  function toggleOptionsPanel() {
+    const panel = document.getElementById('options-panel');
+    if (panel) {
+      const isVisible = panel.style.display !== 'none';
+      panel.style.display = isVisible ? 'none' : 'block';
+      
+      // Synchroniser les contrôles quand on ouvre
+      if (!isVisible) {
+        syncPanelControls();
+      }
+    }
+  }
+  
+  // Fonction pour synchroniser tous les contrôles
+  function syncPanelControls() {
+    const currentVolume = document.getElementById('music-volume')?.value || 30;
+    
+    // Synchroniser musique
+    const musicText = musicEnabled ? '🎵 ON' : '🔇 OFF';
+    const panelMusicBtn = document.getElementById('panel-music-toggle');
+    if (panelMusicBtn) {
+      panelMusicBtn.textContent = musicText;
+      panelMusicBtn.style.opacity = musicEnabled ? '1' : '0.5';
+    }
+    
+    // Synchroniser sons
+    const soundsText = soundsEnabled ? '🔊 ON' : '🔇 OFF';
+    const panelSoundsBtn = document.getElementById('panel-sounds-toggle');
+    if (panelSoundsBtn) {
+      panelSoundsBtn.textContent = soundsText;
+      panelSoundsBtn.style.opacity = soundsEnabled ? '1' : '0.5';
+    }
+    
+    // Synchroniser volumes
+    const panelMusicVolume = document.getElementById('panel-music-volume');
+    const panelVolumeDisplay = document.getElementById('panel-volume-display');
+    if (panelMusicVolume) panelMusicVolume.value = currentVolume;
+    if (panelVolumeDisplay) panelVolumeDisplay.textContent = currentVolume + '%';
+  }
+  
+  // Fonction pour mettre à jour le volume de la musique
+  function updateMusicVolume(value) {
+    const display = document.getElementById('volume-display');
+    const modalDisplay = document.getElementById('modal-volume-display');
+    const panelDisplay = document.getElementById('panel-volume-display');
+    const modalSlider = document.getElementById('modal-music-volume');
+    const panelSlider = document.getElementById('panel-music-volume');
+    
+    if (display) display.textContent = value + '%';
+    if (modalDisplay) modalDisplay.textContent = value + '%';
+    if (panelDisplay) panelDisplay.textContent = value + '%';
+    if (modalSlider) modalSlider.value = value;
+    if (panelSlider) panelSlider.value = value;
+    
+    soundSystem.updateVolume(parseInt(value));
+  }
+  
+  // Fonction pour mettre à jour le volume des sons
+  function updateSoundsVolume(value) {
+    const modalDisplay = document.getElementById('modal-sounds-volume-display');
+    const panelDisplay = document.getElementById('panel-sounds-volume-display');
+    
+    if (modalDisplay) modalDisplay.textContent = value + '%';
+    if (panelDisplay) panelDisplay.textContent = value + '%';
+    
+    // TODO: Implémenter le contrôle du volume des sons
+    console.log("Volume sons mis à jour:", value + "%");
+  }
+  
+  // Fonction pour afficher la modale options
+  function showOptions() {
+    const modal = document.getElementById('options-modal');
+    if (modal) {
+      modal.style.display = 'block';
+      
+      // Synchroniser les contrôles
+      const modalSlider = document.getElementById('modal-music-volume');
+      const currentVolume = document.getElementById('music-volume')?.value || 30;
+      if (modalSlider) modalSlider.value = currentVolume;
+      updateMusicVolume(currentVolume);
+    }
+  }
+  
+  // Fonction pour fermer la modale options
+  function closeOptions() {
+    const modal = document.getElementById('options-modal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+  
+  // Fermer la modale en cliquant en dehors
+  window.onclick = function(event) {
+    const modal = document.getElementById('options-modal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  }
+  
+  // Démarrer la musique automatiquement au chargement de la page
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      soundSystem.playBackgroundMusic();
+    }, 500);
+    initStarfield();
+  });
+  
+  // Démarrer l'arrière-plan immédiatement
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM chargé, initialisation du starfield...");
+    initStarfield();
+  });
+  
+  // ================================
+  // ARRIÈRE-PLAN SPATIAL DYNAMIQUE
+  // ================================
+  
+  class Star {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.reset();
+    }
+    
+    reset() {
+      this.x = Math.random() * this.canvas.width;
+      this.y = Math.random() * this.canvas.height;
+      this.size = Math.random() * 2 + 0.5;
+      this.baseOpacity = Math.random() * 0.8 + 0.2;
+      this.opacity = this.baseOpacity;
+      this.twinkleSpeed = Math.random() * 0.02 + 0.01;
+      this.twinklePhase = Math.random() * Math.PI * 2;
+      this.scrollSpeed = Math.random() * 0.3 + 0.1;
+    }
+    
+    update(deltaTime) {
+      this.twinklePhase += this.twinkleSpeed;
+      this.opacity = this.baseOpacity * (0.5 + 0.5 * Math.sin(this.twinklePhase));
+      this.y -= this.scrollSpeed;
+      
+      if (this.y < -10) {
+        this.y = this.canvas.height + 10;
+        this.x = Math.random() * this.canvas.width;
+      }
+    }
+    
+    draw(ctx) {
+      ctx.save();
+      ctx.globalAlpha = this.opacity;
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowBlur = this.size * 2;
+      ctx.shadowColor = '#ffffff';
+      
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+  
+  let starfieldCanvas, starfieldCtx, stars = [];
+  let lastStarfieldTime = 0;
+  
+  function initStarfield() {
+    console.log("Initialisation du starfield...");
+    
+    starfieldCanvas = document.getElementById('starfield');
+    if (!starfieldCanvas) {
+      console.error("Canvas starfield non trouvé!");
+      return;
+    }
+    
+    starfieldCtx = starfieldCanvas.getContext('2d');
+    console.log("Canvas starfield trouvé:", starfieldCanvas.width, "x", starfieldCanvas.height);
+    
+    function resizeStarfield() {
+      console.log("Redimensionnement du starfield...");
+      starfieldCanvas.width = window.innerWidth;
+      starfieldCanvas.height = window.innerHeight;
+      console.log("Nouvelles dimensions:", starfieldCanvas.width, "x", starfieldCanvas.height);
+      createStars();
+    }
+    
+    function createStars() {
+      stars = [];
+      for (let i = 0; i < 400; i++) {
+        stars.push(new Star(starfieldCanvas));
+      }
+      console.log("Création de", stars.length, "étoiles");
+    }
+    
+    function animateStarfield(currentTime) {
+      const deltaTime = currentTime - lastStarfieldTime;
+      lastStarfieldTime = currentTime;
+      
+      // Fond noir
+      starfieldCtx.fillStyle = '#000';
+      starfieldCtx.fillRect(0, 0, starfieldCanvas.width, starfieldCanvas.height);
+      
+      // Dessiner les étoiles
+      stars.forEach(star => {
+        star.update(deltaTime);
+        star.draw(starfieldCtx);
+      });
+      
+      requestAnimationFrame(animateStarfield);
+    }
+    
+    // Initialisation immédiate
+    resizeStarfield();
+    window.addEventListener('resize', resizeStarfield);
+    requestAnimationFrame(animateStarfield);
+    
+    console.log("Arrière-plan spatial initialisé avec", stars.length, "étoiles");
+  }
+
+  function updateCanvasSize() {
+    // Adapter le canvas à la taille de la grille (comme avant)
+    displayW = MARGIN_PX*2 + GRID_CELLS * CELL_PX;
+    displayH = MARGIN_PX*2 + GRID_CELLS * CELL_PX;
+
+    canvas.style.width = displayW + "px";
+    canvas.style.height = displayH + "px";
+    canvas.width = Math.round(displayW * dpr);
+    canvas.height = Math.round(displayH * dpr);
+    ctx.scale(dpr, dpr);
+    
+    // Redessiner si le jeu est en cours
+    if (!gameOver && marks.size > 0) {
+      requestRedraw();
+    }
+  }
+
+  // ----------------------------
+  // Banner
+  // ----------------------------
+  const banner = document.getElementById("banner");
+  const bTitle = document.getElementById("bTitle");
+  const bSub = document.getElementById("bSub");
+  let bannerTimer = null;
+  function showBanner(title, sub, color="#eee") {
+    bTitle.textContent = title;
+    bSub.textContent = sub || "";
+    bTitle.style.color = color;
+    banner.classList.remove("show");
+    void banner.offsetWidth;
+    banner.classList.add("show");
+    clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(() => banner.classList.remove("show"), 1400);
+  }
+
+  // ----------------------------
+  // Geometry
+  // ----------------------------
+ function baseRectFor(pid){
+  if (PLAYER_COUNT === 2) {
+    // Mode 2 joueurs : coins opposés
+    switch(pid){
+      case "A": return { ix: 0, iy: 0, cells: BASE_CELLS };                    // Haut gauche
+      case "B": return { ix: NODES - BASE_CELLS - 1, iy: NODES - BASE_CELLS - 1, cells: BASE_CELLS }; // Bas droite
+      case "C": return { ix: 0, iy: 0, cells: BASE_CELLS };                    // Non utilisé en mode 2 joueurs
+      case "D": return { ix: 0, iy: 0, cells: BASE_CELLS };                    // Non utilisé en mode 2 joueurs
+    }
+  } else {
+    // Mode 4 joueurs : configuration originale
+    switch(pid){
+      case "A": return { ix: 0, iy: 0, cells: BASE_CELLS };
+      case "B": return { ix: NODES - BASE_CELLS - 1, iy: NODES - BASE_CELLS - 1, cells: BASE_CELLS };
+      case "C": return { ix: NODES - BASE_CELLS - 1, iy: 0, cells: BASE_CELLS };
+      case "D": return { ix: 0, iy: NODES - BASE_CELLS - 1, cells: BASE_CELLS };
+    }
+  }
+}
+  function baseCenter(pid){
+    const b = baseRectFor(pid);
+    return { ix: b.ix + 1, iy: b.iy + 1 }; // centre du 3x3
+  }
+  function startNodeFor(pid){
+    // nœud adjacent vers centre (diagonale)
+    const b = baseRectFor(pid);
+    const step = b.cells + 1; // 3
+    if (pid === "A") return { ix: b.ix + step, iy: b.iy + step };
+    if (pid === "B") return { ix: b.ix - 1,    iy: b.iy - 1 };
+    if (pid === "C") return { ix: b.ix - 1,    iy: b.iy + step };
+    if (pid === "D") return { ix: b.ix + step, iy: b.iy - 1 };
+    return { ix: 0, iy: 0 };
+  }
+
+  // ----------------------------
+  // Canvas
+  // ----------------------------
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+
+  let displayW = MARGIN_PX*2 + GRID_CELLS * CELL_PX;
+  let displayH = MARGIN_PX*2 + GRID_CELLS * CELL_PX;
+
+  canvas.style.width = displayW + "px";
+  canvas.style.height = displayH + "px";
+  canvas.width = Math.round(displayW * dpr);
+  canvas.height = Math.round(displayH * dpr);
+  ctx.scale(dpr, dpr);
+
+  function nodeToPx(ix, iy) { return { x: MARGIN_PX + ix * CELL_PX, y: MARGIN_PX + iy * CELL_PX }; }
+  function keyOf(ix, iy) { return `${ix},${iy}`; }
+  function parseKey(k) { const [ix,iy] = k.split(",").map(Number); return {ix,iy}; }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function dist2(a,b){ const dx=a.ix-b.ix, dy=a.iy-b.iy; return dx*dx+dy*dy; }
+
+  // ----------------------------
+  // Mouse -> node (snap)
+  // ----------------------------
+  function mouseToNode(clientX, clientY){
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    const ix = clamp(Math.round((x - MARGIN_PX) / CELL_PX), 0, NODES - 1);
+    const iy = clamp(Math.round((y - MARGIN_PX) / CELL_PX), 0, NODES - 1);
+    return { ix, iy };
+  }
+
+
+  const dirs8 = [
+    {dx: 1, dy: 0}, {dx:-1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy:-1},
+    {dx: 1, dy: 1}, {dx: 1, dy:-1}, {dx:-1, dy: 1}, {dx:-1, dy:-1},
+  ];
+  const neigh4 = [
+    {dx: 1, dy: 0}, {dx:-1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy:-1},
+  ];
+
+  // ----------------------------
+  // State
+  // ----------------------------
+  const marks = new Map(); // nodeKey -> { owner, kind:"X"|"O" }
+  const walls = new Map(); // edgeKey -> owner (derived from O-O)
+
+  const alive = new Map(PLAYERS.map(p => [p.id, true]));
+  const started = new Map(PLAYERS.map(p => [p.id, false]));
+
+  let currentIdx = 0;
+  let movesLeft = MOVES_PER_TURN;
+  let message = "";
+  let gameOver = false;
+
+  const cursors = new Map(PLAYERS.map(p => [p.id, { ...startNodeFor(p.id) } ]));
+
+  function playerById(pid){ return PLAYERS.find(p => p.id === pid); }
+  function currentPlayerId(){ 
+    // Ne considérer que les joueurs actifs selon PLAYER_COUNT
+    let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
+    return activePlayers[currentIdx].id; 
+  }
+  function currentPlayer(){ return playerById(currentPlayerId()); }
+  function activeCursor(){ return cursors.get(currentPlayerId()); }
+
+  // IA scheduler (anti-blocage)
+  let aiTimer = null;
+  function stopAI() {
+    if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; }
+  }
+
+  // ----------------------------
+  // Base helpers
+  // ----------------------------
+  function inBase(ix, iy, base) {
+    return ix >= base.ix && ix <= base.ix + base.cells && iy >= base.iy && iy <= base.iy + base.cells;
+  }
+  function isOwnBase(pid, ix, iy){
+    if (!alive.get(pid)) return false;
+    return inBase(ix, iy, baseRectFor(pid));
+  }
+  function baseOwnerAt(ix, iy) {
+    for (const p of PLAYERS) {
+      if (!alive.get(p.id)) continue;
+      if (inBase(ix, iy, baseRectFor(p.id))) return p.id;
+    }
+    return null;
+  }
+
+  // ----------------------------
+  // Walls
+  // ----------------------------
+  function edgeKey(a, b) {
+    const k1 = keyOf(a.ix, a.iy);
+    const k2 = keyOf(b.ix, b.iy);
+    return (k1 < k2) ? `${k1}|${k2}` : `${k2}|${k1}`;
+  }
+
+  function rebuildWallsFromCircles() {
+    // Sauvegarder les anciens murs pour comparaison
+    const oldWalls = new Map(walls);
+    
+    // Calculer l'état de connectivité AVANT pour tous les joueurs
+    const connectivityBefore = new Map();
+    for (const playerId of ['A', 'B', 'C', 'D']) {
+      if (!alive.get(playerId)) continue;
+      connectivityBefore.set(playerId, computePoweredSetWithWalls(playerId, oldWalls));
+    }
+    
+    // Reconstruire les nouveaux murs
+    walls.clear();
+    let newWallCount = 0;
+    
+    for (const [k, m] of marks.entries()) {
+      if (m.kind !== "O") continue;
+      const a = parseKey(k);
+      for (const d of neigh4) {
+        const b = { ix: a.ix + d.dx, iy: a.iy + d.dy };
+        if (b.ix < 0 || b.iy < 0 || b.ix >= NODES || b.iy >= NODES) continue;
+        const mb = marks.get(keyOf(b.ix, b.iy));
+        if (!mb) continue;
+        if (mb.kind === "O" && mb.owner === m.owner) {
+          const edgeK = edgeKey(a, b);
+          walls.set(edgeK, m.owner);
+          
+          // Vérifier si c'est un NOUVEAU mur
+          if (!oldWalls.has(edgeK)) {
+            newWallCount++;
+            console.log(`NOUVEAU mur créé: ${edgeK} par joueur ${m.owner}`);
+          }
+        }
+      }
+    }
+    
+    // Si de NOUVEAUX murs ont été créés, vérifier s'ils coupent réellement des connexions
+    if (newWallCount > 0) {
+      console.log(`${newWallCount} NOUVEAUX murs créés, vérification des déconnexions...`);
+      
+      // Calculer l'état de connectivité APRÈS
+      const connectivityAfter = new Map();
+      for (const playerId of ['A', 'B', 'C', 'D']) {
+        if (!alive.get(playerId)) continue;
+        connectivityAfter.set(playerId, computePoweredSetWithWalls(playerId, walls));
+      }
+      
+      // Vérifier si des joueurs ont perdu des connexions
+      let hasDisconnection = false;
+      for (const playerId of ['A', 'B', 'C', 'D']) {
+        if (!alive.get(playerId)) continue;
+        
+        const before = connectivityBefore.get(playerId) || new Set();
+        const after = connectivityAfter.get(playerId) || new Set();
+        
+        console.log(`Joueur ${playerId}: avant=${before.size}, après=${after.size}`);
+        
+        // Vérifier si des marques ont perdu leur connexion
+        for (const [k, m] of marks.entries()) {
+          if (m.owner === playerId && before.has(k) && !after.has(k)) {
+            console.log(`DÉCONNEXION RÉELLE: marque ${k} du joueur ${playerId} a perdu sa connexion`);
+            hasDisconnection = true;
+            break;
+          }
+        }
+      }
+      
+      // Jouer le son seulement s'il y a eu une déconnexion réelle
+      if (hasDisconnection) {
+        console.log("DÉCONNEXION CONFIRMÉE - jeu du son MP3");
+        soundSystem.playCircuitDisconnect();
+      } else {
+        console.log("Pas de déconnexion réelle - pas de son");
+      }
+    }
+  }
+
+  function isBlockedByEnemyWall(from, to, pid, dx, dy) {
+    const isOrth = (Math.abs(dx) + Math.abs(dy)) === 1;
+    if (!isOrth) return false;
+    const ek = edgeKey(from, to);
+    const owner = walls.get(ek);
+    if (!owner) return false;
+    return owner !== pid;
+  }
+
+  // ----------------------------
+  // Conduction model
+  // ----------------------------
+  function conductiveForPlayer(ix, iy, pid) {
+    const k = keyOf(ix, iy);
+    const m = marks.get(k);
+    if (m && m.owner === pid) return true;
+    if (!alive.get(pid)) return false;
+    return inBase(ix, iy, baseRectFor(pid));
+  }
+
+  function computePoweredSet(pid) {
+    const powered = new Set();
+    const q = [];
+    if (!alive.get(pid)) return powered;
+
+    const base = baseRectFor(pid);
+    for (let y = base.iy; y <= base.iy + base.cells; y++) {
+      for (let x = base.ix; x <= base.ix + base.cells; x++) {
+        const k = keyOf(x, y);
+        powered.add(k);
+        q.push({ix:x, iy:y});
+      }
+    }
+
+    while (q.length) {
+      const cur = q.shift();
+      for (const d of dirs8) {
+        const nx = cur.ix + d.dx;
+        const ny = cur.iy + d.dy;
+        if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+
+        if (!conductiveForPlayer(nx, ny, pid)) continue;
+        if (isBlockedByEnemyWall(cur, {ix:nx, iy:ny}, pid, d.dx, d.dy)) continue;
+
+        const nk = keyOf(nx, ny);
+        if (powered.has(nk)) continue;
+        powered.add(nk);
+        q.push({ix:nx, iy:ny});
+      }
+    }
+    return powered;
+  }
+
+  function hasAdjacentFriendlyOrBase(pid, ix, iy) {
+    if (!alive.get(pid)) return false;
+    const base = baseRectFor(pid);
+    for (const d of dirs8) {
+      const nx = ix + d.dx, ny = iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      if (inBase(nx, ny, base)) return true;
+      const m = marks.get(keyOf(nx, ny));
+      if (m && m.owner === pid) return true;
+    }
+    return false;
+  }
+
+  // ----------------------------
+  // Move legality
+  // ----------------------------
+  function canPlaceCross(pid, ix, iy) {
+    if (gameOver || !alive.get(pid)) return false;
+    const k = keyOf(ix, iy);
+    if (marks.has(k)) return false;
+    if (isOwnBase(pid, ix, iy)) return false;
+
+    // must remain powered after placement
+    marks.set(k, { owner: pid, kind:"X" });
+    rebuildWallsFromCircles();
+    const powered = computePoweredSet(pid);
+    const ok = powered.has(k);
+    marks.delete(k);
+    rebuildWallsFromCircles();
+    return ok;
+  }
+
+  function canCircle(pid, targetKey) {
+    if (gameOver || !alive.get(pid)) return false;
+    const t = marks.get(targetKey);
+    if (!t) return false;
+    if (t.owner === pid) return false;
+    if (t.kind !== "X") return false;
+
+    const {ix, iy} = parseKey(targetKey);
+    if (!hasAdjacentFriendlyOrBase(pid, ix, iy)) return false;
+
+    marks.set(targetKey, { owner: pid, kind:"O" });
+    rebuildWallsFromCircles();
+    const powered = computePoweredSet(pid);
+    const ok = powered.has(targetKey);
+    marks.set(targetKey, t);
+    rebuildWallsFromCircles();
+    return ok;
+  }
+
+  function placeCross(pid, ix, iy) {
+    const k = keyOf(ix, iy);
+    marks.set(k, { owner: pid, kind:"X" });
+    started.set(pid, true);
+    rebuildWallsFromCircles();
+    return { ix, iy, key:k, kind:"X" };
+  }
+
+  function placeCircle(pid, key) {
+    marks.set(key, { owner: pid, kind:"O" });
+    started.set(pid, true);
+    rebuildWallsFromCircles();
+    const {ix, iy} = parseKey(key);
+    return { ix, iy, key, kind:"O" };
+  }
+
+  // ----------------------------
+  // Elimination (base by CROSS only)
+  // ----------------------------
+  function transferEliminatedPieces(elimPid, winnerPid) {
+    for (const [k, m] of marks.entries()) {
+      if (m.owner === elimPid) {
+        marks.set(k, { owner: winnerPid, kind: m.kind });
+      }
+    }
+    rebuildWallsFromCircles();
+  }
+
+  function eliminatePlayer(elimPid, eliminatorPid, reason) {
+    if (!alive.get(elimPid)) return false;
+    alive.set(elimPid, false);                // base disappears (not alive => not drawn, not conductive)
+    transferEliminatedPieces(elimPid, eliminatorPid);
+
+    // Afficher l'élimination dans le status au lieu du banner
+    const statusDiv = document.getElementById('status');
+    if (statusDiv) {
+      statusDiv.innerHTML = `<span style="color: ${playerById(eliminatorPid).color}; font-weight: bold;">ÉLIMINATION : ${elimPid} éliminé par ${eliminatorPid} — ${reason}</span>`;
+      // Effacer après 3 secondes
+      setTimeout(() => {
+        statusDiv.innerHTML = '';
+      }, 3000);
+    }
+    return true;
+  }
+
+  function showVictoryAnimation(winner, color) {
+    // Récupérer le nom du joueur gagnant
+    let winnerName = `Joueur ${winner}`;
+    if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
+      winnerName = winner === 1 ? playerNames.player1 : playerNames.player2;
+    }
+    
+    // Sauvegarder le résultat pour les parties à 2 joueurs
+    if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
+      const loser = winner === 1 ? 2 : 1;
+      const loserName = loser === 1 ? playerNames.player1 : playerNames.player2;
+      saveResult(winnerName, loserName);
+    }
+    
+    // Créer un élément pour l'animation avec CSS optimisé
+    const victoryDiv = document.createElement('div');
+    victoryDiv.id = 'victory-animation';
+    victoryDiv.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 4rem;
+      font-weight: bold;
+      color: #9d4edd; /* Violet brillant */
+      text-shadow: 
+        2px 2px 0 #000,
+        -2px 2px 0 #000,
+        2px -2px 0 #000,
+        -2px -2px 0 #000,
+        0 0 30px #9d4edd, 
+        0 0 60px #9d4edd;
+      z-index: 1000;
+      animation: victoryPulse 1.5s ease-in-out;
+      text-align: center;
+      -webkit-text-stroke: 2px black;
+    `;
+    victoryDiv.innerHTML = `Victoire<br>${winnerName}`;
+    
+    // Ajouter l'animation CSS
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes victoryPulse {
+        0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      }\n    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(victoryDiv);
+    
+    // Supprimer après 1.5 secondes
+    setTimeout(() => {
+      if (document.getElementById('victory-animation')) {
+        document.getElementById('victory-animation').remove();
+      }
+      if (style.parentNode) {
+        style.parentNode.removeChild(style);
+      }
+    }, 1500);
+  }
+
+  function checkVictory() {
+    let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
+    let aliveCount = 0, last = null;
+    let eliminatedPlayer = null;
+    
+    for (const p of activePlayers) {
+      if (alive.get(p.id)) { 
+        aliveCount++; 
+        last = p.id; 
+      } else {
+        eliminatedPlayer = p.id; // Le joueur qui vient d'être éliminé
+      }
+    }
+    
+    if (aliveCount <= 1) {
+      gameOver = true;
+      
+      if (last) {
+        // Créer une explosion sur la base du joueur éliminé (si applicable)
+        if (eliminatedPlayer) {
+          const basePos = startNodeFor(eliminatedPlayer);
+          createElectricExplosion(basePos.ix, basePos.iy, 'large');
+        }
+        
+        // Afficher l'animation de victoire
+        showVictoryAnimation(last, playerById(last).color);
+        
+        // Afficher le nom du gagnant
+        let winnerName = `Joueur ${last}`;
+        if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
+          winnerName = last === 1 ? playerNames.player1 : playerNames.player2;
+        }
+        message = `Victoire : ${winnerName}`;
+        
+        // Arrêter l'animation des particules après 2 secondes (explosion éphémère)
+        setTimeout(() => {
+          console.log('Nettoyage des particules - Avant:', electricExplosion.particles.length);
+          electricExplosion.particles = [];
+          electricExplosion.shockwave = null;
+          electricExplosion.isActive = false;
+          console.log('Nettoyage des particules - Après:', electricExplosion.particles.length);
+          
+          // Forcer le rafraîchissement du canvas pour effacer les particules restantes
+          requestRedraw();
+        }, 2000);
+      } else {
+        showBanner("FIN", "Fin de partie.", "#eee");
+        message = "Fin de partie.";
+      }
+      setBadges();
+      requestRedraw();
+      stopAI();
+      return true;
+    }
+    return false;
+  }
+
+  function afterMove(actorPid, moveInfo) {
+    if (gameOver) return;
+
+    // Elimination ONLY if X is placed on an enemy base node
+    if (moveInfo && moveInfo.kind === "X") {
+      const owner = baseOwnerAt(moveInfo.ix, moveInfo.iy);
+      if (owner && owner !== actorPid) {
+        eliminatePlayer(owner, actorPid, "croix posée dans la base");
+        if (checkVictory()) return;
+      }
+    }
+
+    // No "coupure de courant" here (removed)
+    checkVictory();
+  }
+
+  // ----------------------------
+  // Turns / Scheduler
+  // ----------------------------
+  function nextAliveIndex(fromIdx) {
+    let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
+    for (let i = 1; i <= activePlayers.length; i++) {
+      const idx = (fromIdx + i) % activePlayers.length;
+      if (alive.get(activePlayers[idx].id)) return idx;
+    }
+    return fromIdx;
+  }
+
+  function endTurn(silent=false) {
+    if (gameOver) return;
+    stopAI();
+    if (typeof clearDrag === 'function') clearDrag();
+
+    currentIdx = nextAliveIndex(currentIdx);
+    movesLeft = MOVES_PER_TURN;
+    if (!silent) message = "";
+    setBadges();
+    requestRedraw();
+    maybeStartAITurn();
+  }
+
+  function maybeStartAITurn() {
+    if (gameOver) return;
+    const pid = currentPlayerId();
+    if (!alive.get(pid)) { endTurn(true); return; }
+    if (control.get(pid) === "AI") {
+      scheduleAITick(0);
+    }
+  }
+
+  function scheduleAITick(ms) {
+    stopAI();
+    aiTimer = setTimeout(aiTick, ms);
+  }
+
+  // ----------------------------
+  // Defensive AI
+  // ----------------------------
+  function getThreatInfo(defPid) {
+    // Menace = distance la plus courte entre une pièce ennemie et le centre de la base defPid
+    const c = baseCenter(defPid);
+    let bestD2 = Infinity;
+    let bestPos = null;
+
+    for (const [k, m] of marks.entries()) {
+      if (!alive.get(m.owner)) continue;
+      if (m.owner === defPid) continue;  // only enemy pieces
+      const pos = parseKey(k);
+      const d2 = dist2(pos, c);
+      if (d2 < bestD2) { bestD2 = d2; bestPos = pos; }
+    }
+
+    return { threatD2: bestD2, threatPos: bestPos, baseCenter: c };
+  }
+
+    function generateAICandidates(pid) {
+    const powered = computePoweredSet(pid);
+
+    const circles = [];
+    for (const [k, m] of marks.entries()) {
+      if (!alive.get(m.owner)) continue;
+      if (m.kind === "X" && m.owner !== pid) {
+        if (canCircle(pid, k)) circles.push({ type:"CIRCLE", key:k });
+      }
+    }
+
+    const crosses = [];
+    const seen = new Set();
+    for (const pk of powered) {
+      const a = parseKey(pk);
+      for (const d of dirs8) {
+        const nx = a.ix + d.dx, ny = a.iy + d.dy;
+        if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+        const kk = keyOf(nx, ny);
+        if (seen.has(kk)) continue;
+        seen.add(kk);
+        if (marks.has(kk)) continue;
+        if (!canPlaceCross(pid, nx, ny)) continue;
+        crosses.push({ type:"CROSS", ix:nx, iy:ny });
+      }
+    }
+
+    return { circles, crosses };
+  }
+
+
+  function hasOrthAdjacentOwnMark(pid, ix, iy){
+    for (const d of neigh4){
+      const nx = ix + d.dx, ny = iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      const m = marks.get(keyOf(nx, ny));
+      if (m && m.owner === pid) return true;
+    }
+    return false;
+  }
+  function orthAdjOwnCount(pid, ix, iy){
+    let c = 0;
+    for (const d of neigh4){
+      const nx = ix + d.dx, ny = iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      const m = marks.get(keyOf(nx, ny));
+      if (m && m.owner === pid) c++;
+    }
+    return c;
+  }
+
+  // Encourage "straight-line" technique when it is useful (e.g., threading between enemy circles),
+  // while still keeping a mild preference for diagonal (checker) placement by default.
+  function lineTechniqueBonus(pid, ix, iy, target){
+    const c = orthAdjOwnCount(pid, ix, iy);
+    if (c <= 0) return 0;
+
+    let bonus = 1800 * c; // reward extending an orthogonal chain
+    if (target) {
+      // Additional bonus when aligning toward a strategic point (threat or enemy base)
+      if (ix === target.ix || iy === target.iy) bonus += 2200;
+    }
+
+    // Small penalty if it creates a rigid "cross junction" (too easy to wall off)
+    if (c >= 2) bonus -= 900;
+    return bonus;
+  }
+
+  function diagonalPreferenceBonus(ix, iy){
+    // Motif en diagonale (damier) : évite les alignements qui facilitent la formation de murs adverses
+    return ((((ix + iy) & 1) === 0) ? 2500 : 0);
+  }
+
+  function scoreMove(pid, mv, mode, threat, prof) {
+    // capture de base ennemie = priorité absolue
+    if (mv.type === "CROSS") {
+      const owner = baseOwnerAt(mv.ix, mv.iy);
+      if (owner && owner !== pid) return 1_000_000;
+    }
+
+    const myC = threat.baseCenter;
+    const p = prof || aiProfile.get(pid) || AI_PROFILE_DEFS.BALANCED;
+    const tgt = opponentTargetPoint(pid, p);
+
+    if (mode === "DEFENSE") {
+      // Défense : privilégier actions proches de sa base, surtout côté menace
+      if (mv.type === "CIRCLE") {
+        const pos = parseKey(mv.key);
+        const nearBase = dist2(pos, myC);
+        const towardThreat = threat.threatPos ? dist2(pos, threat.threatPos) : 999999;
+
+        // voler près base est très fort
+        let s = 200_000;
+        s += (nearBase <= SHIELD_RADIUS2) ? 90_000 : 0;
+        s += (nearBase <= DEFENSE_RADIUS2) ? 40_000 : 0;
+
+        // bonus si le vol est près de la menace (pour casser une infiltration)
+        s += (towardThreat <= 16) ? 30_000 : 0; // 4^2
+
+        // un petit biais pour rester "compact"
+        s -= nearBase * 6;
+        return s;
+      }
+
+      if (mv.type === "CROSS") {
+        const pos = { ix: mv.ix, iy: mv.iy };
+        const nearBase = dist2(pos, myC);
+        const towardThreat = threat.threatPos ? dist2(pos, threat.threatPos) : 999999;
+
+        // En défense : on NE perd PAS de temps à "encercler" la base.
+        // On place plutôt des croix dans l'axe de la menace (ou vers l'extérieur), et en diagonale (damier),
+        // en évitant les alignements orthogonaux qui favorisent la formation de murs adverses.
+        let s = 110_000;
+
+        // priorité : casser l'infiltration (se rapprocher de la menace), pas coller à la base
+        s += (towardThreat <= 25) ? 70_000 : 0;   // 5^2
+        s += (towardThreat <= 9)  ? 55_000 : 0;   // 3^2
+
+        // forte pénalité : croix trop proches de la base en mode défense (le "ring" est contre-productif)
+        if (nearBase <= SHIELD_RADIUS2) s -= 120_000;
+        else if (nearBase <= DEFENSE_RADIUS2) s -= 35_000;
+
+        // pattern diagonal (par défaut)
+        s += diagonalPreferenceBonus(mv.ix, mv.iy) * p.diagWeight;
+
+        // évite les lignes (adjacence orthogonale à ses propres marques)
+        s += lineTechniqueBonus(pid, mv.ix, mv.iy, threat.threatPos || myC) * p.lineWeight;
+
+        // léger biais : ne pas s'éloigner infiniment (mais bien moins que l'ancien "bouclier")
+        s -= nearBase * 6;
+
+        return s;
+      }
+    }
+
+    // Attaque (mode normal) — objectif: envahir une base (CROSS prioritaire).
+    if (mv.type === "CIRCLE") {
+      const pos = parseKey(mv.key);
+      const d2 = dist2(pos, tgt);
+
+      // Les cercles sont "tactiques" : utiles surtout près de la base cible (ou pour casser un verrou).
+      // Loin de la base cible, c'est généralement une perte de tempo => pénalité.
+      let s = 125_000 - Math.sqrt(d2) * 520; // décroît avec la distance
+      if (d2 > 144) s -= 55_000;             // > 12 nœuds : trop loin
+      if (d2 > 400) s -= 35_000;             // > 20 nœuds : encore moins logique
+
+      // Biais profil: en attaque, on limite encore la fréquence des cercles
+      s -= (1.0 - p.circleBiasAttack) * 45_000;
+
+      return s;
+    }
+
+    if (mv.type === "CROSS") {
+      const pos = { ix: mv.ix, iy: mv.iy };
+      const d2 = dist2(pos, tgt);
+
+      // Priorité claire : progresser vers la base cible
+      let s = 95_000 - Math.sqrt(d2) * 620;
+
+      // Motif diagonal (évite des murs faciles) — pondéré par profil
+      s += diagonalPreferenceBonus(mv.ix, mv.iy) * p.diagWeight;
+
+      // Technique en ligne: utile pour "passer" entre des ronds / prolonger une chaîne — pondéré
+      s += lineTechniqueBonus(pid, mv.ix, mv.iy, tgt) * p.lineWeight;
+
+      // Biais profil: plus le profil est "CROSS-first", plus on boost les croix en attaque
+      s += (1.0 - p.circleBiasAttack) * 18_000;
+
+      return s;
+    }
+
+    return -Infinity;
+  }
+
+
+function pickAIMoveNormal(pid) {
+  const { circles, crosses } = generateAICandidates(pid);
+
+  const prof = aiProfile.get(pid) || AI_PROFILE_DEFS.BALANCED;
+
+  // Défense si menace proche
+  const threat = getThreatInfo(pid);
+  const mode = (threat.threatD2 <= DEFENSE_RADIUS2) ? "DEFENSE" : "ATTACK";
+
+  const actions = [];
+  for (const c of circles) actions.push(c);
+  for (const x of crosses) actions.push(x);
+
+  if (!actions.length) return { mv:null, mode, threat };
+
+  // Sélection: on score TOUT et on choisit le meilleur (avec une petite part d'aléa par profil).
+  // Objectif: envahir une base (attaque), et stopper une infiltration (défense).
+  let best = null;
+  let bestS = -Infinity;
+
+  for (const mv of actions) {
+    let s = scoreMove(pid, mv, mode, threat, prof);
+
+    // Petit bruit pour éviter que toutes les IA prennent exactement les mêmes décisions
+    s += (Math.random() - 0.5) * (prof.noise || 1200);
+
+    // En ATTACK: limiter les cercles non tactiques (en plus du scoring) via un gate léger
+    if (mode === "ATTACK" && mv.type === "CIRCLE") {
+      if (Math.random() > (prof.circleBiasAttack || 0.10)) s -= 35_000;
+    }
+    // En DEFENSE: autoriser davantage les cercles
+    if (mode === "DEFENSE" && mv.type === "CIRCLE") {
+      if (Math.random() < (prof.circleBiasDefense || 0.60)) s += 8_000;
+    }
+
+    if (s > bestS) { bestS = s; best = mv; }
+  }
+
+  return { mv: best, mode, threat };
+}
+// ----------------------------
+// IA Expert Beam Search (volet Expert)
+// - chaque IA a déjà un profil différent via aiProfile (RAIDER/BALANCED/SWARM/SIEGER)
+// - Beam Search simule plusieurs coups du même joueur (dans son tour) pour choisir le meilleur 1er coup.
+// - Objectif prioritaire: envahir / couper le réseau adverse via ronds quand c'est opportuniste.
+// ----------------------------
+
+function cloneMarks(src){
+  const m = new Map();
+  for (const [k,v] of src.entries()) m.set(k, { owner: v.owner, kind: v.kind });
+  return m;
+}
+function cloneSimpleMap(src){
+  const m = new Map();
+  for (const [k,v] of src.entries()) m.set(k, v);
+  return m;
+}
+
+function rebuildWallsFromCircles_state(st) {
+  st.walls.clear();
+  for (const [k, m] of st.marks.entries()) {
+    if (m.kind !== "O") continue;
+    const a = parseKey(k);
+    for (const d of neigh4) {
+      const b = { ix: a.ix + d.dx, iy: a.iy + d.dy };
+      if (b.ix < 0 || b.iy < 0 || b.ix >= NODES || b.iy >= NODES) continue;
+      const mb = st.marks.get(keyOf(b.ix, b.iy));
+      if (mb && mb.kind === "O" && mb.owner === m.owner) {
+        const ek = edgeKey(a, b);
+        st.walls.set(ek, m.owner);
+      }
+    }
+  }
+}
+
+function isBlockedByEnemyWall_state(st, from, to, pid, dx, dy) {
+  const isOrth = (Math.abs(dx) + Math.abs(dy)) === 1;
+  if (!isOrth) return false;
+  const ek = edgeKey(from, to);
+  const owner = st.walls.get(ek);
+  if (!owner) return false;
+  return owner !== pid;
+}
+
+function conductiveForPlayer_state(st, ix, iy, pid) {
+  const k = keyOf(ix, iy);
+  const m = st.marks.get(k);
+  if (m && m.owner === pid) return true;
+  if (!st.alive.get(pid)) return false;
+  return inBase(ix, iy, baseRectFor(pid));
+}
+
+function computePoweredSet_state(st, pid) {
+  const powered = new Set();
+  const q = [];
+  if (!st.alive.get(pid)) return powered;
+
+  const base = baseRectFor(pid);
+  for (let y = base.iy; y <= base.iy + base.cells; y++) {
+    for (let x = base.ix; x <= base.ix + base.cells; x++) {
+      const k = keyOf(x, y);
+      powered.add(k);
+      q.push({ix:x, iy:y});
+    }
+  }
+
+  while (q.length) {
+    const cur = q.shift();
+    for (const d of dirs8) {
+      const nx = cur.ix + d.dx, ny = cur.iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      if (!conductiveForPlayer_state(st, nx, ny, pid)) continue;
+      if (isBlockedByEnemyWall_state(st, cur, {ix:nx, iy:ny}, pid, d.dx, d.dy)) continue;
+      const nk = keyOf(nx, ny);
+      if (powered.has(nk)) continue;
+      powered.add(nk);
+      q.push({ix:nx, iy:ny});
+    }
+  }
+  return powered;
+}
+
+function hasAdjacentFriendlyOrBase_state(st, pid, ix, iy) {
+  if (!st.alive.get(pid)) return false;
+  const base = baseRectFor(pid);
+  for (const d of dirs8) {
+    const nx = ix + d.dx, ny = iy + d.dy;
+    if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+    if (inBase(nx, ny, base)) return true;
+    const m = st.marks.get(keyOf(nx, ny));
+    if (m && m.owner === pid) return true;
+  }
+  return false;
+}
+
+function canPlaceCross_state(st, pid, ix, iy) {
+  if (st.gameOver || !st.alive.get(pid)) return false;
+  const k = keyOf(ix, iy);
+  if (st.marks.has(k)) return false;
+  if (isOwnBase(pid, ix, iy)) return false;
+
+  // test connectivité
+  st.marks.set(k, { owner: pid, kind:"X" });
+  rebuildWallsFromCircles_state(st);
+  const powered = computePoweredSet_state(st, pid);
+  const ok = powered.has(k);
+  st.marks.delete(k);
+  rebuildWallsFromCircles_state(st);
+  return ok;
+}
+
+function canCircle_state(st, pid, key) {
+  if (st.gameOver || !st.alive.get(pid)) return false;
+  const t = st.marks.get(key);
+  if (!t || t.owner === pid || t.kind !== "X") return false;
+  const {ix, iy} = parseKey(key);
+  if (!hasAdjacentFriendlyOrBase_state(st, pid, ix, iy)) return false;
+
+  st.marks.set(key, { owner: pid, kind:"O" });
+  rebuildWallsFromCircles_state(st);
+  const powered = computePoweredSet_state(st, pid);
+  const ok = powered.has(key);
+  st.marks.set(key, t);
+  rebuildWallsFromCircles_state(st);
+  return ok;
+}
+
+function baseOwnerAt_state(st, ix, iy) {
+  for (const p of PLAYERS) {
+    if (!st.alive.get(p.id)) continue;
+    if (inBase(ix, iy, baseRectFor(p.id))) return p.id;
+  }
+  return null;
+}
+
+function applyMove_state(st, pid, mv) {
+  if (mv.type === "CROSS") {
+    const k = keyOf(mv.ix, mv.iy);
+    st.marks.set(k, { owner: pid, kind:"X" });
+    st.started.set(pid, true);
+    // capture base
+    const owner = baseOwnerAt_state(st, mv.ix, mv.iy);
+    if (owner && owner !== pid) {
+      st.alive.set(owner, false);
+      // si 1 seul survivant => gameOver
+      const aliveIds = PLAYERS.filter(p => st.alive.get(p.id)).map(p=>p.id);
+      if (aliveIds.length <= 1) st.gameOver = true;
+    }
+  } else {
+    st.marks.set(mv.key, { owner: pid, kind:"O" });
+    st.started.set(pid, true);
+  }
+  rebuildWallsFromCircles_state(st);
+}
+
+function generateAICandidates_state(st, pid) {
+  const powered = computePoweredSet_state(st, pid);
+  const circles = [];
+  for (const [k, m] of st.marks.entries()) {
+    if (!st.alive.get(m.owner)) continue;
+    if (m.kind === "X" && m.owner !== pid) {
+      if (canCircle_state(st, pid, k)) circles.push({ type:"CIRCLE", key:k });
+    }
+  }
+  const crosses = [];
+  const seen = new Set();
+  for (const pk of powered) {
+    const a = parseKey(pk);
+    for (const d of dirs8) {
+      const nx = a.ix + d.dx, ny = a.iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      const kk = keyOf(nx, ny);
+      if (seen.has(kk)) continue;
+      seen.add(kk);
+      if (st.marks.has(kk)) continue;
+      if (!canPlaceCross_state(st, pid, nx, ny)) continue;
+      crosses.push({ type:"CROSS", ix:nx, iy:ny });
+    }
+  }
+  return { circles, crosses };
+}
+
+// Heuristique d'évaluation locale pour Beam (reste compatible avec tes profils)
+function evalMove_state(st, pid, mv, prof) {
+  // capture immédiate
+  if (mv.type === "CROSS") {
+    const owner = baseOwnerAt_state(st, mv.ix, mv.iy);
+    if (owner && owner !== pid) return 1_000_000_000;
+  }
+
+  // cible: point de base adverse choisi par la logique existante (profil)
+  const tgt = opponentTargetPoint(pid, prof);
+  const pos = (mv.type === "CROSS") ? {ix: mv.ix, iy: mv.iy} : parseKey(mv.key);
+
+  // attaque: distance Chebyshev au point cible
+  const d = Math.max(Math.abs(pos.ix - tgt.ix), Math.abs(pos.iy - tgt.iy));
+  let sAttack = 120_000 - d * 2400;
+
+  // ronds = "couper" : bonus si proche du réseau adverse (opportuniste)
+  if (mv.type === "CIRCLE") {
+    // bonus si cercle proche base adverse ou proche cible
+    const d2 = dist2(pos, tgt);
+    sAttack += 25_000 - d2 * 35;
+    // léger coût pour éviter trop de ronds inutiles
+    sAttack -= 10_000;
+  } else {
+    // croix: bonus de progression (frontier)
+    sAttack += diagonalPreferenceBonus(pos.ix, pos.iy) * (prof.diagWeight || 0.7);
+    if (hasOrthAdjacentOwnMark(pid, pos.ix, pos.iy)) sAttack += 9_000 * (prof.lineWeight || 1.0);
+  }
+
+  // défense: très légère (éviter suicide de réseau)
+  const myC = baseCenter(pid);
+  const nearBase = dist2(pos, myC);
+  let sDefense = 0;
+  if (nearBase <= SHIELD_RADIUS2 && mv.type === "CROSS") sDefense -= 18_000;
+
+  // noise pour casser égalités (et éviter mirroring)
+  const noise = (Math.random() - 0.5) * (AI_BEAM.tieNoise * 100_000);
+
+  return AI_BEAM.wAttack * sAttack + AI_BEAM.wDefense * sDefense + noise;
+}
+
+function pickAIMoveBeam(pid) {
+  const prof = aiProfile.get(pid) || AI_PROFILE_DEFS.BALANCED;
+  const depth = Math.max(1, Math.min(AI_BEAM.depth, movesLeft));
+
+  // état initial cloné
+  const root = {
+    marks: cloneMarks(marks),
+    walls: cloneSimpleMap(walls),
+    alive: cloneSimpleMap(alive),
+    started: cloneSimpleMap(started),
+    gameOver: gameOver
+  };
+  rebuildWallsFromCircles_state(root);
+
+  // beam élément: { st, score, firstMove }
+  let beam = [{ st: root, score: 0, firstMove: null }];
+
+  for (let ply = 0; ply < depth; ply++) {
+    const expanded = [];
+
+    for (const node of beam) {
+      if (node.st.gameOver) { expanded.push(node); continue; }
+
+      const { circles, crosses } = generateAICandidates_state(node.st, pid);
+      const actions = crosses.concat(circles);
+      if (!actions.length) {
+        expanded.push(node);
+        continue;
+      }
+
+      // scorings immédiats pour trier et limiter la branche
+      const scored = actions.map(mv => ({ mv, s: evalMove_state(node.st, pid, mv, prof) }))
+                            .sort((a,b)=>b.s-a.s)
+                            .slice(0, AI_BEAM.maxBranch);
+
+      for (const it of scored) {
+        const st2 = {
+          marks: cloneMarks(node.st.marks),
+          walls: cloneSimpleMap(node.st.walls),
+          alive: cloneSimpleMap(node.st.alive),
+          started: cloneSimpleMap(node.st.started),
+          gameOver: node.st.gameOver
+        };
+        applyMove_state(st2, pid, it.mv);
+        expanded.push({
+          st: st2,
+          score: node.score + it.s,
+          firstMove: node.firstMove || it.mv
+        });
+      }
+    }
+
+    expanded.sort((a,b)=>b.score-a.score);
+    beam = expanded.slice(0, AI_BEAM.beamWidth);
+    if (!beam.length) break;
+  }
+
+  // meilleur scénario => premier coup
+  const best = beam[0];
+  return { mv: best.firstMove, mode: "ATTACK", threat: { baseCenter: baseCenter(pid), threatPos: null, threatD2: Infinity } };
+}
+
+// Dispatcher: Normal vs Expert Beam
+function pickAIMove(pid) {
+  if (expertMode) return pickAIMoveBeam(pid);
+  return pickAIMoveNormal(pid);
+}
+
+
+  function aiTick() {
+    aiTimer = null;
+    if (gameOver) return;
+
+    const pid = currentPlayerId();
+    if (!alive.get(pid)) { endTurn(true); return; }
+    if (control.get(pid) !== "AI") return;
+    if (movesLeft <= 0) { endTurn(true); return; }
+
+    const pick = pickAIMove(pid);
+    const mv = pick.mv;
+
+    if (!mv) {
+      message = `IA ${pid} : aucun coup possible, fin de tour.`;
+      setBadges();
+      requestRedraw();
+      endTurn(true);
+      return;
+    }
+
+    let moveInfo = null;
+    if (mv.type === "CIRCLE") moveInfo = placeCircle(pid, mv.key);
+    else moveInfo = placeCross(pid, mv.ix, mv.iy);
+
+    movesLeft--;
+    afterMove(pid, moveInfo);
+
+    message = (pick.mode === "DEFENSE")
+      ? `IA ${pid} (défense)`
+      : `IA ${pid} (attaque)`;
+
+    setBadges();
+    requestRedraw();
+
+    if (gameOver) return;
+
+    if (movesLeft <= 0) {
+      endTurn(true);
+      return;
+    }
+
+    scheduleAITick(90);
+  }
+
+  // ----------------------------
+  // Human move
+  // ----------------------------
+  function validateMoveHuman() {
+    if (gameOver) return;
+
+    const pid = currentPlayerId();
+    if (!alive.get(pid)) { endTurn(true); return; }
+    if (control.get(pid) !== "HUMAN") return;
+    if (movesLeft <= 0) { endTurn(true); return; }
+
+    const cur = activeCursor();
+    const k = keyOf(cur.ix, cur.iy);
+    const existing = marks.get(k);
+
+    let moveInfo = null;
+
+    if (!existing) {
+      if (!canPlaceCross(pid, cur.ix, cur.iy)) {
+        message = isOwnBase(pid, cur.ix, cur.iy)
+          ? "Interdit : pas de croix dans ta base."
+          : "Coup refusé : doit rester alimenté (connecté à ta base).";
+        setBadges();
+        requestRedraw();
+        return;
+      }
+      moveInfo = placeCross(pid, cur.ix, cur.iy);
+    } else if (existing.owner !== pid && existing.kind === "X") {
+      if (!canCircle(pid, k)) {
+        message = "Rond interdit : adjacency base/pièce + rester alimenté.";
+        setBadges();
+        requestRedraw();
+        return;
+      }
+      moveInfo = placeCircle(pid, k);
+    } else {
+      message = "Action impossible ici.";
+      setBadges();
+      requestRedraw();
+      return;
+    }
+
+    movesLeft--;
+    afterMove(pid, moveInfo);
+
+    message = "";
+    setBadges();
+    requestRedraw();
+
+    if (gameOver) return;
+    if (movesLeft <= 0) endTurn(true);
+  }
+
+  // ----------------------------
+  // UI
+  // ----------------------------
+  function setBadges() {
+    renderPlayersRow();
+    renderStatus();
+  }
+
+  function renderPlayersRow() {
+    const row = document.getElementById("playersRow");
+    row.innerHTML = "";
+
+    let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
+    for (const p of activePlayers) {
+      const chip = document.createElement("div");
+      chip.className = "pchip";
+      chip.style.opacity = alive.get(p.id) ? "1" : "0.35";
+      chip.style.borderColor = (p.id === currentPlayerId()) ? p.color : "#333";
+      chip.style.boxShadow = (p.id === currentPlayerId()) ? `0 0 0 2px ${p.color}33 inset` : "none";
+
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = p.color;
+
+      const label = document.createElement("span");
+      const st = alive.get(p.id) ? "EN JEU" : "ÉLIMINÉ";
+      label.textContent = `${p.name} — ${st}`;
+
+      const sel = document.createElement("select");
+      sel.innerHTML = `<option value="HUMAN">Humain</option><option value="AI">IA</option>`;
+      sel.value = control.get(p.id);
+      sel.addEventListener("change", () => {
+        control.set(p.id, sel.value);
+        stopAI();
+        setBadges();
+        requestRedraw();
+        maybeStartAITurn();
+      });
+
+      chip.appendChild(dot);
+      chip.appendChild(label);
+      chip.appendChild(sel);
+      row.appendChild(chip);
+    }
+  }
+
+  function renderStatus() {
+    const pid = currentPlayerId();
+    
+    let statusMessage = '';
+    if (gameOver) {
+      statusMessage = `<span class="ok">${message}</span>`;
+    } else if (control.get(pid) === "AI") {
+      statusMessage = `<span class="warn">IA ${pid} joue… ${message ? "— " + message : ""}</span>`;
+    } else if (message) {
+      statusMessage = `<span class="warn">${message}</span>`;
+    } else {
+      statusMessage = `<span class="ok">À toi de jouer.</span>`;
+    }
+    
+    // Afficher le statut simple sans bouton options
+    document.getElementById("status").innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>${statusMessage}</div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+          <span style="color: #888; font-size: 11px;">Menu: ESC</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // ----------------------------
+  // Drawing
+  // ----------------------------
+  let rafPending = false;
+  function requestRedraw() {
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame((currentTime) => {
+      rafPending = false;
+      
+      // Mettre à jour et dessiner les particules avec delta time
+      updateAndDrawParticles(currentTime);
+      
+      // Continuer le dessin
+      redraw();
+      
+      // Continuer la boucle de rendu pour maintenir les animations
+      requestRedraw();
+    });
+  }
+function isInAnyBaseNode(ix, iy) {
+  for (const p of PLAYERS) {
+    if (!alive.get(p.id)) continue;
+    const b = baseRectFor(p.id);
+    
+    // Debug : affiche les valeurs une seule fois
+    if (ix === 0 && iy === 0) {
+      console.log(`Base ${p.id}: ix=${b.ix}, iy=${b.iy}, cells=${b.cells}`);
+      console.log(`NODES = ${NODES}`);
+    }
+    
+    if (ix >= b.ix && ix <= b.ix + b.cells && 
+        iy >= b.iy && iy <= b.iy + b.cells) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function getBaseOwnerAt(ix, iy) {
+  for (const p of PLAYERS) {
+    if (!alive.get(p.id)) continue;
+    const b = baseRectFor(p.id);
+    if (ix >= b.ix && ix <= b.ix + b.cells && 
+        iy >= b.iy && iy <= b.iy + b.cells) {
+      return p.id;
+    }
+  }
+  return null;
+}
+
+function drawGrid() {
+  ctx.save();
+  ctx.clearRect(0, 0, displayW, displayH);
+  ctx.fillStyle = boardBg;
+  ctx.fillRect(0, 0, displayW, displayH);
+
+  const gridLine = (boardBg === "#0b0b0b") ? "#5a5a5a" : "#1f1f1f";
+  ctx.strokeStyle = gridLine;
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= GRID_CELLS; i++) {
+    const x = MARGIN_PX + i * CELL_PX;
+    ctx.beginPath(); ctx.moveTo(x, MARGIN_PX); ctx.lineTo(x, MARGIN_PX + GRID_CELLS * CELL_PX); ctx.stroke();
+    const y = MARGIN_PX + i * CELL_PX;
+    ctx.beginPath(); ctx.moveTo(MARGIN_PX, y); ctx.lineTo(MARGIN_PX + GRID_CELLS * CELL_PX, y); ctx.stroke();
+  }
+  
+  // Dessiner les points aux intersections (sauf dans les bases)
+  ctx.fillStyle = (boardBg === "#0b0b0b") ? "#4a4a4a" : "#2e2e2e";
+  for (let y = 0; y < NODES; y++) {
+    for (let x = 0; x < NODES; x++) {
+      // Enlève les petits points sur les bases
+      if (isInAnyBaseNode(x, y)) continue;
+
+      const p = nodeToPx(x, y);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 1.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  
+  ctx.restore();
+}
+
+  function drawBase(pid) {
+    if (!alive.get(pid)) return;
+    const p = playerById(pid);
+    const base = baseRectFor(pid);
+    const tl = nodeToPx(base.ix, base.iy);
+    const br = nodeToPx(base.ix + base.cells, base.iy + base.cells);
+
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = p.color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+
+    ctx.fillStyle = p.color;
+   ctx.font = "bold 14px 'Orbitron', sans-serif";
+// Calculer le centre du rectangle
+const centerX = tl.x + (br.x - tl.x) / 2;
+const centerY = tl.y + (br.y - tl.y) / 2;
+
+// Dessiner "Base" centré en haut
+ctx.textAlign = "center";
+ctx.fillText("Base", centerX, centerY - 5);
+
+// Dessiner la lettre en dessous
+ctx.fillText(pid, centerX, centerY + 10);
+
+ctx.textAlign = "left"; // Réinitialiser
+ctx.restore();
+   
+  }
+
+  function drawCircuitGlow(pid, poweredSet) {
+    const p = playerById(pid);
+    
+    // Ne pas dessiner de halos si le joueur est éliminé
+    if (!alive.get(pid)) {
+      return;
+    }
+    
+    for (const pass of [0, 1]) {
+      ctx.save();
+      ctx.strokeStyle = p.color;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      if (pass === 0) { ctx.globalAlpha = HALO_ALPHA_WIDE; ctx.lineWidth = HALO_WIDE; }
+      else { ctx.globalAlpha = HALO_ALPHA_THIN; ctx.lineWidth = HALO_THIN; }
+
+      for (const k of poweredSet) {
+        const a = parseKey(k);
+        for (const d of dirs8) {
+          const b = { ix: a.ix + d.dx, iy: a.iy + d.dy };
+          if (b.ix < 0 || b.iy < 0 || b.ix >= NODES || b.iy >= NODES) continue;
+          const nk = keyOf(b.ix, b.iy);
+          if (!poweredSet.has(nk)) continue;
+          if (isBlockedByEnemyWall(a, b, pid, d.dx, d.dy)) continue;
+          if (k >= nk) continue;
+          if (isInAnyBaseNode(a.ix, a.iy) && isInAnyBaseNode(b.ix, b.iy)) continue;
+          const p1 = nodeToPx(a.ix, a.iy);
+          const p2 = nodeToPx(b.ix, b.iy);
+          ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+    
+    // HALO CONSTANT : Depuis la position fixe de la base vers la première croix connectée
+    const players = ["A", "B", "C", "D"];
+    for (const playerId of players) {
+      if (pid === playerId) {
+        // Ne pas dessiner le halo constant si le joueur est éliminé
+        if (!alive.get(playerId)) {
+          return;
+        }
+        
+        // Position fixe de la base (ne change jamais)
+        const basePos = startNodeFor(playerId);
+        
+        // Angle fixe de la base selon le joueur
+        let baseCorner;
+        if (playerId === "A") {
+          baseCorner = { ix: basePos.ix + basePos.cells, iy: basePos.iy + basePos.cells }; // Coin inférieur droit
+        } else if (playerId === "B") {
+          baseCorner = { ix: basePos.ix, iy: basePos.iy }; // Coin supérieur gauche
+        } else if (playerId === "C") {
+          baseCorner = { ix: basePos.ix, iy: basePos.iy + basePos.cells }; // Coin inférieur gauche
+        } else if (playerId === "D") {
+          baseCorner = { ix: basePos.ix + basePos.cells, iy: basePos.iy }; // Coin supérieur droit
+        }
+        
+        // Chercher la PREMIÈRE croix CONNECTÉE (dans le poweredSet)
+        let firstCrossKey = null;
+        for (const [k, m] of marks.entries()) {
+          if (m.owner === playerId && m.kind === "X") {
+            // Vérifier que cette croix est bien dans le poweredSet (connectée à la base)
+            if (poweredSet.has(k)) {
+              firstCrossKey = k;
+              break; // Garder seulement la première croix connectée trouvée
+            }
+          }
+        }
+        
+        // Si on a une croix connectée, dessiner le halo fixe
+        if (firstCrossKey) {
+          const crossPos = parseKey(firstCrossKey);
+          
+          // Dessiner le halo constant (fixe)
+          ctx.save();
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = HALO_WIDE;
+          ctx.globalAlpha = HALO_ALPHA_WIDE;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          
+          const p1 = nodeToPx(baseCorner.ix, baseCorner.iy);
+          const p2 = nodeToPx(crossPos.ix, crossPos.iy);
+          
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+          
+          // Deuxième passe pour l'effet de halo
+          ctx.lineWidth = HALO_THIN;
+          ctx.globalAlpha = HALO_ALPHA_THIN;
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+          
+          ctx.restore();
+        }
+      }
+    }
+  }
+
+  function drawWall(edgeK, ownerPid, poweredOwnerSet) {
+    const owner = playerById(ownerPid);
+    const [k1, k2] = edgeK.split("|");
+    const a = parseKey(k1), b = parseKey(k2);
+    const p1 = nodeToPx(a.ix, a.iy);
+    const p2 = nodeToPx(b.ix, b.iy);
+    const powered = poweredOwnerSet.has(k1) && poweredOwnerSet.has(k2);
+
+    ctx.save();
+    ctx.strokeStyle = owner.color;
+    ctx.lineCap = "round";
+    ctx.globalAlpha = powered ? 0.25 : 0.18;
+    ctx.lineWidth = powered ? 13 : 11;
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+
+    ctx.globalAlpha = powered ? 0.98 : 0.88;
+    ctx.lineWidth = powered ? 7 : 5.5;
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawCross(ix, iy, color, powered=false) {
+    const p = nodeToPx(ix, iy);
+    const s = 6;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = powered ? 3.2 : 2.0;
+    ctx.beginPath();
+    ctx.moveTo(p.x - s, p.y - s); ctx.lineTo(p.x + s, p.y + s);
+    ctx.moveTo(p.x + s, p.y - s); ctx.lineTo(p.x - s, p.y + s);
+    ctx.stroke();
+    if (powered) {
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawCircle(ix, iy, color, powered=false) {
+    const p = nodeToPx(ix, iy);
+    ctx.save();
+    ctx.globalAlpha = powered ? 0.38 : 0.24;
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 9.6, 0, Math.PI*2); ctx.fill();
+
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = powered ? 3.0 : 1.9;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 9.6, 0, Math.PI*2); ctx.stroke();
+
+    if (powered) {
+      ctx.globalAlpha = 0.14;
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 13, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawCursor(pid, active=false) {
+    const p = playerById(pid);
+    const cur = cursors.get(pid);
+    const pos = nodeToPx(cur.ix, cur.iy);
+
+    ctx.save();
+    if (!active) {
+      ctx.strokeStyle = p.color;
+      ctx.globalAlpha = alive.get(pid) ? 0.28 : 0.10;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(pos.x, pos.y, 8.5, 0, Math.PI*2); ctx.stroke();
+      ctx.restore();
+      return;
+    }
+
+    const pidNow = currentPlayerId();
+    const kk = keyOf(cur.ix, cur.iy);
+    const existing = marks.get(kk);
+    let ok = false;
+    // Pendant un drag-diagonal: on se base sur la simulation virtuelle (dragOkPath)
+    if (typeof dragPlacing !== "undefined" && dragPlacing && dragMoved) {
+      ok = (dragOkPath && dragOkPath.length > 0);
+    } else {
+      if (!existing) ok = canPlaceCross(pidNow, cur.ix, cur.iy);
+      else if (existing.owner !== pidNow && existing.kind === "X") ok = canCircle(pidNow, kk);
+    }
+
+    ctx.strokeStyle = ok ? "#9dffb6" : "#ff8a8a";
+    ctx.globalAlpha = 0.95;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 13, 0, Math.PI*2); ctx.stroke();
+
+    ctx.strokeStyle = p.color;
+    ctx.globalAlpha = 0.9;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 6.2, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Vérifier si une marque est connectée à sa base (version simplifiée)
+  function isConnectedToBase(markKey, playerId) {
+    const markPos = parseKey(markKey);
+    const basePos = startNodeFor(playerId);
+    
+    // Vérification simple : est-ce que la marque est dans la zone powered par la base?
+    // Pour l'instant, on utilise une approche plus simple
+    const baseRect = baseRectFor(playerId);
+    
+    // Si la marque est très proche de la base, on considère qu'elle est connectée
+    const distance = Math.abs(markPos.ix - basePos.ix) + Math.abs(markPos.iy - basePos.iy);
+    if (distance <= 3) {
+      return true;
+    }
+    
+    // Vérifier s'il y a un chemin de marques du même joueur
+    // Approche simplifiée : vérifier seulement les voisins directs
+    for (const d of dirs8) {
+      const neighbor = { 
+        ix: markPos.ix + d.dx, 
+        iy: markPos.iy + d.dy 
+      };
+      
+      if (neighbor.ix < 0 || neighbor.iy < 0 || neighbor.ix >= NODES || neighbor.iy >= NODES) continue;
+      
+      const neighborKey = keyOf(neighbor.ix, neighbor.iy);
+      const neighborMark = marks.get(neighborKey);
+      
+      if (neighborMark && neighborMark.owner === playerId) {
+        // Vérifier si ce voisin est plus proche de la base
+        const neighborDistance = Math.abs(neighbor.ix - basePos.ix) + Math.abs(neighbor.iy - basePos.iy);
+        if (neighborDistance < distance) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  // Fonction pour calculer les noeuds powered avec des murs spécifiques
+  function computePoweredSetWithWalls(playerId, specificWalls) {
+    const poweredNodes = new Set();
+    
+    // 1. Partir de la base (la source d'énergie)
+    const basePos = startNodeFor(playerId);
+    const baseKey = keyOf(basePos.ix, basePos.iy);
+    
+    // Ajouter tous les noeuds de la base comme points de départ
+    const baseRect = baseRectFor(playerId);
+    const queue = [];
+    
+    // Ajouter tous les coins de la base comme points de départ
+    for (let x = baseRect.ix; x <= baseRect.ix + baseRect.cells; x++) {
+      for (let y = baseRect.iy; y <= baseRect.iy + baseRect.cells; y++) {
+        const nodeKey = keyOf(x, y);
+        queue.push(nodeKey);
+        poweredNodes.add(nodeKey);
+      }
+    }
+    
+    // 2. Propager le courant à travers les marques connectées
+    while (queue.length > 0) {
+      const currentKey = queue.shift();
+      const currentPos = parseKey(currentKey);
+      
+      // Explorer les 8 directions
+      for (const d of dirs8) {
+        const neighbor = { 
+          ix: currentPos.ix + d.dx, 
+          iy: currentPos.iy + d.dy 
+        };
+        
+        if (neighbor.ix < 0 || neighbor.iy < 0 || neighbor.ix >= NODES || neighbor.iy >= NODES) continue;
+        
+        const neighborKey = keyOf(neighbor.ix, neighbor.iy);
+        
+        // Si déjà visité, continuer
+        if (poweredNodes.has(neighborKey)) continue;
+        
+        // Vérifier si le voisin est une marque du même joueur
+        const neighborMark = marks.get(neighborKey);
+        if (neighborMark && neighborMark.owner === playerId) {
+          // Vérifier s'il n'y a pas de mur bloquant (avec les murs spécifiques)
+          if (!isBlockedBySpecificWall(currentPos, neighbor, playerId, d.dx, d.dy, specificWalls)) {
+            poweredNodes.add(neighborKey);
+            queue.push(neighborKey);
+          }
+        }
+      }
+    }
+    
+    return poweredNodes;
+  }
+
+  // Fonction pour vérifier si bloqué par des murs spécifiques
+  function isBlockedBySpecificWall(from, to, pid, dx, dy, specificWalls) {
+    const isOrth = (Math.abs(dx) + Math.abs(dy)) === 1;
+    if (!isOrth) return false;
+    const ek = edgeKey(from, to);
+    const owner = specificWalls.get(ek);
+    if (!owner) return false;
+    return owner !== pid;
+  }
+
+  // Fonction pour détecter et jouer le son de déconnexion quand un mur est placé
+  function checkAndPlayDisconnectionSound() {
+    // Pour chaque joueur, comparer l'état avant et après le placement du mur
+    for (const playerId of ['A', 'B', 'C', 'D']) {
+      if (!alive.get(playerId)) continue;
+      
+      // Récupérer l'état avant
+      const beforeNodes = window.previousPoweredNodes.get(playerId + "_before") || new Set();
+      
+      // Calculer l'état actuel (après reconstruction des murs)
+      const currentPowered = updateConnectivity(playerId);
+      
+      // Vérifier si des marques ont perdu leur connexion
+      console.log(`Comparaison pour joueur ${playerId}: avant=${beforeNodes.size}, après=${currentPowered.size}`);
+      
+      for (const [k, m] of marks.entries()) {
+        if (m.owner === playerId && beforeNodes.has(k) && !currentPowered.has(k)) {
+          // Cette marque a perdu sa connexion
+          console.log(`Déconnexion détectée pour la marque ${k} du joueur ${playerId}`);
+          soundSystem.playCircuitDisconnect();
+          break; // Jouer le son une seule fois
+        }
+      }
+      
+      // Mettre à jour l'état précédent pour la prochaine fois
+      window.previousPoweredNodes.set(playerId, currentPowered);
+    }
+  }
+  function updateConnectivity(playerId) {
+    const poweredNodes = new Set();
+    
+    // 1. Partir de la base (la source d'énergie)
+    const basePos = startNodeFor(playerId);
+    const baseKey = keyOf(basePos.ix, basePos.iy);
+    
+    // Ajouter tous les noeuds de la base comme points de départ
+    const baseRect = baseRectFor(playerId);
+    const queue = [];
+    
+    // Ajouter tous les coins de la base comme points de départ
+    for (let x = baseRect.ix; x <= baseRect.ix + baseRect.cells; x++) {
+      for (let y = baseRect.iy; y <= baseRect.iy + baseRect.cells; y++) {
+        const nodeKey = keyOf(x, y);
+        queue.push(nodeKey);
+        poweredNodes.add(nodeKey);
+      }
+    }
+    
+    // 2. Propager le courant à travers les marques connectées
+    while (queue.length > 0) {
+      const currentKey = queue.shift();
+      const currentPos = parseKey(currentKey);
+      
+      // Explorer les 8 directions
+      for (const d of dirs8) {
+        const neighbor = { 
+          ix: currentPos.ix + d.dx, 
+          iy: currentPos.iy + d.dy 
+        };
+        
+        if (neighbor.ix < 0 || neighbor.iy < 0 || neighbor.ix >= NODES || neighbor.iy >= NODES) continue;
+        
+        const neighborKey = keyOf(neighbor.ix, neighbor.iy);
+        
+        // Si déjà visité, continuer
+        if (poweredNodes.has(neighborKey)) continue;
+        
+        // Vérifier si le voisin est une marque du même joueur
+        const neighborMark = marks.get(neighborKey);
+        if (neighborMark && neighborMark.owner === playerId) {
+          // Vérifier s'il n'y a pas de mur bloquant
+          if (!isBlockedByEnemyWall(currentPos, neighbor, playerId, d.dx, d.dy)) {
+            poweredNodes.add(neighborKey);
+            queue.push(neighborKey);
+          }
+        }
+      }
+    }
+    
+    // Détecter les déconnexions (son de circuit coupé)
+    if (!window.previousPoweredNodes) {
+      window.previousPoweredNodes = new Map();
+    }
+    
+    const previousNodes = window.previousPoweredNodes.get(playerId) || new Set();
+    const currentNodes = new Set(poweredNodes);
+    
+    // Vérifier si des marques ont perdu leur connexion
+    console.log(`Vérification déconnexion pour joueur ${playerId}, marques: ${marks.size}`);
+    let disconnectionDetected = false;
+    
+    for (const [k, m] of marks.entries()) {
+      if (m.owner === playerId && previousNodes.has(k) && !currentNodes.has(k)) {
+        // Cette marque a perdu sa connexion
+        console.log(`Déconnexion détectée pour la marque ${k} du joueur ${playerId}`);
+        disconnectionDetected = true;
+        break; // Jouer le son une seule fois par frame
+      }
+    }
+    
+    if (disconnectionDetected) {
+      console.log("Appel de playCircuitDisconnect()");
+      soundSystem.playCircuitDisconnect();
+    }
+    
+    window.previousPoweredNodes.set(playerId, currentNodes);
+    
+    return poweredNodes;
+  }
+
+  function redraw() {
+    // Dessiner la grille et le fond (NOUVEAU)
+    drawGrid();
+    
+    rebuildWallsFromCircles();
+    const powered = new Map();
+    let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
+    
+    for (const p of activePlayers) {
+      powered.set(p.id, new Set());
+    }
+    
+    // Calculer les zones powered en utilisant la connectivité réelle
+    for (const p of activePlayers) {
+      powered.set(p.id, updateConnectivity(p.id));
+    }
+    
+    // Dessiner le circuit
+    for (const p of activePlayers) {
+      drawCircuitGlow(p.id, powered.get(p.id));
+    }
+    
+    // Dessiner les murs
+    for (const [edgeK, ownerPid] of walls.entries()) {
+      drawWall(edgeK, ownerPid, powered.get(ownerPid));
+    }
+    
+    // Dessiner les marques
+    for (const [k, m] of marks.entries()) {
+      const {ix, iy} = parseKey(k);
+      const col = playerById(m.owner).color;
+      const isPow = powered.get(m.owner).has(k);
+      if (m.kind === "X") drawCross(ix, iy, col, isPow);
+      else drawCircle(ix, iy, col, isPow);
+    }
+    
+    // Dessiner les curseurs
+    for (const p of activePlayers) {
+      drawCursor(p.id, p.id === currentPlayerId());
+      
+      // Dessiner le chemin de drag si actif
+      if (dragPath && dragPath.length > 0 && p.id === currentPlayerId()) {
+        const pidNow = p.id;
+        const col = playerById(pidNow).color;
+        const okSet = new Set((dragOkPath || []).map(n => n.k));
+
+        ctx.save();
+        // OK en couleur joueur
+        ctx.globalAlpha = 0.28;
+        for (let i=0;i<dragPath.length;i++) {
+          const node = dragPath[i];
+          const ex = marks.get(node.k);
+
+          // Si le point de départ est déjà à nous, il sert d'ancre (pas une pose)
+          if (ex) {
+            if (i === 0 && ex.owner === pidNow) continue;
+            break; // stop à la 1ère occupation bloquante
+          }
+
+          // Si le point de départ est vide, il PEUT être posé (et sera dans okSet si possible)
+          if (okSet.has(node.k)) drawCross(node.ix, node.iy, col, false);
+          else break; // stop strict au 1er non-posable
+        }
+
+        // le "bloqué" immédiat (si existe) en rouge léger
+        ctx.globalAlpha = 0.18;
+        for (let i=0;i<dragPath.length;i++) {
+          const node = dragPath[i];
+          const ex = marks.get(node.k);
+          if (ex) {
+            if (i === 0 && ex.owner === pidNow) continue;
+            break;
+          }
+          if (!okSet.has(node.k)) { drawCross(node.ix, node.iy, "#ff6b6b", false); break; }
+        }
+        ctx.restore();
+      }
+    }
+    
+    // Dessiner les bases
+    for (const p of activePlayers) drawBase(p.id);
+    
+    // Dessiner les particules (NOUVEAU)
+    updateAndDrawParticles();
+  }
+
+  // ----------------------------
+  // Inputs / Buttons
+  // ----------------------------
+  function onKey(e) {
+    const k = e.key.toLowerCase();
+    if (k === " ") e.preventDefault();
+    
+    // Contrôles de musique (toujours disponibles, même en game over)
+    if (k === "p") {
+      // Toggle musique avec touche P
+      toggleMusic();
+      console.log("Musique:", musicEnabled ? "ON" : "OFF");
+      return;
+    }
+    
+    // Contrôle du volume avec flèches haut/bas
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const volumeSlider = document.getElementById('music-volume');
+      if (volumeSlider) {
+        const currentVolume = parseInt(volumeSlider.value);
+        const newVolume = Math.min(100, currentVolume + 5);
+        volumeSlider.value = newVolume;
+        updateMusicVolume(newVolume);
+        console.log("Volume:", newVolume + "%");
+      }
+      return;
+    }
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const volumeSlider = document.getElementById('music-volume');
+      if (volumeSlider) {
+        const currentVolume = parseInt(volumeSlider.value);
+        const newVolume = Math.max(0, currentVolume - 5);
+        volumeSlider.value = newVolume;
+        updateMusicVolume(newVolume);
+        console.log("Volume:", newVolume + "%");
+      }
+      return;
+    }
+    
+    if (gameOver) return;
+
+    const pid = currentPlayerId();
+    if (!alive.get(pid)) { endTurn(true); return; }
+    if (control.get(pid) === "AI") return;
+
+    const cur = activeCursor();
+    if (k === "o") { cur.iy = clamp(cur.iy - 1, 0, NODES - 1); message=""; setBadges(); requestRedraw(); return; }
+    if (k === "l") { cur.iy = clamp(cur.iy + 1, 0, NODES - 1); message=""; setBadges(); requestRedraw(); return; }
+    if (k === "k") { cur.ix = clamp(cur.ix - 1, 0, NODES - 1); message=""; setBadges(); requestRedraw(); return; }
+    if (k === "m") { cur.ix = clamp(cur.ix + 1, 0, NODES - 1); message=""; setBadges(); requestRedraw(); return; }
+    if (k === " ") { validateMoveHuman(); return; }
+    if (k === "b") { toggleBoardBg(); return; }
+    if (k === "x") { toggleExpertMode(); return; }
+    if (k === "w") { endTurn(); return; }
+    if (k === "escape") { 
+      const menu = document.getElementById('main-menu');
+      if (menu) {
+        menu.style.display = 'flex';
+        menu.style.visibility = 'visible';
+        menu.style.pointerEvents = 'auto';
+        menu.style.opacity = '1';
+      }
+      
+      // Cacher les éléments du jeu
+      document.getElementById('playersRow').style.display = 'none';
+      document.getElementById('gameControls').style.display = 'none';
+      
+      // Réinitialiser le jeu
+      gameOver = false;
+      originalReset();
+      return;
+    }
+  }
+
+  document.getElementById("reset").addEventListener("click", reset);
+  document.getElementById("togglebg").addEventListener("click", toggleBoardBg);
+  document.getElementById("toggleExpert").addEventListener("click", toggleExpertMode);
+  document.getElementById("options-btn").addEventListener("click", toggleOptionsPanel);
+  document.getElementById("menu").addEventListener("click", () => {
+    const menu = document.getElementById('main-menu');
+    if (menu) {
+      menu.style.display = 'flex';
+      menu.style.visibility = 'visible';
+      menu.style.pointerEvents = 'auto';
+      menu.style.opacity = '1';
+    }
+    
+    // Cacher les éléments du jeu
+    document.getElementById('playersRow').style.display = 'none';
+    document.getElementById('gameControls').style.display = 'none';
+    
+    gameOver = true;
+    stopAI();
+    setBadges();
+    requestRedraw();
+  });
+  window.addEventListener("keydown", onKey);
+  // ----------------------------
+  // Mouse controls
+  //  - Survol : déplace le curseur
+  //  - Clic gauche : pose 1 coup (comme Espace)
+  //  - Clic gauche maintenu + déplacement : trace une LIGNE STRICTEMENT DIAGONALE (preview), et on valide tout au relâchement
+  //  - Clic droit : fin de tour
+  // ----------------------------
+  let dragPlacing = false;
+  let dragMoved = false;
+  let dragStart = null;      // {ix,iy}
+  let dragPath = [];         // [{ix,iy,k}]
+  let dragOkPath = [];       // sous-ensemble posable (simulation virtuelle)
+
+  function clearDrag() {
+    dragPlacing = false;
+    dragMoved = false;
+    dragStart = null;
+    dragPath = [];
+    dragOkPath = [];
+  }
+
+  function sign(v){ return v < 0 ? -1 : (v > 0 ? 1 : 0); }
+
+  // Projette la position courante sur la diagonale la plus proche (↘↗) passant par dragStart
+  function projectToNearestDiagonal(start, cur){
+    const dx = cur.ix - start.ix;
+    const dy = cur.iy - start.iy;
+
+    // diag +1 : (x+u, y+u)
+    let u1 = Math.round(((dx) + (dy)) / 2);
+    let c1 = { ix: clamp(start.ix + u1, 0, NODES - 1), iy: clamp(start.iy + u1, 0, NODES - 1) };
+
+    // diag -1 : (x+u, y-u)
+    let u2 = Math.round(((dx) - (dy)) / 2);
+    let c2 = { ix: clamp(start.ix + u2, 0, NODES - 1), iy: clamp(start.iy - u2, 0, NODES - 1) };
+
+    // Re-clamp cohérent (si clamp a cassé l’égalité |dx|=|dy|, on ré-ajuste au mieux)
+    // On s’assure juste que c1/c2 restent dans la grille; buildDiagonalPath gère le pas.
+    const e1 = (cur.ix - c1.ix)*(cur.ix - c1.ix) + (cur.iy - c1.iy)*(cur.iy - c1.iy);
+    const e2 = (cur.ix - c2.ix)*(cur.ix - c2.ix) + (cur.iy - c2.iy)*(cur.iy - c2.iy);
+
+    return (e1 <= e2) ? c1 : c2;
+  }
+
+  function buildDiagonalPath(a, b){
+    const dx = b.ix - a.ix;
+    const dy = b.iy - a.iy;
+    const steps = Math.max(Math.abs(dx), Math.abs(dy));
+    const sx = sign(dx);
+    const sy = sign(dy);
+    const out = [];
+    for(let i=0;i<=steps;i++){
+      const ix = a.ix + i*sx;
+      const iy = a.iy + i*sy;
+      if(ix<0||iy<0||ix>=NODES||iy>=NODES) break;
+      out.push({ ix, iy, k: keyOf(ix, iy) });
+    }
+    return out;
+  }
+
+  function updateDiagonalDragPath(curNode){
+    if(!dragStart) return;
+    const end = projectToNearestDiagonal(dragStart, curNode);
+    const path = buildDiagonalPath(dragStart, end);
+    dragPath = path;
+    dragMoved = (path.length > 1);
+
+    // Recalcule la ligne "posable" en mode VIRTUEL (connexion qui se propage le long de la diagonale)
+    // IMPORTANT : on ne pose rien réellement ici, on ne fait qu'une simulation.
+    const pidNow = currentPlayerId();
+    if (dragPlacing && dragMoved && control.get(pidNow) !== "AI" && alive.get(pidNow)) {
+      dragOkPath = computeVirtualPlaceableDrag(pidNow, dragPath);
+    } else {
+      dragOkPath = [];
+    }
+  }
+
+  // Simulation "virtuelle" pour le drag:
+  // On tente de poser des croix (temporairement) dans l'ordre pour que la connexion
+  // se propage le long de la diagonale. On s'arrête au 1er blocage.
+  function computeVirtualPlaceableDrag(pid, path){
+    // path inclut [start..end]. On essaie de poser des CROIX virtuelles dans l’ordre
+    // en permettant que le 1er nœud soit lui aussi une pose (si vide et connectable).
+    const tempKeys = [];
+    const okNodes = [];
+    const maxToPlace = movesLeft; // limité par coups restants
+
+    function rollback(){
+      for (const k of tempKeys) marks.delete(k);
+    }
+
+    // On avance le long de la diagonale : 
+    // - si nœud occupé par notre réseau (croix/rond) et POWERED => sert d’ancre, on continue
+    // - si nœud vide => on tente de poser une croix virtuelle, et on stop au 1er blocage
+    for (let i = 0; i < path.length; i++){
+      if (okNodes.length >= maxToPlace) break;
+      const node = path[i];
+
+      // Occupé ?
+      const existing = marks.get(node.k);
+      if (existing) {
+        // Si c’est à nous, on peut s’en servir comme ancre, mais seulement si c’est alimenté
+        if (existing.owner === pid) {
+          const powered = computePoweredSet(pid);
+          if (!powered.has(node.k)) { break; } // pas alimenté => ligne invalide
+          continue; // ancre OK
+        }
+        // occupé par autre chose => stop strict
+        break;
+      }
+
+      // Interdit de poser dans sa propre base (règle générale)
+      if (isOwnBase(pid, node.ix, node.iy)) break;
+
+      // Pose virtuelle
+      marks.set(node.k, { owner: pid, kind:"X" });
+      tempKeys.push(node.k);
+
+      const powered = computePoweredSet(pid);
+      if (powered.has(node.k)) {
+        okNodes.push(node); // on garde la pose virtuelle pour aider les suivantes
+      } else {
+        // pas connecté -> on annule cette croix et stop strict
+        marks.delete(node.k);
+        tempKeys.pop();
+        break;
+      }
+    }
+
+    rollback();
+    return okNodes;
+  }
+
+
+  canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  canvas.addEventListener("mousemove", (e) => {
+    if (gameOver) return;
+    const pid = currentPlayerId();
+    if (control.get(pid) === "AI") return;
+    if (!alive.get(pid)) return;
+
+    const n = mouseToNode(e.clientX, e.clientY);
+    const cur = cursors.get(pid);
+    cur.ix = n.ix;
+    cur.iy = n.iy;
+
+    if (dragPlacing) updateDiagonalDragPath(n);
+
+    message = "";
+    setBadges();
+    requestRedraw();
+  });
+
+  canvas.addEventListener("mousedown", (e) => {
+    if (gameOver) return;
+    const pid = currentPlayerId();
+    if (control.get(pid) === "AI") return;
+    if (!alive.get(pid)) return;
+
+    const n = mouseToNode(e.clientX, e.clientY);
+    const cur = cursors.get(pid);
+    cur.ix = n.ix;
+    cur.iy = n.iy;
+
+    if (e.button === 0) {
+      // Démarre le drag diagonal : la validation se fait au relâchement.
+      // Si l'utilisateur ne bouge pas => clic normal.
+      clearDrag();
+      dragPlacing = true;
+      dragStart = { ix: n.ix, iy: n.iy };
+      dragPath = [{ ix: n.ix, iy: n.iy, k: keyOf(n.ix, n.iy) }];
+      dragMoved = false;
+      dragOkPath = [];
+
+      message = "";
+      setBadges();
+      requestRedraw();
+      return;
+    }
+
+    if (e.button === 2) {
+      endTurn();
+      return;
+    }
+  });
+
+  // Relâchement : si drag => on valide la "ligne" (CROIX uniquement) au relâchement
+  window.addEventListener("mouseup", (e) => {
+    if (e.button !== 0) return;
+    if (!dragPlacing) return;
+
+    const pid = currentPlayerId();
+    if (gameOver || control.get(pid) === "AI" || !alive.get(pid)) { clearDrag(); return; }
+
+    // si pas bougé => comportement original (un seul coup au clic)
+    if (!dragMoved) {
+      clearDrag();
+      validateMoveHuman();
+      return;
+    }
+
+    // sinon, on "valide" la ligne diagonale au relâchement :
+    // on pose les croix RÉELLEMENT en se basant sur la simulation virtuelle (dragOkPath)
+    dragPlacing = false;
+
+    let placed = 0;
+    if (!dragOkPath || dragOkPath.length === 0) {
+      clearDrag();
+      message = "Ligne invalide (pas de connexion possible).";
+      setBadges();
+      requestRedraw();
+      return;
+    }
+
+    for (const node of dragOkPath) {
+      if (gameOver) break;
+      if (movesLeft <= 0) break;
+
+      // Si déjà occupé => stop strict
+      if (marks.has(node.k)) break;
+
+      // Pose réelle d'une CROIX (même pipeline que validateMoveHuman)
+      if (!canPlaceCross(pid, node.ix, node.iy)) break;
+      const moveInfo = placeCross(pid, node.ix, node.iy);
+      movesLeft--;
+      afterMove(pid, moveInfo);
+      placed++;
+
+      if (gameOver) break;
+    }
+
+    clearDrag();
+
+    message = placed > 0
+      ? `Ligne validée: ${placed} croix posée(s).`
+      : "Ligne invalide.";
+    setBadges();
+    requestRedraw();
+
+    // Consistance avec les autres coups : si plus de coups, fin de tour auto
+    if (!gameOver && movesLeft <= 0) endTurn(true);
+  });
+
+
+  // ----------------------------
+  // Reset
+  // ----------------------------
+  function reset() {
+    stopAI();
+    if (typeof clearDrag === 'function') clearDrag();
+
+    // Nettoyage complet
+    marks.clear();
+    walls.clear();
+    
+    // Réinitialiser tous les joueurs
+    for (const p of PLAYERS) {
+      alive.set(p.id, true);
+      started.set(p.id, true);
+      cursors.set(p.id, { ...startNodeFor(p.id) });
+    }
+
+    // IA: profils distincts à chaque partie
+    assignAIProfiles();
+
+    // Créer les croix initiales seulement pour les joueurs actifs
+    let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
+    for (const p of activePlayers) {
+      const s = startNodeFor(p.id);
+      marks.set(keyOf(s.ix, s.iy), { owner: p.id, kind:"X" });
+    }
+
+    rebuildWallsFromCircles();
+
+    currentIdx = 0;
+    movesLeft = MOVES_PER_TURN;
+    message = "";
+    gameOver = false;
+
+    setBadges();
+    requestRedraw();
+    maybeStartAITurn();
+  }
+
+  // Init - S'assurer que seul le menu est visible au démarrage
+  function initializeMenu() {
+    document.getElementById('playersRow').style.display = 'none';
+    document.getElementById('gameControls').style.display = 'none';
+    const menu = document.getElementById('main-menu');
+    if (menu) {
+      menu.style.display = 'flex';
+      menu.style.visibility = 'visible';
+      menu.style.pointerEvents = 'auto';
+      menu.style.opacity = '1';
+    }
+    gameOver = true; // Marquer comme non-commencé
+  }
+  
+  // Exécuter l'initialisation immédiatement et au chargement
+  initializeMenu();
+  
+  // S'assurer que l'état est correct après le chargement complet
+  window.addEventListener('load', initializeMenu);
+  
+  // Empêcher reset() de s'exécuter uniquement au démarrage automatique
+  let hasStarted = false;
+  const originalReset = reset;
+  reset = function() {
+    if (!hasStarted) {
+      hasStarted = true;
+      return originalReset();
+    }
+    if (!gameOver) {
+      originalReset();
+    }
+  };
+
+  // ================================
+  // SYSTÈME AUDIO
+  // ================================
+  
+  class SoundSystem {
+    constructor() {
+      this.initialized = false;
+      this.audioContext = null;
+      this.musicSource = null;
+      this.musicGainNode = null;
+      this.musicPlaying = false;
+      this.musicVolume = 0.3; // Volume par défaut
+    }
+    
+    init() {
+      if (this.initialized) return;
+      try {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.initialized = true;
+      } catch (e) {
+        console.log("Audio non disponible");
+      }
+    }
+    
+    // Créer un son d'explosion
+    playExplosion() {
+      // Vérifier si les sons sont activés
+      if (!soundsEnabled) {
+        console.log("Sons désactivés - explosion ignorée");
+        return;
+      }
+      
+      // Utiliser le fichier MP3 d'explosion
+      console.log("Tentative de lecture du MP3 d'explosion: sound explosion.mp3");
+      
+      try {
+        // Encoder l'URL pour gérer les espaces
+        const mp3Path = encodeURIComponent('sound explosion.mp3');
+        console.log("URL encodée:", mp3Path);
+        
+        const audio = new Audio(mp3Path);
+        audio.volume = 0.3; // Volume plus bas pour l'explosion
+        
+        // Écouter les événements pour le debug
+        audio.addEventListener('canplaythrough', () => {
+          console.log("MP3 explosion prêt à jouer");
+        });
+        
+        audio.addEventListener('error', (e) => {
+          console.log("ERREUR chargement MP3 explosion:", e);
+          console.log("Fallback vers son synthétique");
+          this.playExplosionSynthetic();
+        });
+        
+        audio.addEventListener('loadstart', () => {
+          console.log("Début chargement MP3 explosion");
+        });
+        
+        audio.play().then(() => {
+          console.log("MP3 explosion en cours de lecture - SUCCÈS");
+        }).catch(e => {
+          console.log("ERREUR lecture MP3 explosion:", e);
+          this.playExplosionSynthetic();
+        });
+      } catch (e) {
+        console.log("ERREUR création audio MP3 explosion:", e);
+        this.playExplosionSynthetic();
+      }
+    }
+    
+    // Musique de fond avec Web Audio API
+    async playBackgroundMusic() {
+      if (!this.initialized) this.init();
+      if (!this.audioContext) return;
+      
+      try {
+        console.log("Chargement de la musique de fond: theme-volt-clash.ogg");
+        
+        // Charger le fichier audio
+        const response = await fetch('theme-volt-clash.ogg');
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+        
+        // Créer la source audio
+        this.musicSource = this.audioContext.createBufferSource();
+        this.musicSource.buffer = audioBuffer;
+        this.musicSource.loop = true; // Boucle infinie
+        
+        // Créer un gain node pour le contrôle du volume et fade-in
+        this.musicGainNode = this.audioContext.createGain();
+        this.musicGainNode.gain.setValueAtTime(0, this.audioContext.currentTime); // Commence à 0
+        
+        // Connecter les noeuds
+        this.musicSource.connect(this.musicGainNode);
+        this.musicGainNode.connect(this.audioContext.destination);
+        
+        // Démarrer la musique
+        this.musicSource.start(0);
+        
+        // Fade-in progressif sur 3 secondes avec le volume actuel
+        this.musicGainNode.gain.linearRampToValueAtTime(this.musicVolume, this.audioContext.currentTime + 3);
+        
+        console.log("Musique de fond démarrée avec fade-in");
+        
+        // Sauvegarder pour pouvoir l'arrêter plus tard
+        this.musicPlaying = true;
+        
+      } catch (e) {
+        console.log("ERREUR chargement musique de fond:", e);
+      }
+    }
+    
+    // Mettre à jour le volume de la musique
+    updateVolume(newVolume) {
+      this.musicVolume = newVolume / 100; // Convertir le pourcentage en 0-1
+      
+      if (this.musicGainNode && this.audioContext) {
+        // Appliquer le nouveau volume avec une transition douce
+        this.musicGainNode.gain.linearRampToValueAtTime(this.musicVolume, this.audioContext.currentTime + 0.5);
+        console.log("Volume musique mis à jour:", Math.round(this.musicVolume * 100) + "%");
+      }
+    }
+    
+    // Arrêter la musique de fond
+    stopBackgroundMusic() {
+      if (this.musicSource && this.musicGainNode && this.audioContext) {
+        // Fade-out progressif
+        this.musicGainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 1);
+        
+        // Arrêter après le fade-out
+        setTimeout(() => {
+          if (this.musicSource) {
+            try {
+              this.musicSource.stop();
+              this.musicSource = null;
+              this.musicGainNode = null;
+              this.musicPlaying = false;
+              console.log("Musique de fond arrêtée");
+            } catch (e) {
+              console.log("Musique déjà arrêtée");
+            }
+          }
+        }, 1000);
+      }
+    }
+    
+    // Vérifier si la musique joue
+    isMusicPlaying() {
+      return this.musicPlaying || false;
+    }
+    
+    // Son synthétique de secours pour explosion
+    playExplosionSynthetic() {
+      // Vérifier si les sons sont activés
+      if (!soundsEnabled) {
+        console.log("Sons désactivés - explosion synthétique ignorée");
+        return;
+      }
+      
+      if (!this.initialized) this.init();
+      if (!this.audioContext) return;
+      
+      const oscillator = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+      
+      // Son d'explosion : bruit blanc filtré
+      oscillator.type = 'sawtooth';
+      oscillator.frequency.setValueAtTime(100, this.audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(20, this.audioContext.currentTime + 0.2);
+      
+      gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+      
+      oscillator.start(this.audioContext.currentTime);
+      oscillator.stop(this.audioContext.currentTime + 0.3);
+    }
+    
+    // Créer un son de déconnexion de circuit
+    playCircuitDisconnect() {
+      // Vérifier si les sons sont activés
+      if (!soundsEnabled) {
+        console.log("Sons désactivés - déconnexion ignorée");
+        return;
+      }
+      
+      // Utiliser le fichier MP3 personnalisé avec URL encodée
+      console.log("Tentative de lecture du MP3: Power_Down_#4-1769878521457.mp3");
+      
+      try {
+        // Encoder l'URL pour gérer les caractères spéciaux
+        const mp3Path = encodeURIComponent('Power_Down_#4-1769878521457.mp3');
+        console.log("URL encodée:", mp3Path);
+        
+        const audio = new Audio(mp3Path);
+        audio.volume = 0.4; // Volume modéré
+        
+        // Écouter les événements pour le debug
+        audio.addEventListener('canplaythrough', () => {
+          console.log("MP3 prêt à jouer");
+        });
+        
+        audio.addEventListener('error', (e) => {
+          console.log("ERREUR chargement MP3:", e);
+          console.log("Fallback vers son synthétique");
+          this.playCircuitDisconnectSynthetic();
+        });
+        
+        audio.addEventListener('loadstart', () => {
+          console.log("Début chargement MP3");
+        });
+        
+        audio.play().then(() => {
+          console.log("MP3 en cours de lecture - SUCCÈS");
+        }).catch(e => {
+          console.log("ERREUR lecture MP3:", e);
+          this.playCircuitDisconnectSynthetic();
+        });
+      } catch (e) {
+        console.log("ERREUR création audio MP3:", e);
+        this.playCircuitDisconnectSynthetic();
+      }
+    }
+    
+    // Son synthétique de secours
+    playCircuitDisconnectSynthetic() {
+      // Vérifier si les sons sont activés
+      if (!soundsEnabled) {
+        console.log("Sons désactivés - déconnexion synthétique ignorée");
+        return;
+      }
+      
+      if (!this.initialized) this.init();
+      if (!this.audioContext) return;
+      
+      const oscillator = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+      
+      // Son de déconnexion : baisse de fréquence
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(100, this.audioContext.currentTime + 0.15);
+      
+      gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.15);
+      
+      oscillator.start(this.audioContext.currentTime);
+      oscillator.stop(this.audioContext.currentTime + 0.15);
+    }
+  }
+  
+  const soundSystem = new SoundSystem();
+
+  // ================================
+  // SYSTÈME DE PARTICULES SIMPLE ET EFFICACE
+  // ================================
+  
+  // Tableau pour stocker toutes les particules actives
+  const particles = [];
+
+// Vider les particules existantes au chargement
+  particles.length = 0;
+
+  // Classe pour définir une particule individuelle
+  class Particle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 12; // Vitesse de base
+        this.vy = (Math.random() - 0.5) * 12; // Vitesse de base
+        this.life = 1.0; // durée de vie (1.0 = pleine vie, 0 = mort)
+        this.decay = 0.04; // Vitesse de mort de base
+        this.size = Math.random() * 2 + 1; // Taille de base
+        this.color = color;
+    }
+
+    update(deltaTime = 1) {
+        // Sécuriser les valeurs
+        deltaTime = deltaTime || 1;
+        
+        // Mettre à jour la position avec delta time
+        this.x += (this.vx || 0) * deltaTime;
+        this.y += (this.vy || 0) * deltaTime;
+        
+        // Appliquer une légère gravité avec delta time
+        this.vy += 0.15 * deltaTime;
+        
+        // Réduire la durée de vie avec delta time
+        this.life -= (this.decay || 0.04) * deltaTime;
+        
+        // Réduire légèrement la taille avec delta time
+        this.size *= Math.pow(0.97, deltaTime);
+        
+        // S'assurer que les valeurs restent valides
+        if (isNaN(this.x)) this.x = 0;
+        if (isNaN(this.y)) this.y = 0;
+        if (isNaN(this.size)) this.size = 1;
+        if (isNaN(this.life)) this.life = 1;
+    }
+
+    draw() {
+        // Optimisation : ne pas dessiner si trop petit ou invisible
+        if (this.size < 0.3 || this.life <= 0) return;
+        
+        // Debug : afficher si on essaie de dessiner
+        console.log(`Dessin particule à (${this.x}, ${this.y}) taille: ${this.size} vie: ${this.life}`);
+        
+        ctx.save();
+        
+        // Opacité basée sur la durée de vie
+        ctx.globalAlpha = Math.max(0, this.life);
+        
+        // Couleur de la particule
+        ctx.fillStyle = this.color;
+        
+        // Dessiner la particule
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Ajouter un effet de lueur plus petit
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 5;
+        ctx.fill();
+        
+        ctx.restore();
+    }
+}
+
+  // Fonction pour déclencher une explosion de particules
+  function createExplosion(x, y, color, count = 30) {
+      for (let i = 0; i < count; i++) {
+          particles.push(new Particle(x, y, color));
+      }
+  }
+
+  // Variables pour le delta time
+let lastTime = performance.now();
+
+// Fonction à appeler dans ta boucle de jeu (avant le `requestAnimationFrame`)
+  // pour mettre à jour et dessiner toutes les particules
+  function updateAndDrawParticles(currentTime) {
+      // Calculer le delta time simplifié avec sécurité
+      const deltaTime = currentTime && lastTime ? Math.min((currentTime - lastTime) / 16.67, 2) : 1;
+      if (currentTime) lastTime = currentTime;
+      
+      // Version ultra-optimisée pour éviter les blocages
+      if (particles.length === 0) return;
+      
+      // Nettoyer d'abord les particules mortes et hors-écran
+      for (let i = particles.length - 1; i >= 0; i--) {
+          const particle = particles[i];
+          
+          // Mettre à jour avec delta time sécurisé
+          particle.update(deltaTime);
+          
+          // Supprimer seulement si vraiment morte
+          if (particle.life <= 0) {
+              particles.splice(i, 1);
+              continue;
+          }
+          
+          // Dessiner la particule (même si petite ou hors-écran pour le debug)
+          particle.draw();
+      }
+      
+      // Limiter le nombre maximum de particules pour éviter l'accumulation
+      if (particles.length > 100) {
+          particles.splice(0, particles.length - 100);
+      }
+  }
+
+  // Fonction pour créer une explosion à des coordonnées de grille
+  function createElectricExplosion(gridX, gridY, size = 'medium') {
+      const pixelX = MARGIN_PX + gridX * CELL_PX;
+      const pixelY = MARGIN_PX + gridY * CELL_PX;
+      
+      // Jouer le son d'explosion
+      soundSystem.playExplosion();
+      
+      // Couleur électrique cyan
+      const color = '#00ffff';
+      
+      // Debug : afficher dans la console
+      console.log(`Explosion créée à (${gridX}, ${gridY}) -> (${pixelX}, ${pixelY})`);
+      
+      // Tailles réduites et plus rapides
+      let particleCount;
+      switch(size) {
+          case 'small':
+              particleCount = 15; // Réduit de 20
+              break;
+          case 'large':
+              particleCount = 25; // Réduit de 40
+              break;
+          default: // medium
+              particleCount = 20; // Réduit de 30
+      }
+      
+      console.log(`Création de ${particleCount} particules`);
+      createExplosion(pixelX, pixelY, color, particleCount);
+      console.log(`Total particules après création: ${particles.length}`);
+  }
+
+  // Modifier la fonction d'élimination pour inclure des explosions
+  const originalEliminatePlayer = eliminatePlayer;
+  eliminatePlayer = function(elimPid, eliminatorPid, reason) {
+      const result = originalEliminatePlayer(elimPid, eliminatorPid, reason);
+      
+      // Créer une explosion sur la base du joueur éliminé
+      const basePos = startNodeFor(elimPid);
+      createElectricExplosion(basePos.ix, basePos.iy, 'large');
+      
+      return result;
+  };
+
+  // Modifier la fonction de victoire pour inclure une explosion sur la dernière base
+  function checkVictory() {
+    let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
+    let aliveCount = 0, last = null;
+    let eliminatedPlayer = null;
+    
+    for (const p of activePlayers) {
+      if (alive.get(p.id)) { 
+        aliveCount++; 
+        last = p.id; 
+      } else {
+        eliminatedPlayer = p.id; // Le joueur qui vient d'être éliminé
+      }
+    }
+    
+    if (aliveCount <= 1) {
+      gameOver = true;
+      
+      if (last) {
+        // Créer une explosion sur la base du joueur éliminé (si applicable)
+        if (eliminatedPlayer) {
+          const basePos = startNodeFor(eliminatedPlayer);
+          createElectricExplosion(basePos.ix, basePos.iy, 'large');
+        }
+        
+        // Afficher l'animation de victoire IMMÉDIATEMENT pour ne pas bloquer
+        showVictoryAnimation(last, playerById(last).color);
+        
+        // Afficher le nom du gagnant
+        let winnerName = `Joueur ${last}`;
+        if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
+          winnerName = last === 1 ? playerNames.player1 : playerNames.player2;
+        }
+        message = `Victoire : ${winnerName}`;
+      } else {
+        showBanner("FIN", "Fin de partie.", "#eee");
+        message = "Fin de partie.";
+      }
+      setBadges();
+      requestRedraw();
+      
+      // Arrêter seulement l'IA mais PAS la boucle de rendu
+      stopAI();
+      return true;
+    }
+    return false;
+  }
+
+})();
+</script>
+</div>
+</body>
+</html>

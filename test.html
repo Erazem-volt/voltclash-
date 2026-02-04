@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Volt Clash - Test</title>
+  <style>
+    body { margin:0; background:#111; color:#eee; font-family:Arial, sans-serif; }
+    .container { max-width: 800px; margin: 0 auto; padding: 20px; text-align: center; }
+    button { padding:10px 20px; margin:10px; font-size:16px; background:#333; color:#fff; border:none; cursor:pointer; }
+    button:hover { background:#555; }
+    canvas { border:2px solid #555; margin:20px auto; display:block; background:#000; }
+    .status { margin:10px; font-size:18px; color:#0f0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>VOLT CLASH - MODE TEST</h1>
+    
+    <div id="menu">
+      <h2>Menu Principal</h2>
+      <button onclick="start2Players()">2 JOUEURS</button>
+      <button onclick="start4Players()">4 JOUEURS</button>
+    </div>
+    
+    <div id="game" style="display:none;">
+      <div class="status" id="status">Joueur: A - Tour: 1</div>
+      <canvas id="canvas" width="600" height="600"></canvas>
+      <button onclick="resetGame()">RETOUR MENU</button>
+    </div>
+  </div>
+
+  <script>
+    console.log('Chargement du script...');
+    
+    let canvas, ctx;
+    let gameState = {
+      mode: 2,
+      currentPlayer: 0,
+      players: ['A', 'B'],
+      gameOver: false
+    };
+
+    function init() {
+      console.log('Initialisation...');
+      canvas = document.getElementById('canvas');
+      ctx = canvas.getContext('2d');
+      console.log('Canvas initialisé:', canvas);
+    }
+
+    function start2Players() {
+      console.log('=== DÉMARRAGE 2 JOUEURS ===');
+      gameState.mode = 2;
+      gameState.players = ['A', 'B'];
+      gameState.currentPlayer = 0;
+      gameState.gameOver = false;
+      
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      
+      drawGame();
+      updateStatus();
+      console.log('Jeu 2 joueurs démarré');
+    }
+
+    function start4Players() {
+      console.log('=== DÉMARRAGE 4 JOUEURS ===');
+      gameState.mode = 4;
+      gameState.players = ['A', 'B', 'C', 'D'];
+      gameState.currentPlayer = 0;
+      gameState.gameOver = false;
+      
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      
+      drawGame();
+      updateStatus();
+      console.log('Jeu 4 joueurs démarré');
+    }
+
+    function drawGame() {
+      if (!ctx) return;
+      
+      // Effacer canvas
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, 600, 600);
+      
+      // Dessiner grille
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 20; i++) {
+        const pos = i * 30;
+        ctx.beginPath();
+        ctx.moveTo(pos, 0);
+        ctx.lineTo(pos, 600);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, pos);
+        ctx.lineTo(600, pos);
+        ctx.stroke();
+      }
+      
+      // Dessiner bases
+      if (gameState.mode === 2) {
+        // Mode 2 joueurs : coins opposés
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        ctx.fillRect(0, 0, 90, 90); // Base A (haut gauche)
+        
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+        ctx.fillRect(510, 510, 90, 90); // Base B (bas droite)
+      } else {
+        // Mode 4 joueurs : 4 coins
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        ctx.fillRect(0, 0, 90, 90); // Base A
+        
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+        ctx.fillRect(510, 510, 90, 90); // Base B
+        
+        ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+        ctx.fillRect(510, 0, 90, 90); // Base C
+        
+        ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
+        ctx.fillRect(0, 510, 90, 90); // Base D
+      }
+      
+      // Dessiner joueur actuel
+      const colors = ['#ff0000', '#00ff00', '#ffff00', '#0000ff'];
+      ctx.fillStyle = colors[gameState.currentPlayer];
+      ctx.font = 'bold 20px Arial';
+      ctx.fillText('Joueur ' + gameState.players[gameState.currentPlayer], 250, 300);
+    }
+
+    function updateStatus() {
+      const status = document.getElementById('status');
+      status.textContent = `Joueur: ${gameState.players[gameState.currentPlayer]} - Mode: ${gameState.mode} joueurs`;
+    }
+
+    function resetGame() {
+      console.log('Retour au menu');
+      document.getElementById('menu').style.display = 'block';
+      document.getElementById('game').style.display = 'none';
+    }
+
+    // Initialisation au chargement
+    window.onload = function() {
+      console.log('Page chargée');
+      init();
+    };
+  </script>
+</body>
+</html>

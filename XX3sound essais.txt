@@ -1,0 +1,1242 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Combat Électrique — V4 Final (30×30)</title>
+  <style>
+    body { margin:0; background:#111; color:#eee; font-family:system-ui, Arial, sans-serif; }
+    .wrap { max-width: 1450px; margin: 0 auto; padding: 16px; }
+    .top { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .panel { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .badge { padding:6px 10px; border:1px solid #333; border-radius:999px; background:#151515; font-size:14px; }
+    button {
+      padding:8px 10px; border-radius:10px; border:1px solid #333;
+      background:#1b1b1b; color:#eee; cursor:pointer;
+    }
+    button:hover { background:#222; }
+    .note { color:#cfcfcf; font-size:14px; line-height:1.45; margin:10px 0 12px 0; }
+    .sheet { background:#0b0b0b; border:1px solid #333; border-radius: 10px; padding: 12px; width: fit-content; cursor: crosshair; }
+    canvas { width: 1040px; max-width: 100%; height: auto; display:block; background:#0b0b0b; border-radius:8px; }
+    .help { margin-top:10px; color:#cfcfcf; font-size:13px; line-height:1.55; }
+    .warn { color:#ffcf7a; }
+    .ok { color:#9dffb6; }
+    code { background:#1b1b1b; padding:2px 6px; border-radius:6px; border:1px solid #2b2b2b; }
+
+    .players { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom: 10px; }
+    .pchip { padding:6px 10px; border-radius:999px; border:1px solid #333; background:#151515; font-size:13px; display:flex; align-items:center; gap:8px; }
+    .dot { width:10px; height:10px; border-radius:999px; display:inline-block; }
+    select { background:#151515; color:#eee; border:1px solid #333; border-radius:8px; padding:4px 8px; }
+
+    .banner {
+      position: fixed;
+      left: 50%; top: 18%;
+      transform: translate(-50%, -50%);
+      background: rgba(10,10,10,0.92);
+      border: 1px solid #333;
+      border-radius: 14px;
+      padding: 14px 18px;
+      min-width: 360px;
+      text-align: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    }
+    .banner.show { animation: pop 1.35s ease forwards; }
+    .banner .title { font-weight: 850; font-size: 20px; margin-bottom: 6px; }
+    .banner .sub { font-size: 13px; color: #cfcfcf; }
+    @keyframes pop {
+      0% { opacity: 0; transform: translate(-50%, -60%) scale(0.96); }
+      18% { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+      65% { opacity: 1; transform: translate(-50%, -50%) scale(1.00); }
+      100% { opacity: 0; transform: translate(-50%, -44%) scale(0.99); }
+    }
+
+    .chipSmall { padding:6px 10px; border-radius:999px; border:1px solid #333; background:#151515; font-size:13px; display:flex; align-items:center; gap:8px; }
+    .switch { display:inline-flex; align-items:center; gap:8px; }
+    .switch input { transform: scale(1.1); }
+  </style>
+</head>
+<body>
+
+<div id="banner" class="banner">
+  <div class="title" id="bTitle"></div>
+  <div class="sub" id="bSub"></div>
+</div>
+
+<div class="wrap">
+  <div class="top">
+    <h2 style="margin:0;">Volt Clash — Gameplay complet (Expert toggle + Drag diagonal)</h2>
+    <div class="panel">
+      <span class="badge" id="turn">Joueur: A</span>
+      <span class="badge" id="moves">Coups restants: 5</span>
+      <button id="endturn">W = Fin de tour</button>
+      <button id="reset">Réinitialiser</button>
+      <button id="togglebg">Fond: Noir</button>
+      <span class="chipSmall switch">
+        <label for="expertToggle">Expert IA</label>
+        <input id="expertToggle" type="checkbox" />
+      </span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>Clavier :</b> <code>o</code><code>l</code><code>k</code><code>m</code> déplacer, <code>Espace</code> valider, <code>w</code> fin de tour, <code>b</code> fond.<br/>
+    <b>Souris :</b> survol = curseur, <code>clic gauche</code> = 1 coup, <code>clic droit</code> = fin de tour.<br/>
+    <b>Drag diagonal :</b> <b>maintenir clic gauche</b> puis déplacer : prévisualisation diagonale, <b>relâcher</b> = pose des croix validées (jusqu’à 5).
+  </div>
+
+  <div class="players" id="playersRow"></div>
+  <div class="sheet"><canvas id="c"></canvas></div>
+  <div class="help" id="status"></div>
+</div>
+
+<script>
+(() => {
+   const AudioEngine = {
+    ctx: null,
+    init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+    play(freq, type, duration, vol = 0.1) {
+      this.init(); if (this.ctx.state === 'suspended') this.ctx.resume();
+      const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+      osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+      osc.connect(gain); gain.connect(this.ctx.destination);
+      osc.start(); osc.stop(this.ctx.currentTime + duration);
+    },
+    sndPlace() { this.play(440, 'sine', 0.1, 0.1); },
+    sndCapture() { this.play(220, 'square', 0.3, 0.05); setTimeout(() => this.play(660, 'square', 0.2, 0.05), 50); },
+    sndElim() { for(let i=0; i<8; i++) setTimeout(() => this.play(60+Math.random()*150, 'sawtooth', 0.5, 0.1), i*100); },
+    sndTurn() { this.play(880, 'sine', 0.05, 0.03); }
+  };
+  const GRID_CELLS = 30, NODES = GRID_CELLS + 1, BASE_CELLS = 2, MOVES_PER_TURN = 5;
+  const CELL_PX = 22, MARGIN_PX = 24;
+
+  const PLAYERS = [
+    { id:"A", color:"#ff5d5d", name:"A (Rouge)" },
+    { id:"B", color:"#3ddc84", name:"B (Vert)"  },
+    { id:"C", color:"#ffd84d", name:"C (Jaune)" },
+    { id:"D", color:"#4da6ff", name:"D (Bleu)"  },
+  ];
+
+  const control = new Map([["A","HUMAN"],["B","AI"],["C","AI"],["D","AI"]]);
+
+  let boardBg = "#0b0b0b";
+  function toggleBoardBg(){
+    boardBg = (boardBg === "#0b0b0b") ? "#ffffff" : "#0b0b0b";
+    const btn = document.getElementById("togglebg");
+    btn.textContent = (boardBg === "#0b0b0b") ? "Fond: Noir" : "Fond: Blanc";
+    requestRedraw();
+  }
+
+  const canvas = document.getElementById("c"), ctx = canvas.getContext("2d"), dpr = window.devicePixelRatio || 1;
+  const displayW = MARGIN_PX*2 + GRID_CELLS * CELL_PX, displayH = MARGIN_PX*2 + GRID_CELLS * CELL_PX;
+  canvas.style.width = displayW + "px"; canvas.style.height = displayH + "px";
+  canvas.width = Math.round(displayW * dpr); canvas.height = Math.round(displayH * dpr);
+  ctx.scale(dpr, dpr);
+
+  const marks = new Map();   // nodeKey -> {owner, kind:"X"|"O"}
+  const walls = new Map();   // edgeKey -> owner (from O-O)
+  const alive = new Map(PLAYERS.map(p => [p.id, true]));
+  const started = new Map(PLAYERS.map(p => [p.id, true]));
+
+  let currentIdx = 0, movesLeft = MOVES_PER_TURN, message = "", gameOver = false;
+
+  const cursors = new Map(PLAYERS.map(p => [p.id, { ...startNodeFor(p.id) } ]));
+
+  const banner = document.getElementById("banner");
+  const bTitle = document.getElementById("bTitle");
+  const bSub = document.getElementById("bSub");
+  let bannerTimer = null;
+  function showBanner(title, sub, color="#eee") {
+    bTitle.textContent = title;
+    bSub.textContent = sub || "";
+    bTitle.style.color = color;
+    banner.classList.remove("show");
+    void banner.offsetWidth;
+    banner.classList.add("show");
+    clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(() => banner.classList.remove("show"), 1400);
+  }
+
+  function nodeToPx(ix, iy) { return { x: MARGIN_PX + ix * CELL_PX, y: MARGIN_PX + iy * CELL_PX }; }
+  function keyOf(ix, iy) { return `${ix},${iy}`; }
+  function parseKey(k) { const [ix,iy] = k.split(",").map(Number); return {ix,iy}; }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function dist2(a,b){ const dx=a.ix-b.ix, dy=a.iy-b.iy; return dx*dx+dy*dy; }
+
+  const dirs8 = [{dx:1,dy:0},{dx:-1,dy:0},{dx:0,dy:1},{dx:0,dy:-1},{dx:1,dy:1},{dx:1,dy:-1},{dx:-1,dy:1},{dx:-1,dy:-1}];
+  const neigh4 = [{dx:1,dy:0},{dx:-1,dy:0},{dx:0,dy:1},{dx:0,dy:-1}];
+
+  function baseRectFor(pid){
+    if(pid==="A") return {ix:0, iy:0, cells:BASE_CELLS};
+    if(pid==="B") return {ix:NODES-1-BASE_CELLS, iy:NODES-1-BASE_CELLS, cells:BASE_CELLS};
+    if(pid==="C") return {ix:NODES-1-BASE_CELLS, iy:0, cells:BASE_CELLS};
+    if(pid==="D") return {ix:0, iy:NODES-1-BASE_CELLS, cells:BASE_CELLS};
+  }
+  function baseCenter(pid){
+    const b=baseRectFor(pid);
+    return {ix:b.ix+1, iy:b.iy+1};
+  }
+  function startNodeFor(pid){
+    const b=baseRectFor(pid); const step=3;
+    if(pid==="A") return {ix:b.ix+step, iy:b.iy+step};
+    if(pid==="B") return {ix:b.ix-1, iy:b.iy-1};
+    if(pid==="C") return {ix:b.ix-1, iy:b.iy+step};
+    if(pid==="D") return {ix:b.ix+step, iy:b.iy-1};
+  }
+
+  function edgeKey(a,b){
+    const k1=keyOf(a.ix,a.iy), k2=keyOf(b.ix,b.iy);
+    return (k1<k2)?`${k1}|${k2}`:`${k2}|${k1}`;
+  }
+
+  function rebuildWallsFromCircles() {
+    walls.clear();
+    for (const [k, m] of marks.entries()) {
+      if (m.kind !== "O") continue;
+      const a = parseKey(k);
+      for (const d of neigh4) {
+        const b = { ix: a.ix + d.dx, iy: a.iy + d.dy };
+        if (b.ix<0||b.iy<0||b.ix>=NODES||b.iy>=NODES) continue;
+        const mb = marks.get(keyOf(b.ix,b.iy));
+        if (mb && mb.kind === "O" && mb.owner === m.owner) {
+          walls.set(edgeKey(a,b), m.owner);
+        }
+      }
+    }
+  }
+
+  function inBase(ix,iy,base){ return ix>=base.ix && ix<=base.ix+base.cells && iy>=base.iy && iy<=base.iy+base.cells; }
+  function baseOwnerAt(ix,iy){
+    for(const p of PLAYERS){
+      if(!alive.get(p.id)) continue;
+      if(inBase(ix,iy,baseRectFor(p.id))) return p.id;
+    }
+    return null;
+  }
+
+  function conductiveForPlayer(ix,iy,pid){
+    const m = marks.get(keyOf(ix,iy));
+    if(m && m.owner===pid) return true;
+    if(!alive.get(pid)) return false;
+    return inBase(ix,iy,baseRectFor(pid));
+  }
+
+  function isBlockedByEnemyWall(from,to,pid,dx,dy){
+    const isOrth = (Math.abs(dx)+Math.abs(dy))===1;
+    if(!isOrth) return false;
+    const owner = walls.get(edgeKey(from,to));
+    if(!owner) return false;
+    return owner!==pid;
+  }
+
+  function computePoweredSet(pid) {
+    const powered = new Set(), q = [];
+    if (!alive.get(pid)) return powered;
+
+    const base = baseRectFor(pid);
+    for(let y=base.iy;y<=base.iy+base.cells;y++) for(let x=base.ix;x<=base.ix+base.cells;x++){
+      const k=keyOf(x,y);
+      powered.add(k); q.push({ix:x,iy:y});
+    }
+
+    while(q.length){
+      const cur=q.shift();
+      for(const d of dirs8){
+        const nx=cur.ix+d.dx, ny=cur.iy+d.dy;
+        if(nx<0||ny<0||nx>=NODES||ny>=NODES) continue;
+        if(!conductiveForPlayer(nx,ny,pid)) continue;
+        if(isBlockedByEnemyWall(cur,{ix:nx,iy:ny},pid,d.dx,d.dy)) continue;
+        const nk=keyOf(nx,ny);
+        if(powered.has(nk)) continue;
+        powered.add(nk); q.push({ix:nx,iy:ny});
+      }
+    }
+    return powered;
+  }
+
+  function canPlaceCross(pid, ix, iy) {
+    if (gameOver || !alive.get(pid)) return false;
+    const k = keyOf(ix, iy);
+    if (marks.has(k)) return false;
+    if (inBase(ix,iy,baseRectFor(pid))) return false;
+
+    AudioEngine.sndPlace();
+    marks.set(k, { owner: pid, kind:"X" });
+    rebuildWallsFromCircles();
+    const ok = computePoweredSet(pid).has(k);
+    marks.delete(k);
+    rebuildWallsFromCircles();
+    return ok;
+  }
+
+  function hasAdjacentFriendlyOrBase(pid, ix, iy) {
+    const base = baseRectFor(pid);
+    for (const d of dirs8) {
+      const nx=ix+d.dx, ny=iy+d.dy;
+      if (nx<0||ny<0||nx>=NODES||ny>=NODES) continue;
+      if (inBase(nx,ny,base)) return true;
+      const m=marks.get(keyOf(nx,ny));
+      if (m && m.owner===pid) return true;
+    }
+    return false;
+  }
+
+  function canCircle(pid, targetKey) {
+    if (gameOver || !alive.get(pid)) return false;
+    const t = marks.get(targetKey);
+    if (!t || t.owner===pid || t.kind!=="X") return false;
+    const {ix,iy}=parseKey(targetKey);
+    if (!hasAdjacentFriendlyOrBase(pid,ix,iy)) return false;
+
+    marks.set(targetKey, { owner: pid, kind:"O" });
+    rebuildWallsFromCircles();
+    const ok = computePoweredSet(pid).has(targetKey);
+    marks.set(targetKey, t);
+    rebuildWallsFromCircles();
+    return ok;
+  }
+
+  function placeCross(pid, ix, iy) {
+    const k = keyOf(ix,iy);
+    marks.set(k, {owner:pid, kind:"X"});
+    started.set(pid,true);
+    rebuildWallsFromCircles();
+    return {pid, kind:"X", ix, iy, k};
+  }
+
+  function placeCircle(pid, k){
+    marks.set(k, {owner:pid, kind:"O"});
+    AudioEngine.sndCapture();
+    started.set(pid,true);
+    rebuildWallsFromCircles();
+    const {ix,iy}=parseKey(k);
+    return {pid, kind:"O", ix, iy, k};
+  }
+
+  function eliminatePlayer(loserId, killerId) {
+    alive.set(loserId, false);
+    showBanner(`Éliminé : ${loserId}`, `par ${killerId}`, PLAYERS.find(p=>p.id===loserId).color);
+  }
+
+  function checkWin() {
+    const a = PLAYERS.filter(p => alive.get(p.id));
+    if (a.length<=1) {
+      gameOver=true;
+      showBanner("VICTOIRE", "Gagnant: "+a[0].id, a[0].color);
+      return true;
+    }
+    return false;
+  }
+
+  function afterMove(pid, moveInfo){
+    if(moveInfo.kind==="X"){
+      const owner = baseOwnerAt(moveInfo.ix, moveInfo.iy);
+      if(owner && owner!==pid){
+        eliminatePlayer(owner,pid);
+        checkWin();
+      }
+    }
+  }
+
+  // ----------------------------
+  // UI
+  // ----------------------------
+  const turnEl = document.getElementById("turn");
+  const movesEl = document.getElementById("moves");
+  const statusEl = document.getElementById("status");
+
+  function currentPlayerId(){ return PLAYERS[currentIdx].id; }
+  function currentPlayer(){ return PLAYERS[currentIdx]; }
+  function activeCursor(){ return cursors.get(currentPlayerId()); }
+
+  function setBadges(){
+    const p=currentPlayer();
+    turnEl.textContent=`Tour: ${p.id} (${control.get(p.id)})`;
+    turnEl.style.borderColor=p.color;
+    movesEl.textContent=`Coups restants: ${movesLeft}`;
+    statusEl.innerHTML = message ? `<span class="warn">${message}</span>` : `<span class="ok">OK</span>`;
+  }
+
+  function buildPlayersRow(){
+    const row=document.getElementById("playersRow");
+    row.innerHTML="";
+    PLAYERS.forEach(p=>{
+      const chip=document.createElement("div");
+      chip.className="pchip";
+      chip.innerHTML = `<span class="dot" style="background:${p.color}"></span><span>${p.name}</span>`;
+      const sel=document.createElement("select");
+      ["HUMAN","AI"].forEach(m=>{
+        const o=document.createElement("option");
+        o.value=m; o.textContent=m;
+        sel.appendChild(o);
+      });
+      sel.value=control.get(p.id);
+      sel.onchange=()=>{
+        control.set(p.id, sel.value);
+        setBadges();
+        requestRedraw();
+        if(control.get(currentPlayerId())==="AI") scheduleAITick(130);
+      };
+      chip.appendChild(sel);
+      const life=document.createElement("span");
+      life.textContent = alive.get(p.id) ? "●" : "✖";
+      life.style.marginLeft="6px";
+      life.style.opacity = alive.get(p.id) ? "1" : "0.35";
+      chip.appendChild(life);
+      row.appendChild(chip);
+    });
+  }
+
+  // ----------------------------
+  // Render
+  // ----------------------------
+  function drawGrid(){
+    ctx.fillStyle = boardBg;
+    ctx.fillRect(0,0,displayW,displayH);
+
+    // contraste stable
+    ctx.strokeStyle = (boardBg==="#0b0b0b" ? "#5a5a5a" : "#cfcfcf");
+    ctx.lineWidth=1;
+
+    for(let i=0;i<=GRID_CELLS;i++){
+      const x=MARGIN_PX+i*CELL_PX;
+      ctx.beginPath(); ctx.moveTo(x,MARGIN_PX); ctx.lineTo(x,MARGIN_PX+GRID_CELLS*CELL_PX); ctx.stroke();
+      const y=MARGIN_PX+i*CELL_PX;
+      ctx.beginPath(); ctx.moveTo(MARGIN_PX,y); ctx.lineTo(MARGIN_PX+GRID_CELLS*CELL_PX,y); ctx.stroke();
+    }
+
+    // petits nœuds
+    ctx.fillStyle = (boardBg==="#0b0b0b" ? "#4a4a4a" : "#9a9a9a");
+    for(let iy=0;iy<NODES;iy++){
+      for(let ix=0;ix<NODES;ix++){
+        const p=nodeToPx(ix,iy);
+        ctx.beginPath(); ctx.arc(p.x,p.y,1.35,0,Math.PI*2); ctx.fill();
+      }
+    }
+  }
+
+  function drawBases(){
+    PLAYERS.forEach(p=>{
+      if(!alive.get(p.id)) return;
+      const b=baseRectFor(p.id);
+      const tl=nodeToPx(b.ix,b.iy), br=nodeToPx(b.ix+b.cells,b.iy+b.cells);
+      ctx.save();
+      ctx.globalAlpha=0.18;
+      ctx.fillStyle=p.color;
+      ctx.fillRect(tl.x, tl.y, br.x-tl.x, br.y-tl.y);
+      ctx.restore();
+    });
+  }
+
+  function drawWalls(poweredMap){
+    ctx.save();
+    ctx.lineWidth=5; ctx.lineCap="round";
+    walls.forEach((owner, ek)=>{
+      const [k1,k2]=ek.split("|");
+      const a=parseKey(k1), b=parseKey(k2);
+      const pa=nodeToPx(a.ix,a.iy), pb=nodeToPx(b.ix,b.iy);
+      ctx.strokeStyle = PLAYERS.find(p=>p.id===owner).color;
+      ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(pb.x,pb.y); ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawMark(ix,iy,kind,color,powered){
+    const p=nodeToPx(ix,iy);
+
+    // halo
+    ctx.save();
+    ctx.globalAlpha = powered ? 0.38 : 0.22;
+    ctx.strokeStyle=color;
+    ctx.lineWidth = powered ? 3.4 : 2.6;
+    ctx.beginPath(); ctx.arc(p.x,p.y,10,0,Math.PI*2); ctx.stroke();
+    ctx.restore();
+
+    if(kind==="X"){
+      ctx.save();
+      ctx.strokeStyle=color;
+      ctx.lineWidth = powered ? 3.0 : 2.3;
+      ctx.lineCap="round";
+      ctx.beginPath();
+      ctx.moveTo(p.x-6,p.y-6); ctx.lineTo(p.x+6,p.y+6);
+      ctx.moveTo(p.x+6,p.y-6); ctx.lineTo(p.x-6,p.y+6);
+      ctx.stroke();
+      ctx.restore();
+    }else{
+      ctx.save();
+      ctx.strokeStyle=color;
+      ctx.lineWidth = powered ? 3.0 : 2.4;
+      ctx.beginPath(); ctx.arc(p.x,p.y,7,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function drawCursor(){
+    const pid=currentPlayerId();
+    if(control.get(pid)==="AI" || !alive.get(pid)) return;
+    const cur=activeCursor();
+    const pos=nodeToPx(cur.ix,cur.iy);
+
+    const kk = keyOf(cur.ix, cur.iy);
+    const existing = marks.get(kk);
+    let ok = false;
+    if (!existing) ok = canPlaceCross(pid, cur.ix, cur.iy);
+    else if (existing.owner !== pid && existing.kind === "X") ok = canCircle(pid, kk);
+
+    ctx.save();
+    ctx.strokeStyle = ok ? "#9dffb6" : "#ff8a8a";
+    ctx.globalAlpha = 0.95;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 13, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Drag preview (croix uniquement)
+  let dragPlacing = false;
+  let dragStart = null;
+  let dragMoved = false;
+  let dragPreviewPath = []; // nodes in line
+  let dragOkPath = [];      // maximal prefix that is legal
+  let dragAnchorSnapshot = null; // snapshot of marks? (not needed, we validate live)
+
+  function clearDrag(){
+    dragPlacing = false;
+    dragStart = null;
+    dragMoved = false;
+    dragPreviewPath = [];
+    dragOkPath = [];
+    dragAnchorSnapshot = null;
+  }
+
+  function mouseToNode(clientX, clientY){
+    const rect = canvas.getBoundingClientRect();
+    const x = (clientX - rect.left);
+    const y = (clientY - rect.top);
+    const ix = clamp(Math.round((x - MARGIN_PX) / CELL_PX), 0, NODES - 1);
+    const iy = clamp(Math.round((y - MARGIN_PX) / CELL_PX), 0, NODES - 1);
+    return { ix, iy };
+  }
+
+  // Strict diagonal line (45°) from start to current, length capped by MOVES_PER_TURN
+  function buildStrictDiagonalPath(a, b){
+    const dx = b.ix - a.ix;
+    const dy = b.iy - a.iy;
+    if (dx===0 && dy===0) return [{ix:a.ix, iy:a.iy}];
+
+    // strict diagonal means abs(dx) === abs(dy)
+    const adx = Math.abs(dx), ady = Math.abs(dy);
+    if (adx !== ady) {
+      // project to closest strict diagonal by taking min distance
+      const n = Math.min(adx, ady);
+      const sx = Math.sign(dx) || 1;
+      const sy = Math.sign(dy) || 1;
+      const end = { ix: a.ix + sx*n, iy: a.iy + sy*n };
+      return buildStrictDiagonalPath(a, end);
+    }
+
+    const n = adx;
+    const sx = Math.sign(dx) || 1;
+    const sy = Math.sign(dy) || 1;
+
+    const out = [];
+    for(let i=0;i<=n;i++){
+      out.push({ix: a.ix + sx*i, iy: a.iy + sy*i});
+    }
+    return out;
+  }
+
+  function computeDragOkPath(pid, path){
+    // We want to place crosses along path excluding starting node itself.
+    // We must respect connectivity: each cross must be legal at placement time.
+    // We'll simulate sequentially by temporarily placing.
+    const ok = [];
+    if (!path || path.length<2) return ok;
+
+    const start = path[0];
+    const seq = path.slice(1);
+
+    // We'll simulate without committing: place temporarily in marks and rollback at end.
+    const tempPlaced = [];
+    for (const n of seq){
+      if (ok.length >= MOVES_PER_TURN) break;
+      const k = keyOf(n.ix, n.iy);
+
+      // already occupied => stop strict
+      if (marks.has(k)) break;
+
+      // legal now?
+      if (!canPlaceCross(pid, n.ix, n.iy)) break;
+
+      // temporarily place to allow next ones to connect
+      marks.set(k, {owner:pid, kind:"X"});
+      tempPlaced.push(k);
+
+      ok.push({ix:n.ix, iy:n.iy, k});
+    }
+
+    // rollback temporary
+    for (const k of tempPlaced) marks.delete(k);
+    rebuildWallsFromCircles();
+
+    return ok;
+  }
+
+  function drawDragPreview(pid, poweredMap){
+    if(!dragPlacing) return;
+    if(!dragOkPath || dragOkPath.length===0) return;
+
+    const col = currentPlayer().color;
+
+    ctx.save();
+    // draw preview nodes as semi-transparent crosses
+    for(const n of dragPreviewPath){
+      if(!n) continue;
+      // skip start node
+      if(dragStart && n.ix===dragStart.ix && n.iy===dragStart.iy) continue;
+
+      const k = keyOf(n.ix,n.iy);
+
+      // only show within preview length cap
+      // color indicates valid prefix (green-ish) vs invalid remainder (red-ish)
+      const isOk = dragOkPath.some(o=>o.k===k);
+      const isOccupied = marks.has(k);
+
+      const p=nodeToPx(n.ix,n.iy);
+      ctx.globalAlpha = isOccupied ? 0.10 : (isOk ? 0.55 : 0.35);
+      ctx.strokeStyle = isOk ? "#9dffb6" : "#ff8a8a";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(p.x-6,p.y-6); ctx.lineTo(p.x+6,p.y+6);
+      ctx.moveTo(p.x+6,p.y-6); ctx.lineTo(p.x-6,p.y+6);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function render(){
+    rebuildWallsFromCircles();
+    const powered = new Map();
+    for(const p of PLAYERS) powered.set(p.id, computePoweredSet(p.id));
+
+    drawGrid();
+    drawBases();
+    drawWalls(powered);
+
+    for(const [k,m] of marks.entries()){
+      const {ix,iy}=parseKey(k);
+      const col=PLAYERS.find(p=>p.id===m.owner).color;
+      const pow = powered.get(m.owner).has(k);
+      drawMark(ix,iy,m.kind,col,pow);
+    }
+
+    drawCursor();
+    drawDragPreview(currentPlayerId(), powered);
+  }
+
+  let needsRedraw=true;
+  function requestRedraw(){ needsRedraw=true; }
+  function tick(){ if(needsRedraw){ needsRedraw=false; render(); } requestAnimationFrame(tick); }
+
+  // ----------------------------
+  // Turn / Inputs
+  // ----------------------------
+  function nextAliveIndex(startIdx){
+    let idx=startIdx;
+    for(let i=0;i<PLAYERS.length;i++){
+      idx=(idx+1)%PLAYERS.length;
+      const pid=PLAYERS[idx].id;
+      if(alive.get(pid)) return idx;
+    }
+    return startIdx;
+  }
+
+  let aiTimer=null;
+  function stopAI(){ if(aiTimer){ clearTimeout(aiTimer); aiTimer=null; } }
+  function scheduleAITick(ms){ stopAI(); aiTimer=setTimeout(aiTick, ms); }
+
+  function endTurn(silent=false){
+    stopAI();
+    if(gameOver) return;
+    currentIdx = nextAliveIndex(currentIdx);
+    movesLeft = MOVES_PER_TURN;
+    message = "";
+    setBadges();
+    requestRedraw();
+    if(control.get(currentPlayerId())==="AI") scheduleAITick(130);
+  }
+
+  function validateMoveHuman(){
+    const pid=currentPlayerId();
+    if(gameOver || control.get(pid)==="AI" || movesLeft<=0 || !alive.get(pid)) return;
+    const cur=activeCursor();
+    const k=keyOf(cur.ix,cur.iy);
+    const m=marks.get(k);
+
+    if(!m){
+      if(!canPlaceCross(pid,cur.ix,cur.iy)){ message="Coup invalide (croix)."; setBadges(); requestRedraw(); return; }
+      const moveInfo=placeCross(pid,cur.ix,cur.iy);
+      movesLeft--;
+      afterMove(pid, moveInfo);
+      if(!gameOver && movesLeft<=0) endTurn(true);
+      setBadges(); requestRedraw();
+      return;
+    }
+    if(m.kind==="X" && m.owner!==pid){
+      if(!canCircle(pid,k)){ message="Coup invalide (rond)."; setBadges(); requestRedraw(); return; }
+      const moveInfo=placeCircle(pid,k);
+      movesLeft--;
+      afterMove(pid, moveInfo);
+      if(!gameOver && movesLeft<=0) endTurn(true);
+      setBadges(); requestRedraw();
+      return;
+    }
+
+    message="Ici : déjà occupé / action impossible.";
+    setBadges(); requestRedraw();
+  }
+
+  function onKey(e){
+    const k=e.key.toLowerCase();
+    if(k===" ") e.preventDefault();
+    if(gameOver) return;
+    const pid=currentPlayerId();
+    if(!alive.get(pid)){ endTurn(true); return; }
+    if(control.get(pid)==="AI") return;
+
+    const cur=activeCursor();
+    if(k==="o"){ cur.iy=clamp(cur.iy-1,0,NODES-1); message=""; setBadges(); requestRedraw(); return; }
+    if(k==="l"){ cur.iy=clamp(cur.iy+1,0,NODES-1); message=""; setBadges(); requestRedraw(); return; }
+    if(k==="k"){ cur.ix=clamp(cur.ix-1,0,NODES-1); message=""; setBadges(); requestRedraw(); return; }
+    if(k==="m"){ cur.ix=clamp(cur.ix+1,0,NODES-1); message=""; setBadges(); requestRedraw(); return; }
+    if(k===" "){ validateMoveHuman(); return; }
+    if(k==="b"){ toggleBoardBg(); return; }
+    if(k==="w"){ endTurn(); return; }
+  }
+  AudioEngine.sndTurn();
+
+  document.getElementById("endturn").addEventListener("click", ()=>endTurn());
+  document.getElementById("reset").addEventListener("click", reset);
+  document.getElementById("togglebg").addEventListener("click", toggleBoardBg);
+  window.addEventListener("keydown", onKey);
+
+  // ----------------------------
+  // Mouse controls + Drag diagonal
+  // ----------------------------
+  canvas.addEventListener("contextmenu", (e)=>e.preventDefault());
+
+  canvas.addEventListener("mousemove", (e)=>{
+    if(gameOver) return;
+    const pid=currentPlayerId();
+    if(control.get(pid)==="AI" || !alive.get(pid)) return;
+
+    const n = mouseToNode(e.clientX, e.clientY);
+    const cur = cursors.get(pid);
+    cur.ix=n.ix; cur.iy=n.iy;
+
+    if(dragPlacing && dragStart){
+      const path = buildStrictDiagonalPath(dragStart, n);
+      dragPreviewPath = path.slice(0, MOVES_PER_TURN+1); // +1 because includes start
+      dragOkPath = computeDragOkPath(pid, dragPreviewPath);
+      dragMoved = true;
+    }
+
+    message="";
+    setBadges();
+    requestRedraw();
+  });
+
+  canvas.addEventListener("mousedown", (e)=>{
+    if(gameOver) return;
+    const pid=currentPlayerId();
+    if(control.get(pid)==="AI" || !alive.get(pid)) return;
+
+    const n = mouseToNode(e.clientX, e.clientY);
+    const cur = cursors.get(pid);
+    cur.ix=n.ix; cur.iy=n.iy;
+
+    if(e.button===0){
+      // start drag, but don't commit yet
+      dragPlacing = true;
+      dragStart = {ix:n.ix, iy:n.iy};
+      dragMoved = false;
+      dragPreviewPath = [dragStart];
+      dragOkPath = [];
+
+      message = "";
+      setBadges();
+      requestRedraw();
+      return;
+    }
+
+    if (e.button === 2) {
+      endTurn();
+      return;
+    }
+  });
+
+  // Relâchement : si drag => on valide la "ligne" (CROIX uniquement) au relâchement
+  window.addEventListener("mouseup", (e) => {
+    if (e.button !== 0) return;
+    if (!dragPlacing) return;
+
+    const pid = currentPlayerId();
+    if (gameOver || control.get(pid) === "AI" || !alive.get(pid)) { clearDrag(); return; }
+
+    // si pas bougé => comportement original (un seul coup au clic)
+    if (!dragMoved) {
+      clearDrag();
+      validateMoveHuman();
+      return;
+    }
+
+    // sinon, on "valide" la ligne diagonale au relâchement :
+    // on pose les croix RÉELLEMENT en se basant sur la simulation virtuelle (dragOkPath)
+    dragPlacing = false;
+
+    let placed = 0;
+    if (!dragOkPath || dragOkPath.length === 0) {
+      clearDrag();
+      message = "Ligne invalide (pas de connexion possible).";
+      setBadges();
+      requestRedraw();
+      return;
+    }
+
+    for (const node of dragOkPath) {
+      if (gameOver) break;
+      if (movesLeft <= 0) break;
+
+      // Si déjà occupé => stop strict
+      if (marks.has(node.k)) break;
+
+      // Pose réelle d'une CROIX (même pipeline que validateMoveHuman)
+      if (!canPlaceCross(pid, node.ix, node.iy)) break;
+      const moveInfo = placeCross(pid, node.ix, node.iy);
+      movesLeft--;
+      afterMove(pid, moveInfo);
+      placed++;
+
+      if (gameOver) break;
+    }
+
+    clearDrag();
+
+    message = placed > 0
+      ? `Ligne validée: ${placed} croix posée(s).`
+      : "Ligne invalide.";
+    setBadges();
+    requestRedraw();
+
+    // Consistance avec les autres coups : si plus de coups, fin de tour auto
+    if (!gameOver && movesLeft <= 0) endTurn(true);
+  });
+
+
+  // ----------------------------
+  // IA : Normal simple + Expert Beam (toggle)
+  // ----------------------------
+  const AI = {
+    enabledForB: true,
+    stepDelayMs: 140,
+    beamWidth: 18,
+    maxBranch: 50,
+    wAttack: 1.0,
+    wDefense: 1.0,
+    tieNoise: 0.02,
+  };
+
+  let expertMode = false;
+  const expertToggle = document.getElementById("expertToggle");
+  expertToggle.addEventListener("change", () => {
+    expertMode = expertToggle.checked;
+    message = expertMode ? "Mode Expert IA: ON" : "Mode Expert IA: OFF";
+    setBadges();
+    requestRedraw();
+    if (control.get(currentPlayerId()) === "AI") scheduleAITick(90);
+  });
+
+  const AI_PROFILE_DEFS = [
+    { name:"RAIDER",   wFront: 1600, wPow: 280, wTarget: 22,  ringPenalty: 1400, circleBias: -900,  lineBias: 220, diagBias: 80,  jitter: 180 },
+    { name:"BALANCED", wFront: 1200, wPow: 380, wTarget: 18,  ringPenalty: 1200, circleBias: -700,  lineBias: 160, diagBias: 130, jitter: 220 },
+    { name:"SAPPER",   wFront:  980, wPow: 520, wTarget: 16,  ringPenalty: 1100, circleBias: -250,  lineBias: 120, diagBias: 120, jitter: 260 },
+    { name:"SWARM",    wFront: 1050, wPow: 420, wTarget: 20,  ringPenalty: 1000, circleBias: -520,  lineBias: 140, diagBias: 160, jitter: 320 },
+  ];
+  const aiState = new Map();
+
+  function xorshift32(seed){
+    let x = seed|0;
+    return () => {
+      x ^= x << 13; x |= 0;
+      x ^= x >>> 17;
+      x ^= x << 5;  x |= 0;
+      return (x >>> 0) / 4294967296;
+    };
+  }
+  function shuffleInPlace(arr, rng){
+    for (let i=arr.length-1; i>0; i--){
+      const j = Math.floor(rng()*(i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+  function assignAIProfiles(){
+    const aiIds = PLAYERS.map(p=>p.id).filter(id => control.get(id)==="AI");
+    const profs = AI_PROFILE_DEFS.slice();
+    const seed = (Date.now() ^ (Math.random()*1e9)|0) ^ 0x9E3779B9;
+    const rng = xorshift32(seed);
+    shuffleInPlace(profs, rng);
+    for (let i=0;i<aiIds.length;i++){
+      const pid = aiIds[i];
+      const prof = profs[i % profs.length];
+      const pseed = (seed ^ (pid.charCodeAt(0)<<24) ^ (i*2654435761))|0;
+      aiState.set(pid, { prof, rng: xorshift32(pseed) });
+    }
+  }
+
+  function opponentIds(pid){ return PLAYERS.map(p=>p.id).filter(id=>id!==pid && alive.get(id)); }
+  function baseCenterOf(pid){ return baseCenter(pid); }
+  function chooseTargetBase(pid, st){
+    const enemies = opponentIds(pid);
+    if (!enemies.length) return null;
+    const myC = baseCenter(pid);
+
+    if (st.prof.name === "SWARM" && st.rng() < 0.40) {
+      const idx = Math.floor(st.rng()*enemies.length);
+      return enemies[idx];
+    }
+
+    let best = null, bestScore = -1e18;
+    for (const eid of enemies) {
+      const c = baseCenter(eid);
+      const d = dist2(myC, c);
+      let s = -d;
+      if (st.prof.name === "RAIDER") s = -d * 1.25;
+      if (st.prof.name === "SAPPER") s = -d * 0.95;
+      s += (st.rng()-0.5)*30;
+      if (s > bestScore) { bestScore=s; best=eid; }
+    }
+    return best;
+  }
+
+  function poweredMetrics(pid){
+    const powered = computePoweredSet(pid);
+    const bc = baseCenter(pid);
+    let maxD2 = 0;
+    for (const k of powered){
+      const p = parseKey(k);
+      const d2 = dist2(p, bc);
+      if (d2 > maxD2) maxD2 = d2;
+    }
+    return { powered, count: powered.size, frontierD2: maxD2 };
+  }
+
+  function simulateMoveMetrics(pid, mv, baseMet){
+    let backup = null;
+    if (mv.type === "CROSS") {
+      const k = keyOf(mv.ix, mv.iy);
+      backup = marks.get(k) || null;
+      marks.set(k, { owner: pid, kind:"X" });
+      rebuildWallsFromCircles();
+      const met = poweredMetrics(pid);
+      if (backup) marks.set(k, backup); else marks.delete(k);
+      rebuildWallsFromCircles();
+      return met;
+    } else {
+      const k = mv.key;
+      backup = marks.get(k);
+      marks.set(k, { owner: pid, kind:"O" });
+      rebuildWallsFromCircles();
+      const met = poweredMetrics(pid);
+      marks.set(k, backup);
+      rebuildWallsFromCircles();
+      return met;
+    }
+  }
+
+  function generateAICandidates(pid){
+    const baseMet = poweredMetrics(pid);
+    const powered = baseMet.powered;
+
+    const circles = [];
+    for (const [k, m] of marks.entries()) {
+      if (!alive.get(m.owner)) continue;
+      if (m.kind === "X" && m.owner !== pid) {
+        if (canCircle(pid, k)) circles.push({ type:"CIRCLE", key:k });
+      }
+    }
+
+    const crosses = [];
+    const seen = new Set();
+    for (const pk of powered) {
+      const a = parseKey(pk);
+      for (const d of dirs8) {
+        const nx = a.ix + d.dx, ny = a.iy + d.dy;
+        if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+        const kk = keyOf(nx, ny);
+        if (seen.has(kk)) continue;
+        seen.add(kk);
+        if (marks.has(kk)) continue;
+        if (!canPlaceCross(pid, nx, ny)) continue;
+        crosses.push({ type:"CROSS", ix:nx, iy:ny });
+      }
+    }
+    return { baseMet, circles, crosses };
+  }
+
+  function hasOrthAdjacentOwnMark(pid, ix, iy){
+    for (const d of neigh4){
+      const nx = ix + d.dx, ny = iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      const m = marks.get(keyOf(nx, ny));
+      if (m && m.owner === pid) return true;
+    }
+    return false;
+  }
+  function diagonalParity(ix, iy){ return (((ix + iy) & 1) === 0) ? 1 : 0; }
+
+  function scoreAIMove(pid, mv, st, targetId, baseMet){
+    if (mv.type === "CROSS") {
+      const owner = baseOwnerAt(mv.ix, mv.iy);
+      if (owner && owner !== pid) return 1e12;
+    }
+
+    const myC = baseCenter(pid);
+    const targetC = targetId ? baseCenter(targetId) : { ix: Math.floor(NODES/2), iy: Math.floor(NODES/2) };
+    const pos = (mv.type === "CROSS") ? {ix:mv.ix, iy:mv.iy} : parseKey(mv.key);
+
+    const sim = simulateMoveMetrics(pid, mv, baseMet);
+    const dFront = sim.frontierD2 - baseMet.frontierD2;
+    const dPow = sim.count - baseMet.count;
+    const dT = dist2(pos, targetC);
+
+    let ringPenalty = 0;
+    const dB = dist2(pos, myC);
+    const SHIELD_RADIUS2 = 25; // 5^2
+    if (dB <= SHIELD_RADIUS2 && dFront <= 0 && dPow <= 0) ringPenalty = st.prof.ringPenalty;
+
+    let shape = 0;
+    if (mv.type === "CROSS") {
+      if (hasOrthAdjacentOwnMark(pid, pos.ix, pos.iy)) shape += st.prof.lineBias;
+      if (diagonalParity(pos.ix, pos.iy)) shape += st.prof.diagBias;
+    }
+
+    let circlePenalty = 0;
+    if (mv.type === "CIRCLE") {
+      const nearTarget = dT <= 64;
+      const goodGain = (dFront >= 2) || (dPow >= 2);
+      if (!nearTarget && !goodGain) circlePenalty = 120000;
+      circlePenalty += Math.max(0, -st.prof.circleBias);
+    }
+
+    let s = 0;
+    s += st.prof.wFront * dFront;
+    s += st.prof.wPow * dPow;
+    s += -st.prof.wTarget * dT;
+    s += -ringPenalty;
+    s += shape;
+    s += -circlePenalty;
+    s += (st.rng() - 0.5) * st.prof.jitter;
+    return s;
+  }
+
+  function pickAIMoveNormal(pid){
+    let st = aiState.get(pid);
+    if (!st) { assignAIProfiles(); st = aiState.get(pid); }
+    const targetId = chooseTargetBase(pid, st);
+
+    const { baseMet, circles, crosses } = generateAICandidates(pid);
+    const actions = crosses.concat(circles);
+    if (!actions.length) return null;
+
+    let best=null, bestS=-1e18;
+    for (const mv of actions) {
+      const s = scoreAIMove(pid, mv, st, targetId, baseMet);
+      if (s > bestS) { bestS=s; best=mv; }
+    }
+    return best;
+  }
+
+  // Expert beam: simple version (state = marks snapshot) - kept lightweight
+  function snapshotState(){
+    const m = [];
+    for(const [k,v] of marks.entries()) m.push([k, {owner:v.owner, kind:v.kind}]);
+    const a = [];
+    for(const [k,v] of alive.entries()) a.push([k,v]);
+    const s = [];
+    for(const [k,v] of started.entries()) s.push([k,v]);
+    return {m, a, s};
+  }
+  function restoreState(ss){
+    marks.clear(); walls.clear();
+    for(const [k,v] of ss.m) marks.set(k, v);
+    for(const [k,v] of ss.a) alive.set(k, v);
+    for(const [k,v] of ss.s) started.set(k, v);
+    rebuildWallsFromCircles();
+  }
+
+  function listLegalMoves(pid){
+    const {circles, crosses} = generateAICandidates(pid);
+    const out = [];
+    for(const mv of crosses) out.push(mv);
+    for(const mv of circles) out.push(mv);
+    return out;
+  }
+
+  function evalAttack(pid){
+    // closer to any enemy base + frontier
+    const pm = poweredMetrics(pid);
+    const myFront = pm.frontierD2;
+    const enemies = opponentIds(pid);
+    if(!enemies.length) return myFront * 10;
+
+    let bestD = Infinity;
+    for(const e of enemies){
+      const bc = baseCenter(e);
+      for(const k of pm.powered){
+        const p = parseKey(k);
+        const d = dist2(p, bc);
+        if(d < bestD) bestD = d;
+      }
+    }
+    return myFront * 12 - bestD * 20;
+  }
+  function evalDefense(pid){
+    // mild robustness = powered count
+    const pm = poweredMetrics(pid);
+    return pm.count * 8;
+  }
+
+  function applyMoveForSim(pid, mv){
+    if(mv.type==="CROSS"){
+      if(!canPlaceCross(pid, mv.ix, mv.iy)) return null;
+      const info = placeCross(pid, mv.ix, mv.iy);
+      afterMove(pid, info);
+      return info;
+    }else{
+      if(!canCircle(pid, mv.key)) return null;
+      const info = placeCircle(pid, mv.key);
+      afterMove(pid, info);
+      return info;
+    }
+  }
+
+  function pickAIMoveExpert(pid){
+    const root = { ss: snapshotState(), score: 0, seq: [] };
+    let beam = [root];
+
+    const depth = Math.min(movesLeft, MOVES_PER_TURN);
+    for(let d=0; d<depth; d++){
+      const next = [];
+      for(const node of beam){
+        restoreState(node.ss);
+        const moves = listLegalMoves(pid);
+        // score moves cheaply then cut top N
+        const scored = [];
+        for(const mv of moves){
+          restoreState(node.ss);
+          const ssBefore = snapshotState();
+          const info = applyMoveForSim(pid, mv);
+          if(!info) continue;
+          const att = evalAttack(pid);
+          const def = evalDefense(pid);
+          const total = AI.wAttack*att + AI.wDefense*def;
+          scored.push({mv, total, ss: snapshotState(), ssBefore});
+        }
+        scored.sort((a,b)=>b.total - a.total);
+        const top = scored.slice(0, AI.maxBranch);
+        for(const it of top){
+          const noise = (Math.random()*2-1) * AI.tieNoise * 1000;
+          next.push({
+            ss: it.ss,
+            score: it.total + noise,
+            seq: node.seq.concat([it.mv])
+          });
+        }
+      }
+      next.sort((a,b)=>b.score-a.score);
+      beam = next.slice(0, AI.beamWidth);
+      if(!beam.length) break;
+    }
+    if(!beam.length) return null;
+    return beam[0].seq[0] || null;
+  }
+
+  function aiTick(){
+    aiTimer=null;
+    if(gameOver) return;
+    const pid=currentPlayerId();
+    if(!alive.get(pid)){ endTurn(true); return; }
+    if(control.get(pid)!=="AI") return;
+    if(movesLeft<=0){ endTurn(true); return; }
+
+    const mv = expertMode ? pickAIMoveExpert(pid) : pickAIMoveNormal(pid);
+    if(!mv){
+      message=`IA ${pid} : aucun coup possible, fin de tour.`;
+      setBadges(); requestRedraw();
+      endTurn(true);
+      return;
+    }
+
+    let moveInfo=null;
+    if(mv.type==="CIRCLE") moveInfo=placeCircle(pid, mv.key);
+    else moveInfo=placeCross(pid, mv.ix, mv.iy);
+
+    movesLeft--;
+    afterMove(pid, moveInfo);
+
+    message = expertMode ? `IA ${pid} (expert)` : `IA ${pid} (normal)`;
+    setBadges(); requestRedraw();
+
+    if(gameOver) return;
+    if(movesLeft<=0){ endTurn(true); return; }
+    scheduleAITick(AI.stepDelayMs);
+  }
+
+  // ----------------------------
+  // Reset
+  // ----------------------------
+  function reset() {
+    stopAI();
+    if (typeof clearDrag === 'function') clearDrag();
+
+    marks.clear();
+    walls.clear();
+    for (const p of PLAYERS) {
+      alive.set(p.id, true);
+      started.set(p.id, true); // tous démarrent avec une croix initiale
+      cursors.set(p.id, { ...startNodeFor(p.id) });
+    }
+
+    // IA: profils distincts à chaque partie (évite le même schéma d'ouverture)
+    assignAIProfiles();
+
+    // croix initiales (une par joueur)
+    for (const p of PLAYERS) {
+      const s = startNodeFor(p.id);
+      marks.set(keyOf(s.ix, s.iy), { owner: p.id, kind:"X" });
+    }
+
+    rebuildWallsFromCircles();
+
+    currentIdx = 0;
+    movesLeft = MOVES_PER_TURN;
+    message = "";
+    gameOver = false;
+
+    setBadges();
+    requestRedraw();
+    if (control.get(currentPlayerId()) === "AI") scheduleAITick(130);
+  }
+
+  // Init
+  buildPlayersRow();
+  setBadges();
+  reset();
+  tick();
+})();
+</script>
+</body>
+</html>
