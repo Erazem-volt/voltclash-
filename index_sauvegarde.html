@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoltClash - Sauvegarde Version Originale</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .play-button {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 1.2em;
+            margin: 20px 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        .play-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+        }
+        .back-button {
+            background: #2196F3;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+        }
+        .back-button:hover {
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.6);
+        }
+        .version-info {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ VoltClash - Version Sauvegardée ⚡</h1>
+        
+        <div class="info">
+            <h2>📋 Informations sur cette version</h2>
+            <p><strong>Date de sauvegarde :</strong> 9 février 2026</p>
+            <p><strong>Type :</strong> Version originale avec corrections syntaxe</p>
+            <p><strong>État :</strong> Fonctionnel, sans déblocages complexes</p>
+            <p><strong>Configuration IA :</strong> 1 Humain + 3 IA</p>
+        </div>
+
+        <div class="info">
+            <h2>🎮 Comment jouer</h2>
+            <p>Clique sur le bouton ci-dessous pour lancer le jeu</p>
+            <p>Le jeu s'ouvrira dans un nouvel onglet</p>
+        </div>
+
+        <a href="index.html" class="play-button" target="_blank">
+            🎮 JOUER À VOLTCLASH
+        </a>
+
+        <a href="javascript:history.back()" class="play-button back-button">
+            ↩️ RETOUR AU CODE
+        </a>
+
+        <div class="version-info">
+            <p>💾 Cette sauvegarde préserve la version stable du jeu</p>
+            <p>🔧 Toutes les erreurs de syntaxe ont été corrigées</p>
+            <p>🚀 Prêt à être partagé et joué !</p>
+        </div>
+    </div>
+
+    <script>
+        // Redirection automatique après 10 secondes si aucune action
+        setTimeout(() => {
+            console.log('Redirection vers le jeu...');
+            // window.open('index.html', '_blank');
+        }, 10000);
+    </script>
+</body>
+</html>

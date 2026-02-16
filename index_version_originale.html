@@ -475,25 +475,6 @@
 
     .menu-section { margin: 15px; text-align: center; }
     .menu-section h3 { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #888; margin-bottom: 10px; }
-
-    /* Bouton de sélection actif */
-    .btn-active {
-      border-color: #00ffff !important;
-      color: #ffffff !important;
-      box-shadow:
-        0 0 25px rgba(0, 255, 255, 0.9),
-        0 0 50px rgba(0, 255, 255, 0.5),
-        inset 0 0 20px rgba(0, 255, 255, 0.3) !important;
-      opacity: 1 !important;
-      filter: none !important;
-    }
-
-    /* Bouton de sélection inactif */
-    .btn-inactive {
-      opacity: 0.35 !important;
-      filter: brightness(0.5) !important;
-      box-shadow: none !important;
-    }
 </style>
   
 </head>
@@ -570,12 +551,20 @@
     
     <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
       <div>
-        <label style="color: #9d4edd; font-family: Orbitron; font-size: 14px;">JOUEUR 1:</label>
+        <label style="color: #ff5d5d; font-family: Orbitron; font-size: 14px;">JOUEUR 1 (Rouge):</label>
         <input type="text" id="player1-name" class="player-input" placeholder="Entrez votre pseudo" maxlength="15">
       </div>
       <div>
-        <label style="color: #9d4edd; font-family: Orbitron; font-size: 14px;">JOUEUR 2:</label>
+        <label style="color: #3ddc84; font-family: Orbitron; font-size: 14px;">JOUEUR 2 (Vert):</label>
         <input type="text" id="player2-name" class="player-input" placeholder="Entrez votre pseudo" maxlength="15">
+      </div>
+      <div id="player3-field" style="display: none;">
+        <label style="color: #ffd84d; font-family: Orbitron; font-size: 14px;">JOUEUR 3 (Jaune):</label>
+        <input type="text" id="player3-name" class="player-input" placeholder="Entrez votre pseudo" maxlength="15">
+      </div>
+      <div id="player4-field" style="display: none;">
+        <label style="color: #4da6ff; font-family: Orbitron; font-size: 14px;">JOUEUR 4 (Bleu):</label>
+        <input type="text" id="player4-name" class="player-input" placeholder="Entrez votre pseudo" maxlength="15">
       </div>
     </div>
     
@@ -609,8 +598,8 @@
   
   <div class="menu-section">
     <p style="color: #888; font-family: Orbitron;">NOMBRE DE JOUEURS</p>
-    <button id="btn-2players" class="futuristic-btn" onclick="showPlayerNamesScreen()">2 JOUEURS</button>
-    <button id="btn-4players" class="futuristic-btn" onclick="setPlayerCount(4)">4 JOUEURS</button>
+    <button id="btn-2players" class="futuristic-btn" onclick="showPlayerNamesScreen(2)">2 JOUEURS</button>
+    <button id="btn-4players" class="futuristic-btn" onclick="showPlayerNamesScreen(4)">4 JOUEURS</button>
   </div>
 
   <div class="menu-section">
@@ -775,15 +764,2768 @@ const AI_BEAM = {
   tieNoise: 0.02      // brise les égalités
 };
 // ----------------------------
+// Système de Défense Proactive - IA EXPERT et NORMAL
+// ----------------------------
+class DefenseProactiveSystem {
+  constructor(pid) {
+    this.pid = pid;
+    this.threatLevel = "NORMAL";
+    this.interceptionTargets = [];
+    this.emergencyMode = false;
+    this.lastThreatCheck = 0;
+  }
+
+  // Détecter les menaces à proximité de la base (OPTIMISÉ)
+  detectThreats() {
+    const myBase = baseRectFor(this.pid);
+    const myCenter = {ix: myBase.ix + 1, iy: myBase.iy + 1};
+    const threatRadius = 10; // 10 cases de détection
+    
+    const threats = [];
+    
+    // Utiliser une approche optimisée avec cache des positions ennemies
+    if (!this.enemyPositionsCache) {
+      this.enemyPositionsCache = new Map();
+    }
+    
+    // Scanner les particules ennemies avec cache
+    for (const [k, m] of marks.entries()) {
+      if (m.kind !== "X" || m.owner === this.pid) continue;
+      if (!alive.get(m.owner)) continue;
+      
+      // Mettre en cache les positions ennemies
+      if (!this.enemyPositionsCache.has(m.owner)) {
+        this.enemyPositionsCache.set(m.owner, []);
+      }
+      
+      const pos = parseKey(k);
+      this.enemyPositionsCache.get(m.owner).push(pos);
+    }
+    
+    // Calculer les distances en batch pour optimiser
+    for (const [enemyPid, enemyPositions] of this.enemyPositionsCache) {
+      for (const pos of enemyPositions) {
+        const dx = pos.ix - myCenter.ix;
+        const dy = pos.iy - myCenter.iy;
+        const distSq = dx * dx + dy * dy;
+        
+        // Utiliser la distance au carré pour éviter les racines carrées
+        if (distSq <= threatRadius * threatRadius) {
+          const dist = Math.sqrt(distSq);
+          threats.push({
+            enemyPid: enemyPid,
+            position: pos,
+            distance: dist,
+            key: keyOf(pos.ix, pos.iy)
+          });
+        }
+      }
+    }
+    
+    // Trier par distance croissante (plus rapide que Math.sqrt)
+    threats.sort((a, b) => a.distance - b.distance);
+    
+    // Déterminer le niveau de menace
+    if (threats.length > 0 && threats[0].distance <= 5) {
+      this.threatLevel = "EMERGENCY";
+      this.emergencyMode = true;
+    } else if (threats.length > 0 && threats[0].distance <= 8) {
+      this.threatLevel = "HIGH";
+      this.emergencyMode = true;
+    } else if (threats.length > 0) {
+      this.threatLevel = "MEDIUM";
+      this.emergencyMode = false;
+    } else {
+      this.threatLevel = "NORMAL";
+      this.emergencyMode = false;
+    }
+    
+    console.log(`[DÉFENSE ${this.pid}] Niveau menace: ${this.threatLevel}, Menaces: ${threats.length}`);
+    
+    return threats;
+  }
+
+  // Identifier les points de connexion à couper
+  identifyConnectionPoints(threats) {
+    const connectionPoints = [];
+    
+    for (const threat of threats) {
+      // Tracer la ligne depuis la base ennemie jusqu'à la menace
+      const enemyBase = baseRectFor(threat.enemyPid);
+      const enemyCenter = {ix: enemyBase.ix + 1, iy: enemyBase.iy + 1};
+      
+      // Trouver le segment de connexion le plus proche de notre base
+      const connectionPath = this.traceConnectionPath(enemyCenter, threat.position, threat.enemyPid);
+      
+      if (connectionPath.length > 0) {
+        // Identifier le point le plus stratégique à couper
+        const bestCutPoint = this.findBestCutPoint(connectionPath);
+        
+        if (bestCutPoint) {
+          connectionPoints.push({
+            enemyPid: threat.enemyPid,
+            cutPoint: bestCutPoint,
+            path: connectionPath,
+            threatDistance: threat.distance,
+            priority: this.calculateCutPriority(bestCutPoint, threat.distance)
+          });
+        }
+      }
+    }
+    
+    // Trier par priorité décroissante
+    connectionPoints.sort((a, b) => b.priority - a.priority);
+    
+    console.log(`[DÉFENSE ${this.pid}] Points de connexion identifiés: ${connectionPoints.length}`);
+    
+    return connectionPoints;
+  }
+
+  // Tracer le chemin de connexion ennemi (OPTIMISÉ)
+  traceConnectionPath(start, end, enemyPid) {
+    // Utiliser un cache pour les chemins déjà calculés
+    const pathKey = `${start.ix},${start.iy}-${end.ix},${end.iy}-${enemyPid}`;
+    if (this.connectionPathCache && this.connectionPathCache.has(pathKey)) {
+      return this.connectionPathCache.get(pathKey);
+    }
+    
+    const path = [];
+    const visited = new Set();
+    const queue = [{pos: start, path: [start]}];
+    
+    while (queue.length > 0) {
+      const {pos, path: currentPath} = queue.shift();
+      const key = keyOf(pos.ix, pos.iy);
+      
+      if (visited.has(key)) continue;
+      visited.add(key);
+      
+      // Vérifier si on a atteint la destination
+      if (pos.ix === end.ix && pos.iy === end.iy) {
+        // Mettre en cache le résultat
+        if (!this.connectionPathCache) {
+          this.connectionPathCache = new Map();
+        }
+        this.connectionPathCache.set(pathKey, currentPath);
+        return currentPath;
+      }
+      
+      // Explorer les voisins de manière optimisée
+      const neighborCount = dirs8.length;
+      for (let i = 0; i < neighborCount; i++) {
+        const d = dirs8[i];
+        const next = {
+          ix: pos.ix + d.dx,
+          iy: pos.iy + d.dy
+        };
+        
+        if (next.ix < 0 || next.ix >= NODES || next.iy < 0 || next.iy >= NODES) continue;
+        
+        const nextKey = keyOf(next.ix, next.iy);
+        const nextMark = marks.get(nextKey);
+        
+        // Suivre seulement les particules ennemies
+        if (nextMark && nextMark.owner === enemyPid && nextMark.kind === "X") {
+          if (!visited.has(nextKey)) {
+            queue.push({
+              pos: next,
+              path: [...currentPath, next]
+            });
+          }
+        }
+      }
+    }
+    
+    // Retourner le chemin vide si non trouvé
+    return []; // Pas de chemin trouvé
+  }
+
+  // Trouver le meilleur point pour couper la ligne
+  findBestCutPoint(connectionPath) {
+    if (connectionPath.length < 2) return null;
+    
+    const myBase = baseRectFor(this.pid);
+    const myCenter = {ix: myBase.ix + 1, iy: myBase.iy + 1};
+    
+    let bestPoint = null;
+    let bestScore = -Infinity;
+    
+    // Analyser chaque segment de la ligne
+    for (let i = 0; i < connectionPath.length - 1; i++) {
+      const segmentStart = connectionPath[i];
+      const segmentEnd = connectionPath[i + 1];
+      
+      // Points entre les deux particules
+      const midPoints = this.getPointsBetween(segmentStart, segmentEnd);
+      
+      for (const point of midPoints) {
+        // Vérifier si on peut placer une croix ici
+        if (canPlaceCross(this.pid, point.ix, point.iy)) {
+          // Calculer le score de ce point
+          const score = this.calculateCutScore(point, connectionPath, myCenter);
+          
+          if (score > bestScore) {
+            bestScore = score;
+            bestPoint = point;
+          }
+        }
+      }
+    }
+    
+    return bestPoint;
+  }
+
+  // Obtenir les points entre deux positions
+  getPointsBetween(start, end) {
+    const points = [];
+    const dx = end.ix - start.ix;
+    const dy = end.iy - start.iy;
+    const steps = Math.max(Math.abs(dx), Math.abs(dy));
+    
+    if (steps === 0) return points;
+    
+    for (let i = 1; i < steps; i++) {
+      const t = i / steps;
+      points.push({
+        ix: Math.round(start.ix + dx * t),
+        iy: Math.round(start.iy + dy * t)
+      });
+    }
+    
+    return points;
+  }
+
+  // Calculer le score d'un point de coupe
+  calculateCutScore(point, connectionPath, myCenter) {
+    let score = 0;
+    
+    // Distance à notre base (plus proche = plus urgent)
+    const distToMyBase = Math.sqrt(dist2(point, myCenter));
+    score += Math.max(0, 100 - distToMyBase);
+    
+    // Position dans le chemin (milieu = plus efficace)
+    const pathIndex = connectionPath.findIndex(p => 
+      Math.abs(p.ix - point.ix) <= 1 && Math.abs(p.iy - point.iy) <= 1
+    );
+    if (pathIndex > 0) {
+      const pathRatio = pathIndex / connectionPath.length;
+      // Privilégier le milieu du chemin
+      score += Math.max(0, 50 - Math.abs(pathRatio - 0.5) * 100);
+    }
+    
+    // Bonus si ça coupe plusieurs connexions
+    const connectionCount = this.countConnectionsAt(point);
+    score += connectionCount * 30;
+    
+    return score;
+  }
+
+  // Compter les connexions à un point
+  countConnectionsAt(point) {
+    let connections = 0;
+    
+    for (const d of dirs8) {
+      const nx = point.ix + d.dx;
+      const ny = point.iy + d.dy;
+      
+      if (nx >= 0 && nx < NODES && ny >= 0 && ny < NODES) {
+        const mark = marks.get(keyOf(nx, ny));
+        if (mark && mark.kind === "X") {
+          connections++;
+        }
+      }
+    }
+    
+    return connections;
+  }
+
+  // Calculer la priorité de coupe
+  calculateCutPriority(cutPoint, threatDistance) {
+    let priority = 1000;
+    
+    // Plus la menace est proche, plus la priorité est élevée
+    priority += (10 - threatDistance) * 100;
+    
+    // Bonus selon le niveau de menace
+    if (this.threatLevel === "EMERGENCY") priority += 500;
+    else if (this.threatLevel === "HIGH") priority += 300;
+    else if (this.threatLevel === "MEDIUM") priority += 100;
+    
+    return priority;
+  }
+
+  // Générer les manœuvres d'interception CHIRURGICALE
+  generateInterceptionManeuvers(connectionPoints, budget = 5) {
+    const maneuvers = [];
+    
+    if (connectionPoints.length === 0) return maneuvers;
+    
+    // Prendre le point de connexion le plus prioritaire
+    const target = connectionPoints[0];
+    const cutPoint = target.cutPoint;
+    
+    console.log(`[DÉFENSE ${this.pid}] 🎯 Interception chirurgicale visée: (${cutPoint.ix},${cutPoint.iy})`);
+    
+    // STRATÉGIE 1: 3 croix pour couper le segment (interception chirurgicale)
+    const snipManeuvers = this.generateSnipManeuver(cutPoint, 3);
+    maneuvers.push(...snipManeuvers);
+    
+    // STRATÉGIE 2: 2 croix restantes pour contre-blocage
+    if (budget > 3) {
+      const counterBlockManeuvers = this.generateCounterBlockManeuver(cutPoint, budget - 3);
+      maneuvers.push(...counterBlockManeuvers);
+    }
+    
+    // Limiter au budget
+    return maneuvers.slice(0, budget);
+  }
+
+  // Générer une manœuvre de "snip" chirurgicale (3 croix pour couper le cou)
+  generateSnipManeuver(cutPoint, budget = 3) {
+    const maneuvers = [];
+    
+    // Identifier le segment juste derrière la pointe (le "cou")
+    const snipTarget = this.findSnipTarget(cutPoint);
+    
+    if (snipTarget) {
+      console.log(`[DÉFENSE ${this.pid}] ✂️ Cible snip: (${snipTarget.ix},${snipTarget.iy})`);
+      
+      // Placer les 3 croix pour couper efficacement
+      const snipPositions = this.calculateSnipPositions(snipTarget, budget);
+      
+      for (let i = 0; i < snipPositions.length; i++) {
+        const pos = snipPositions[i];
+        if (pos.ix >= 0 && pos.ix < NODES && pos.iy >= 0 && pos.iy < NODES) {
+          if (canPlaceCross(this.pid, pos.ix, pos.iy)) {
+            maneuvers.push({
+              type: "CROSS",
+              ix: pos.ix,
+              iy: pos.iy,
+              strategy: "surgical_snip",
+              priority: 3500 - i * 100, // Priorité très élevée
+              target: snipTarget
+            });
+          }
+        }
+      }
+    } else {
+      // Fallback : utiliser le point de coupe original
+      if (canPlaceCross(this.pid, cutPoint.ix, cutPoint.iy)) {
+        maneuvers.push({
+          type: "CROSS",
+          ix: cutPoint.ix,
+          iy: cutPoint.iy,
+          strategy: "direct_cut",
+          priority: 3000,
+          target: cutPoint
+        });
+      }
+    }
+    
+    return maneuvers;
+  }
+
+  // Trouver la cible de "snip" (segment derrière la pointe)
+  findSnipTarget(cutPoint) {
+    // Analyser les particules autour pour trouver le segment le plus vulnérable
+    const surroundingParticles = [];
+    
+    for (const d of dirs8) {
+      const nx = cutPoint.ix + d.dx;
+      const ny = cutPoint.iy + d.dy;
+      
+      if (nx >= 0 && nx < NODES && ny >= 0 && ny < NODES) {
+        const mark = marks.get(keyOf(nx, ny));
+        if (mark && mark.kind === "X") {
+          surroundingParticles.push({
+            ix: nx,
+            iy: ny,
+            owner: mark.owner,
+            direction: d
+          });
+        }
+      }
+    }
+    
+    // Si on a des particules autour, trouver le segment le plus proche de notre base
+    if (surroundingParticles.length > 0) {
+      const myBase = baseRectFor(this.pid);
+      const myCenter = {ix: myBase.ix + 1, iy: myBase.iy + 1};
+      
+      // Trier par distance à notre base
+      surroundingParticles.sort((a, b) => {
+        const distA = Math.sqrt(dist2(a, myCenter));
+        const distB = Math.sqrt(dist2(b, myCenter));
+        return distA - distB;
+      });
+      
+      // Retourner la particule la plus proche (le "cou")
+      return surroundingParticles[0];
+    }
+    
+    return null;
+  }
+
+  // Calculer les positions pour le snip chirurgical
+  calculateSnipPositions(snipTarget, budget) {
+    const positions = [];
+    
+    // Stratégie : former un triangle ou une ligne pour couper efficacement
+    const basePatterns = [
+      // Triangle
+      [
+        {dx: 0, dy: 0},      // Centre
+        {dx: 1, dy: 0},      // Droite
+        {dx: 0, dy: 1}       // Bas
+      ],
+      // Ligne horizontale
+      [
+        {dx: -1, dy: 0},
+        {dx: 0, dy: 0},
+        {dx: 1, dy: 0}
+      ],
+      // Ligne verticale
+      [
+        {dx: 0, dy: -1},
+        {dx: 0, dy: 0},
+        {dx: 0, dy: 1}
+      ]
+    ];
+    
+    // Ajouter 20% de jitter pour l'hésitation humaine
+    let useJitter = Math.random() < 0.2;
+    let pattern = basePatterns[0]; // Triangle par défaut
+    
+    if (useJitter) {
+      // Changer de pattern aléatoirement
+      pattern = basePatterns[Math.floor(Math.random() * basePatterns.length)];
+      console.log(`[DÉFENSE ${this.pid}] 🎲 Jitter appliqué: pattern modifié`);
+    }
+    
+    // Appliquer le pattern
+    for (let i = 0; i < Math.min(budget, pattern.length); i++) {
+      const offset = pattern[i];
+      positions.push({
+        ix: snipTarget.ix + offset.dx,
+        iy: snipTarget.iy + offset.dy
+      });
+    }
+    
+    return positions;
+  }
+
+  // Générer des manœuvres de contre-blocage
+  generateCounterBlockManeuver(cutPoint, budget = 2) {
+    const maneuvers = [];
+    
+    // Si l'IA se fait couper, créer un embranchement latéral
+    const lateralPositions = this.calculateLateralBranch(cutPoint, budget);
+    
+    for (const pos of lateralPositions) {
+      if (pos.ix >= 0 && pos.ix < NODES && pos.iy >= 0 && pos.iy < NODES) {
+        if (canPlaceCross(this.pid, pos.ix, pos.iy)) {
+          maneuvers.push({
+            type: "CROSS",
+            ix: pos.ix,
+            iy: pos.iy,
+            strategy: "counter_block_lateral",
+            priority: 2500,
+            target: cutPoint
+          });
+        }
+      }
+    }
+    
+    return maneuvers;
+  }
+
+  // Calculer les positions pour l'embranchement latéral
+  calculateLateralBranch(cutPoint, budget) {
+    const positions = [];
+    
+    // Créer une branche latérale pour contourner le blocage
+    const lateralDirections = [
+      {dx: 2, dy: 0},   // 2 cases à droite
+      {dx: -2, dy: 0},  // 2 cases à gauche
+      {dx: 0, dy: 2},   // 2 cases en haut
+      {dx: 0, dy: -2}   // 2 cases en bas
+    ];
+    
+    // Ajouter jitter pour l'hésitation humaine
+    if (Math.random() < 0.2) {
+      // Changer d'angle aléatoirement (45°/90°)
+      const diagonalOffsets = [
+        {dx: 1, dy: 1}, {dx: -1, dy: 1},
+        {dx: 1, dy: -1}, {dx: -1, dy: -1}
+      ];
+      lateralDirections.push(...diagonalOffsets.slice(0, 2));
+    }
+    
+    for (let i = 0; i < Math.min(budget, lateralDirections.length); i++) {
+      const dir = lateralDirections[i];
+      positions.push({
+        ix: cutPoint.ix + dir.dx,
+        iy: cutPoint.iy + dir.dy
+      });
+    }
+    
+    return positions;
+  }
+
+  // Générer un barrage perpendiculaire
+  generatePerpendicularBarrage(cutPoint, budget) {
+    const maneuvers = [];
+    
+    // Calculer la direction perpendiculaire à la ligne ennemie
+    const perpDirections = [
+      {dx: 1, dy: 0},   // Horizontal
+      {dx: -1, dy: 0},  // Horizontal
+      {dx: 0, dy: 1},   // Vertical
+      {dx: 0, dy: -1}   // Vertical
+    ];
+    
+    // Placer les croix en ligne perpendiculaire
+    for (let i = 0; i < budget && i < perpDirections.length; i++) {
+      const dir = perpDirections[i];
+      const pos = {
+        ix: cutPoint.ix + dir.dx,
+        iy: cutPoint.iy + dir.dy
+      };
+      
+      if (pos.ix >= 0 && pos.ix < NODES && pos.iy >= 0 && pos.iy < NODES) {
+        if (canPlaceCross(this.pid, pos.ix, pos.iy)) {
+          maneuvers.push({
+            type: "CROSS",
+            ix: pos.ix,
+            iy: pos.iy,
+            strategy: "perpendicular_barrage",
+            priority: 2000 - i * 100,
+            target: cutPoint
+          });
+        }
+      }
+    }
+    
+    return maneuvers;
+  }
+
+  // Générer une manœuvre d'écrasement
+  generateSmashManeuver(cutPoint, budget) {
+    const maneuvers = [];
+    
+    // Écraser le point de coupe directement
+    if (canPlaceCross(this.pid, cutPoint.ix, cutPoint.iy)) {
+      maneuvers.push({
+        type: "CROSS",
+        ix: cutPoint.ix,
+        iy: cutPoint.iy,
+        strategy: "direct_smash",
+        priority: 3000,
+        target: cutPoint
+      });
+    }
+    
+    // Ajouter des positions adjacentes pour renforcer
+    const adjacentPositions = [
+      {dx: 1, dy: 0}, {dx: -1, dy: 0},
+      {dx: 0, dy: 1}, {dx: 0, dy: -1},
+      {dx: 1, dy: 1}, {dx: -1, dy: 1},
+      {dx: 1, dy: -1}, {dx: -1, dy: -1}
+    ];
+    
+    for (let i = 0; i < budget - 1 && i < adjacentPositions.length; i++) {
+      const adj = adjacentPositions[i];
+      const pos = {
+        ix: cutPoint.ix + adj.dx,
+        iy: cutPoint.iy + adj.dy
+      };
+      
+      if (pos.ix >= 0 && pos.ix < NODES && pos.iy >= 0 && pos.iy < NODES) {
+        if (canPlaceCross(this.pid, pos.ix, pos.iy)) {
+          maneuvers.push({
+            type: "CROSS",
+            ix: pos.ix,
+            iy: pos.iy,
+            strategy: "smash_reinforcement",
+            priority: 2500 - i * 50,
+            target: cutPoint
+          });
+        }
+      }
+    }
+    
+    return maneuvers;
+  }
+
+  // Mettre à jour le système de défense
+  update() {
+    const threats = this.detectThreats();
+    this.interceptionTargets = this.identifyConnectionPoints(threats);
+    
+    return {
+      threatLevel: this.threatLevel,
+      emergencyMode: this.emergencyMode,
+      threats: threats,
+      interceptionTargets: this.interceptionTargets
+    };
+  }
+}
+
+// Map des systèmes de défense proactive
+const defenseSystems = new Map();
+
+// Initialiser le système de défense pour une IA
+function initializeDefenseSystem(pid) {
+  const system = new DefenseProactiveSystem(pid);
+  defenseSystems.set(pid, system);
+  console.log(`[DÉFENSE] Système initialisé pour ${pid}`);
+  return system;
+}
+
+// ----------------------------
+// Contraintes techniques - Évolution IA
+// ----------------------------
+class ParticlePlacementController {
+  constructor(pid) {
+    this.pid = pid;
+    this.activeParticlesPerTurn = 0;
+    this.maxParticlesPerTurn = 5;
+    this.lastTurnReset = 0;
+    this.placedPositions = [];
+  }
+
+  // Vérifier si on peut encore placer des particules ce tour
+  canPlaceMoreParticles() {
+    // Réinitialiser le compteur si nouveau tour
+    this.checkTurnReset();
+    
+    return this.activeParticlesPerTurn < this.maxParticlesPerTurn;
+  }
+
+  // Réinitialiser le compteur au début du tour
+  checkTurnReset() {
+    // Simple détection : si trop de temps s'est écoulé, on considère que c'est un nouveau tour
+    const now = Date.now();
+    if (now - this.lastTurnReset > 5000) { // 5 secondes = nouveau tour
+      this.resetTurn();
+    }
+  }
+
+  // Réinitialiser pour un nouveau tour
+  resetTurn() {
+    this.activeParticlesPerTurn = 0;
+    this.placedPositions = [];
+    this.lastTurnReset = Date.now();
+    console.log(`[PARTICLES ${this.pid}] Nouveau tour - limite réinitialisée à ${this.maxParticlesPerTurn}`);
+  }
+
+  // Vérifier si une position crée un carré 2x2
+  wouldCreate2x2Square(ix, iy) {
+    // Vérifier tous les carrés 2x2 possibles qui incluraient cette position
+    const squarePatterns = [
+      // Carré avec (ix, iy) comme coin supérieur gauche
+      [
+        {dx: 0, dy: 0}, {dx: 1, dy: 0},
+        {dx: 0, dy: 1}, {dx: 1, dy: 1}
+      ],
+      // Carré avec (ix, iy) comme coin supérieur droit
+      [
+        {dx: -1, dy: 0}, {dx: 0, dy: 0},
+        {dx: -1, dy: 1}, {dx: 0, dy: 1}
+      ],
+      // Carré avec (ix, iy) comme coin inférieur gauche
+      [
+        {dx: 0, dy: -1}, {dx: 1, dy: -1},
+        {dx: 0, dy: 0}, {dx: 1, dy: 0}
+      ],
+      // Carré avec (ix, iy) comme coin inférieur droit
+      [
+        {dx: -1, dy: -1}, {dx: 0, dy: -1},
+        {dx: -1, dy: 0}, {dx: 0, dy: 0}
+      ]
+    ];
+
+    for (const pattern of squarePatterns) {
+      let occupiedCount = 0;
+      
+      for (const offset of pattern) {
+        const checkX = ix + offset.dx;
+        const checkY = iy + offset.dy;
+        
+        if (checkX < 0 || checkX >= NODES || checkY < 0 || checkY >= NODES) {
+          continue; // Hors limites, ignorer ce pattern
+        }
+        
+        const mark = marks.get(keyOf(checkX, checkY));
+        if (mark && mark.owner === this.pid && mark.kind === "X") {
+          occupiedCount++;
+        } else if (checkX === ix && checkY === iy) {
+          // La position qu'on veut placer
+          occupiedCount++;
+        }
+      }
+      
+      // Si 3 ou 4 positions sont déjà occupées, placer ici créerait un carré 2x2
+      if (occupiedCount >= 3) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  // Vérifier si on peut placer une particule à cette position
+  canPlaceParticle(ix, iy) {
+    // Vérifier la limite de 5 particules par tour
+    if (!this.canPlaceMoreParticles()) {
+      console.log(`[PARTICLES ${this.pid}] Limite de ${this.maxParticlesPerTurn} atteinte (${this.activeParticlesPerTurn})`);
+      return false;
+    }
+
+    // Vérifier l'interdiction des carrés 2x2
+    if (this.wouldCreate2x2Square(ix, iy)) {
+      console.log(`[PARTICLES ${this.pid}] Carré 2x2 détecté en (${ix},${iy}) - placement refusé`);
+      return false;
+    }
+
+    // Vérifier les contraintes anti-remplissage existantes
+    if (!canPlaceCrossWithConstraints(this.pid, ix, iy)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // Enregistrer une particule placée
+  registerParticlePlacement(ix, iy) {
+    this.activeParticlesPerTurn++;
+    this.placedPositions.push({ix, iy, timestamp: Date.now()});
+    
+    console.log(`[PARTICLES ${this.pid}] Particule placée: (${ix},${iy}) - Total: ${this.activeParticlesPerTurn}/${this.maxParticlesPerTurn}`);
+    
+    // Vérifier si on a atteint la limite
+    if (this.activeParticlesPerTurn >= this.maxParticlesPerTurn) {
+      console.log(`[PARTICLES ${this.pid}] ⚠️ Limite de ${this.maxParticlesPerTurn} atteinte !`);
+    }
+  }
+
+  // Calculer le ratio de branchement (1 branche toutes les 4 croix)
+  shouldCreateBranch() {
+    if (this.placedPositions.length < 4) return false;
+    
+    // Compter les particules en ligne droite
+    const straightLineCount = this.countStraightLineParticles();
+    
+    // Si on a 4 particules en ligne, on peut créer une branche
+    return straightLineCount >= 4 && straightLineCount % 4 === 0;
+  }
+
+  // Compter les particules en ligne droite
+  countStraightLineParticles() {
+    if (this.placedPositions.length === 0) return 0;
+    
+    // Simple approximation : compter les particules alignées
+    let straightCount = 0;
+    
+    for (let i = 1; i < this.placedPositions.length; i++) {
+      const prev = this.placedPositions[i - 1];
+      const curr = this.placedPositions[i];
+      
+      const dx = curr.ix - prev.ix;
+      const dy = curr.iy - prev.iy;
+      
+      // Si le mouvement est dans une direction principale (horizontale, verticale, ou diagonale)
+      if ((Math.abs(dx) === 1 && dy === 0) || (dx === 0 && Math.abs(dy) === 1) || 
+          (Math.abs(dx) === 1 && Math.abs(dy) === 1)) {
+        straightCount++;
+      }
+    }
+    
+    return straightCount;
+  }
+
+  // Ajouter 20% de jitter pour l'hésitation humaine
+  shouldApplyJitter() {
+    return Math.random() < 0.2;
+  }
+
+  // Appliquer un changement d'angle aléatoire (45°/90°)
+  applyJitterToDirection(direction) {
+    const jitterAngles = [
+      {dx: 1, dy: 1},   // 45° NE
+      {dx: -1, dy: 1},  // 45° NW
+      {dx: 1, dy: -1},  // 45° SE
+      {dx: -1, dy: -1}, // 45° SW
+      {dx: 1, dy: 0},   // 90° E
+      {dx: -1, dy: 0},  // 90° O
+      {dx: 0, dy: 1},   // 90° N
+      {dx: 0, dy: -1}   // 90° S
+    ];
+    
+    const randomAngle = jitterAngles[Math.floor(Math.random() * jitterAngles.length)];
+    console.log(`[PARTICLES ${this.pid}] 🎲 Jitter appliqué: direction modifiée vers (${randomAngle.dx},${randomAngle.dy})`);
+    
+    return randomAngle;
+  }
+
+  // Obtenir des statistiques
+  getStats() {
+    return {
+      activeParticles: this.activeParticlesPerTurn,
+      maxParticles: this.maxParticlesPerTurn,
+      remainingParticles: this.maxParticlesPerTurn - this.activeParticlesPerTurn,
+      placedPositions: this.placedPositions.length,
+      canPlaceMore: this.canPlaceMoreParticles()
+    };
+  }
+}
+
+// Map des contrôleurs de placement
+const placementControllers = new Map();
+
+// Initialiser le contrôleur pour une IA
+function initializePlacementController(pid) {
+  const controller = new ParticlePlacementController(pid);
+  placementControllers.set(pid, controller);
+  console.log(`[PLACEMENT] Contrôleur initialisé pour ${pid} avec limite de ${controller.maxParticlesPerTurn} particules/tour`);
+  return controller;
+}
+
+// ----------------------------
+// Contraintes anti-remplissage - Structure filaire
+// ----------------------------
+function canPlaceCrossWithConstraints(pid, ix, iy) {
+  // Vérification de base
+  if (!canPlaceCross(pid, ix, iy)) return false;
+  
+  // Règle anti-clumping ASSOUPPLIE : permettre jusqu'à 2 particules autour
+  const surroundingPositions = [];
+  for (const d of dirs8) {
+    const nx = ix + d.dx;
+    const ny = iy + d.dy;
+    
+    if (nx >= 0 && nx < NODES && ny >= 0 && ny < NODES) {
+      const mark = marks.get(keyOf(nx, ny));
+      if (mark && mark.owner === pid && mark.kind === "X") {
+        surroundingPositions.push({nx, ny, mark});
+      }
+    }
+  }
+  
+  // Exception : autoriser si continuation de ligne droite
+  if (surroundingPositions.length === 1) {
+    const surround = surroundingPositions[0];
+    const dx = ix - surround.nx;
+    const dy = iy - surround.ny;
+    
+    // Vérifier si c'est une continuation de ligne
+    const prevPos = getPreviousInLine(pid, surround.nx, surround.ny);
+    if (prevPos) {
+      const prevDx = surround.nx - prevPos.ix;
+      const prevDy = surround.ny - prevPos.iy;
+      
+      // Continuation de ligne droite autorisée
+      if (dx === prevDx && dy === prevDy) {
+        return true;
+      }
+    }
+    
+    // Branche perpendiculaire autorisée
+    if ((dx === 0 && dy !== 0) || (dy === 0 && dx !== 0)) {
+      return true;
+    }
+    
+    // NOUVEAU: Autoriser si c'est le début de partie (moins de 10 particules)
+    const myMarks = Array.from(marks.values()).filter(m => m.owner === pid && m.kind === "X");
+    if (myMarks.length <= 10) {
+      return true;
+    }
+  }
+  
+  // Si plus de 2 particules autour, refuser (anti-clumping assoupli)
+  if (surroundingPositions.length > 2) {
+    return false;
+  }
+  
+  // Règle de sparsité ASSOUPPLIE : espacement de 1 case minimum au lieu de 2
+  return checkSparsityConstraintRelaxed(pid, ix, iy);
+}
+
+function checkSparsityConstraintRelaxed(pid, ix, iy) {
+  // Vérifier l'espacement de 1 case minimum entre branches parallèles (assoupli)
+  const myLines = getMyLines(pid);
+  
+  for (const line of myLines) {
+    // Calculer la distance minimale à cette ligne
+    const minDist = minDistanceToLine(ix, iy, line);
+    
+    // Si trop proche d'une ligne parallèle, refuser (seulement si < 1)
+    if (minDist < 1) {
+      // Vérifier si les lignes sont parallèles
+      if (areLinesParallel(ix, iy, line)) {
+        return false;
+      }
+    }
+  }
+  
+  return true;
+}
+
+function getPreviousInLine(pid, currentX, currentY) {
+  // Chercher la particule précédente dans la ligne
+  for (const d of dirs8) {
+    const px = currentX - d.dx;
+    const py = currentY - d.dy;
+    
+    if (px >= 0 && px < NODES && py >= 0 && py < NODES) {
+      const mark = marks.get(keyOf(px, py));
+      if (mark && mark.owner === pid && mark.kind === "X") {
+        return {ix: px, iy: py};
+      }
+    }
+  }
+  return null;
+}
+
+function checkSparsityConstraint(pid, ix, iy) {
+  // Vérifier l'espacement de 2 cases entre branches parallèles
+  const myLines = getMyLines(pid);
+  
+  for (const line of myLines) {
+    // Calculer la distance minimale à cette ligne
+    const minDist = minDistanceToLine(ix, iy, line);
+    
+    // Si trop proche d'une ligne parallèle, refuser
+    if (minDist < 2) {
+      // Vérifier si les lignes sont parallèles
+      if (areLinesParallel(ix, iy, line)) {
+        return false;
+      }
+    }
+  }
+  
+  return true;
+}
+
+function getMyLines(pid) {
+  const lines = [];
+  const processed = new Set();
+  
+  for (const [k, m] of marks.entries()) {
+    if (m.kind !== "X" || m.owner !== pid) continue;
+    if (processed.has(k)) continue;
+    
+    const pos = parseKey(k);
+    const line = traceLineFromPoint(pid, pos);
+    
+    if (line.length > 1) {
+      lines.push(line);
+      for (const point of line) {
+        processed.add(keyOf(point.ix, point.iy));
+      }
+    }
+  }
+  
+  return lines;
+}
+
+function traceLineFromPoint(pid, startPos) {
+  const line = [startPos];
+  const visited = new Set();
+  visited.add(keyOf(startPos.ix, startPos.iy));
+  
+  // Explorer dans les 8 directions
+  for (const d of dirs8) {
+    const lineSegment = traceLineInDirection(pid, startPos, d, visited);
+    line.push(...lineSegment);
+  }
+  
+  return line;
+}
+
+function traceLineInDirection(pid, pos, direction, visited) {
+  const line = [];
+  let current = {...pos};
+  
+  while (true) {
+    const next = {
+      ix: current.ix + direction.dx,
+      iy: current.iy + direction.dy
+    };
+    
+    if (next.ix < 0 || next.ix >= NODES || next.iy < 0 || next.iy >= NODES) break;
+    
+    const key = keyOf(next.ix, next.iy);
+    if (visited.has(key)) break;
+    
+    const mark = marks.get(key);
+    if (!mark || mark.owner !== pid || mark.kind !== "X") break;
+    
+    line.push(next);
+    visited.add(key);
+    current = next;
+  }
+  
+  return line;
+}
+
+function minDistanceToLine(ix, iy, line) {
+  let minDist = Infinity;
+  
+  for (const point of line) {
+    const dist = Math.sqrt((ix - point.ix) ** 2 + (iy - point.iy) ** 2);
+    minDist = Math.min(minDist, dist);
+  }
+  
+  return minDist;
+}
+
+function areLinesParallel(ix, iy, line) {
+  if (line.length < 2) return false;
+  
+  // Calculer la direction principale de la ligne existante
+  const dx = line[1].ix - line[0].ix;
+  const dy = line[1].iy - line[0].iy;
+  
+  // Vérifier si le nouveau point pourrait créer une ligne parallèle
+  for (let i = 0; i < line.length - 1; i++) {
+    const segmentDx = line[i + 1].ix - line[i].ix;
+    const segmentDy = line[i + 1].iy - line[i].iy;
+    
+    // Normaliser et comparer
+    const len1 = Math.sqrt(dx * dx + dy * dy);
+    const len2 = Math.sqrt(segmentDx * segmentDx + segmentDy * segmentDy);
+    
+    if (len1 > 0 && len2 > 0) {
+      const dot = (dx * segmentDx + dy * segmentDy) / (len1 * len2);
+      
+      // Si les directions sont similaires (parallèles)
+      if (Math.abs(dot) > 0.9) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
+function shouldCreateBranch(pid, currentX, currentY) {
+  // Créer une branche tous les 5 pixels de la ligne principale
+  const lineLength = getLineLengthFromStart(pid, currentX, currentY);
+  
+  return lineLength > 0 && lineLength % 5 === 0;
+}
+
+function getLineLengthFromStart(pid, currentX, currentY) {
+  // Remonter la ligne pour calculer sa longueur
+  let length = 0;
+  let current = {ix: currentX, iy: currentY};
+  const visited = new Set();
+  
+  while (true) {
+    visited.add(keyOf(current.ix, current.iy));
+    
+    // Chercher le précédent dans la ligne
+    const prev = getPreviousInLine(pid, current.ix, current.iy);
+    if (!prev || visited.has(keyOf(prev.ix, prev.iy))) break;
+    
+    current = prev;
+    length++;
+  }
+  
+  return length;
+}
+
+function shouldRandomDirectionChange(pid) {
+  // 20% de chance de changer brusquement de direction
+  return Math.random() < 0.20;
+}
+
+function getRandomDirectionChange() {
+  const changes = [
+    {dx: 1, dy: 1},   // 45°
+    {dx: -1, dy: 1},  // 45°
+    {dx: 1, dy: -1},  // 45°
+    {dx: -1, dy: -1}, // 45°
+    {dx: 1, dy: 0},   // 90°
+    {dx: -1, dy: 0},  // 90°
+    {dx: 0, dy: 1},   // 90°
+    {dx: 0, dy: -1}   // 90°
+  ];
+  
+  return changes[Math.floor(Math.random() * changes.length)];
+}
+
+function attemptEncirclement(pid, obstacleX, obstacleY) {
+  // Créer une boucle d'encerclement (U-turn) quand on rencontre une ligne ennemie
+  const encirclementPoints = [];
+  
+  // Analyser la ligne ennemie
+  const enemyLine = traceEnemyLine(obstacleX, obstacleY);
+  
+  if (enemyLine.length > 0) {
+    // Calculer les points pour encercler
+    const startSide = determineEncirclementSide(pid, enemyLine);
+    const encirclementPath = calculateEncirclementPath(enemyLine, startSide);
+    
+    for (const point of encirclementPath) {
+      if (canPlaceCrossWithConstraints(pid, point.ix, point.iy)) {
+        encirclementPoints.push(point);
+      }
+    }
+  }
+  
+  return encirclementPoints;
+}
+
+function traceEnemyLine(startX, startY) {
+  const line = [];
+  const visited = new Set();
+  const queue = [{ix: startX, iy: startY}];
+  
+  while (queue.length > 0) {
+    const current = queue.shift();
+    const key = keyOf(current.ix, current.iy);
+    
+    if (visited.has(key)) continue;
+    visited.add(key);
+    
+    const mark = marks.get(key);
+    if (!mark || mark.kind !== "X") continue;
+    
+    line.push(current);
+    
+    // Explorer les voisins
+    for (const d of dirs8) {
+      const next = {
+        ix: current.ix + d.dx,
+        iy: current.iy + d.dy
+      };
+      
+      if (next.ix >= 0 && next.ix < NODES && next.iy >= 0 && next.iy < NODES) {
+        const nextKey = keyOf(next.ix, next.iy);
+        const nextMark = marks.get(nextKey);
+        
+        if (nextMark && nextMark.kind === "X" && nextMark.owner === mark.owner) {
+          queue.push(next);
+        }
+      }
+    }
+  }
+  
+  return line;
+}
+
+function determineEncirclementSide(pid, enemyLine) {
+  // Déterminer le côté optimal pour l'encerclement
+  const myBase = baseRectFor(pid);
+  const myCenter = {ix: myBase.ix + 1, iy: myBase.iy + 1};
+  
+  let minDist = Infinity;
+  let bestSide = 'left';
+  
+  for (const point of enemyLine) {
+    const dist = dist2(myCenter, point);
+    if (dist < minDist) {
+      minDist = dist;
+      // Déterminer le côté par rapport à la direction de la ligne
+      if (enemyLine.length > 1) {
+        const lineDir = {
+          dx: enemyLine[1].ix - enemyLine[0].ix,
+          dy: enemyLine[1].iy - enemyLine[0].iy
+        };
+        
+        const toPoint = {
+          dx: point.ix - myCenter.ix,
+          dy: point.iy - myCenter.iy
+        };
+        
+        // Produit vectoriel pour déterminer le côté
+        const cross = lineDir.dx * toPoint.dy - lineDir.dy * toPoint.dx;
+        bestSide = cross > 0 ? 'left' : 'right';
+      }
+    }
+  }
+  
+  return bestSide;
+}
+
+function calculateEncirclementPath(enemyLine, side) {
+  const path = [];
+  
+  if (enemyLine.length < 2) return path;
+  
+  // Créer un chemin en U autour de la ligne ennemie
+  const start = enemyLine[0];
+  const end = enemyLine[enemyLine.length - 1];
+  
+  // Calculer la direction perpendiculaire
+  const lineDir = {
+    dx: end.ix - start.ix,
+    dy: end.iy - start.iy
+  };
+  
+  const perpDir = side === 'left' ? 
+    {dx: -lineDir.dy, dy: lineDir.dx} : 
+    {dx: lineDir.dy, dy: -lineDir.dx};
+  
+  // Normaliser
+  const len = Math.sqrt(perpDir.dx * perpDir.dx + perpDir.dy * perpDir.dy);
+  if (len > 0) {
+    perpDir.dx /= len;
+    perpDir.dy /= len;
+  }
+  
+  // Générer les points du U
+  const offset = 3; // Distance de la ligne ennemie
+  
+  // Point de départ du U
+  path.push({
+    ix: Math.round(start.ix + perpDir.dx * offset),
+    iy: Math.round(start.iy + perpDir.dy * offset)
+  });
+  
+  // Point final du U
+  path.push({
+    ix: Math.round(end.ix + perpDir.dx * offset),
+    iy: Math.round(end.iy + perpDir.dy * offset)
+  });
+  
+  return path;
+}
+
+// ----------------------------
+// Analyse des lignes adverses - IA Améliorée
+// ----------------------------
+function analyzeEnemyLines(pid) {
+  const enemyLines = new Map(); // enemyPid -> [{start, end, criticality, nodes}]
+  
+  // Analyser toutes les croix ennemies pour identifier les lignes
+  for (const [k, m] of marks.entries()) {
+    if (m.kind !== "X" || m.owner === pid) continue;
+    if (!alive.get(m.owner)) continue;
+    
+    const pos = parseKey(k);
+    const enemyPid = m.owner;
+    
+    if (!enemyLines.has(enemyPid)) {
+      enemyLines.set(enemyPid, []);
+    }
+    
+    // Chercher les connexions depuis cette position
+    const connections = findLineConnections(pos, enemyPid);
+    
+    for (const conn of connections) {
+      enemyLines.get(enemyPid).push({
+        start: pos,
+        end: conn.pos,
+        criticality: calculateLineCriticality(pos, conn.pos, enemyPid),
+        nodes: conn.nodes
+      });
+    }
+  }
+  
+  return enemyLines;
+}
+
+function findLineConnections(pos, enemyPid) {
+  const connections = [];
+  const visited = new Set();
+  const queue = [{pos: pos, path: [pos]}];
+  
+  while (queue.length > 0) {
+    const {pos: current, path} = queue.shift();
+    const key = keyOf(current.ix, current.iy);
+    
+    if (visited.has(key)) continue;
+    visited.add(key);
+    
+    // Explorer les 8 directions
+    for (const d of dirs8) {
+      const nx = current.ix + d.dx;
+      const ny = current.iy + d.dy;
+      
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      
+      const neighborKey = keyOf(nx, ny);
+      const neighborMark = marks.get(neighborKey);
+      
+      if (neighborMark && neighborMark.owner === enemyPid && neighborMark.kind === "X") {
+        const neighborPos = {ix: nx, iy: ny};
+        
+        // Si c'est une connexion significative (longueur > 1)
+        if (path.length >= 2 && !path.some(p => p.ix === nx && p.iy === ny)) {
+          connections.push({
+            pos: neighborPos,
+            nodes: [...path, neighborPos]
+          });
+        }
+        
+        if (!visited.has(neighborKey)) {
+          queue.push({pos: neighborPos, path: [...path, neighborPos]});
+        }
+      }
+    }
+  }
+  
+  return connections;
+}
+
+function calculateLineCriticality(start, end, enemyPid) {
+  let criticality = 0;
+  
+  // Longueur de la ligne (plus longue = plus critique)
+  const length = Math.abs(end.ix - start.ix) + Math.abs(end.iy - start.iy);
+  criticality += length * 10;
+  
+  // Proximité des bases (plus proche = plus critique)
+  const enemyBase = baseRectFor(enemyPid);
+  const enemyCenter = {ix: enemyBase.ix + 1, iy: enemyBase.iy + 1};
+  
+  const distToEnemyBase = Math.min(
+    dist2(start, enemyCenter),
+    dist2(end, enemyCenter)
+  );
+  criticality += Math.max(0, 100 - distToEnemyBase);
+  
+  // Proximité de notre base (menace directe)
+  const myBase = baseRectFor(pid);
+  const myCenter = {ix: myBase.ix + 1, iy: myBase.iy + 1};
+  
+  const distToMyBase = Math.min(
+    dist2(start, myCenter),
+    dist2(end, myCenter)
+  );
+  criticality += Math.max(0, 200 - distToMyBase);
+  
+  // Densité de connexions (plus connecté = plus critique)
+  const connectionDensity = calculateConnectionDensity(start, end, enemyPid);
+  criticality += connectionDensity * 50;
+  
+  return criticality;
+}
+
+function calculateConnectionDensity(start, end, enemyPid) {
+  let connections = 0;
+  const midPoint = {
+    ix: Math.floor((start.ix + end.ix) / 2),
+    iy: Math.floor((start.iy + end.iy) / 2)
+  };
+  
+  // Compter les connexions autour du point milieu
+  for (let dx = -2; dx <= 2; dx++) {
+    for (let dy = -2; dy <= 2; dy++) {
+      const nx = midPoint.ix + dx;
+      const ny = midPoint.iy + dy;
+      
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      
+      const mark = marks.get(keyOf(nx, ny));
+      if (mark && mark.owner === enemyPid && mark.kind === "X") {
+        connections++;
+      }
+    }
+  }
+  
+  return connections / 25; // Normaliser sur 25 positions possibles
+}
+
+function findLineBreakPoints(pid) {
+  const enemyLines = analyzeEnemyLines(pid);
+  const breakPoints = [];
+  
+  for (const [enemyPid, lines] of enemyLines) {
+    for (const line of lines) {
+      // Trouver les points où on peut couper la ligne
+      const cutPoints = findCutPoints(line, pid);
+      
+      for (const cutPoint of cutPoints) {
+        breakPoints.push({
+          position: cutPoint,
+          targetEnemy: enemyPid,
+          line: line,
+          priority: line.criticality + calculateCutPointValue(cutPoint, line, pid),
+          strategy: "line_break"
+        });
+      }
+    }
+  }
+  
+  // Trier par priorité décroissante
+  breakPoints.sort((a, b) => b.priority - a.priority);
+  
+  return breakPoints;
+}
+
+function findCutPoints(line, pid) {
+  const cutPoints = [];
+  const {start, end, nodes} = line;
+  
+  // Parcourir la ligne et trouver les points vulnérables
+  for (let i = 0; i < nodes.length - 1; i++) {
+    const current = nodes[i];
+    const next = nodes[i + 1];
+    
+    // Points entre deux nœuds ennemis
+    const midPoints = getPointsBetween(current, next);
+    
+    for (const point of midPoints) {
+      if (canPlaceCross(pid, point.ix, point.iy)) {
+        cutPoints.push(point);
+      }
+    }
+  }
+  
+  // Points adjacents aux nœuds de la ligne
+  for (const node of nodes) {
+    for (const d of dirs8) {
+      const adjPoint = {
+        ix: node.ix + d.dx,
+        iy: node.iy + d.dy
+      };
+      
+      if (adjPoint.ix >= 0 && adjPoint.ix < NODES && 
+          adjPoint.iy >= 0 && adjPoint.iy < NODES &&
+          canPlaceCross(pid, adjPoint.ix, adjPoint.iy)) {
+        
+        // Vérifier si ce point coupe vraiment la ligne
+        if (wouldCutLine(adjPoint, line, pid)) {
+          cutPoints.push(adjPoint);
+        }
+      }
+    }
+  }
+  
+  return cutPoints;
+}
+
+function getPointsBetween(start, end) {
+  const points = [];
+  const dx = end.ix - start.ix;
+  const dy = end.iy - start.iy;
+  const steps = Math.max(Math.abs(dx), Math.abs(dy));
+  
+  if (steps === 0) return points;
+  
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    points.push({
+      ix: Math.round(start.ix + dx * t),
+      iy: Math.round(start.iy + dy * t)
+    });
+  }
+  
+  return points;
+}
+
+function wouldCutLine(point, line, pid) {
+  // Simuler si placer une croix à ce point couperait la ligne
+  const tempKey = keyOf(point.ix, point.iy);
+  
+  // Vérifier si ce point est critique pour la connectivité
+  const {start, end, nodes} = line;
+  
+  // Compter les chemins alternatifs
+  let alternativePaths = 0;
+  
+  for (const d of dirs8) {
+    const altPoint = {
+      ix: point.ix + d.dx,
+      iy: point.iy + d.dy
+    };
+    
+    if (altPoint.ix >= 0 && altPoint.ix < NODES && 
+        altPoint.iy >= 0 && altPoint.iy < NODES) {
+      
+      const altMark = marks.get(keyOf(altPoint.ix, altPoint.iy));
+      if (altMark && altMark.kind === "X" && altMark.owner === line.targetEnemy) {
+        alternativePaths++;
+      }
+    }
+  }
+  
+  // Si peu d'alternatives, ce point est critique
+  return alternativePaths <= 2;
+}
+
+function calculateCutPointValue(cutPoint, line, pid) {
+  let value = 0;
+  
+  // Bonus pour les points proches de notre progression
+  const myBase = baseRectFor(pid);
+  const myCenter = {ix: myBase.ix + 1, iy: myBase.iy + 1};
+  const distToMe = dist2(cutPoint, myCenter);
+  value += Math.max(0, 150 - distToMe);
+  
+  // Bonus pour les points en diagonale
+  const dx = cutPoint.ix - myCenter.ix;
+  const dy = cutPoint.iy - myCenter.iy;
+  if (Math.abs(dx) === Math.abs(dy) && dx !== 0) {
+    value += 30; // Bonus diagonal
+  }
+  
+  // Bonus pour les points qui créent des opportunités de cercle
+  for (const d of neigh4) {
+    const circlePoint = {
+      ix: cutPoint.ix + d.dx,
+      iy: cutPoint.iy + d.dy
+    };
+    
+    if (circlePoint.ix >= 0 && circlePoint.ix < NODES && 
+        circlePoint.iy >= 0 && circlePoint.iy < NODES) {
+      
+      const circleKey = keyOf(circlePoint.ix, circlePoint.iy);
+      const circleMark = marks.get(circleKey);
+      
+      if (circleMark && circleMark.kind === "X" && circleMark.owner !== pid) {
+        if (canCircle(pid, circleKey)) {
+          value += 20; // Opportunité de cercle
+        }
+      }
+    }
+  }
+  
+  return value;
+}
+
+// ----------------------------
+// Débogage IA EXPERT (optionnel)
+// ----------------------------
+function debugExpertSystem(pid) {
+  const system = expertSystems.get(pid);
+  if (!system) {
+    console.log(`[EXPERT DEBUG] Aucun système trouvé pour ${pid}`);
+    return;
+  }
+  
+  console.log(`=== DÉBOGAGE EXPERT ${pid} ===`);
+  console.log(`Cible principale:`, system.targetBase);
+  console.log(`Nœuds épine dorsale:`, system.spineNodes.length);
+  console.log(`Nœuds côtes:`, system.ribNodes.reduce((sum, rib) => sum + rib.nodes.length, 0));
+  console.log(`Points de collision:`, system.collisionPoints.size);
+  console.log(`Intervalle côtes:`, system.ribInterval);
+  console.log(`Niveau chaos:`, system.chaosLevel);
+  
+  // Visualiser la structure
+  console.log(`Structure en peigne:`);
+  system.spineNodes.forEach((node, i) => {
+    console.log(`  Épine[${i}]: (${node.position.ix}, ${node.position.iy})`);
+  });
+  
+  system.ribNodes.forEach((rib, i) => {
+    console.log(`  Côte[${i}] (${rib.side}): ${rib.nodes.length} nœuds`);
+  });
+  
+  console.log(`=== FIN DÉBOGAGE EXPERT ===`);
+}
+
+// Fonction pour visualiser tous les systèmes experts actifs
+function debugAllExpertSystems() {
+  console.log('=== DÉBOGAGE TOUS LES SYSTÈMES EXPERTS ===');
+  for (const [pid, system] of expertSystems) {
+    debugExpertSystem(pid);
+  }
+  console.log('=== FIN DÉBOGAGE GLOBAL ===');
+}
+
+// Activer le débogage pour les IA EXPERT (commenter pour désactiver)
+function debugExpertMoves() {
+  for (const p of PLAYERS) {
+    if (control.get(p.id) === "AI") {
+      const prof = aiProfile.get(p.id);
+      if (prof && prof.name === "EXPERT") {
+        debugExpertSystem(p.id);
+      }
+    }
+  }
+}
+
+// Fonction de débogage pour les contraintes anti-remplissage
+function debugAntiClumpingConstraints(pid) {
+  console.log(`=== DÉBOGAGE CONTRAINTES ANTI-REMPLISSAGE pour ${pid} ===`);
+  
+  let totalPositions = 0;
+  let validPositions = 0;
+  let rejectedPositions = 0;
+  
+  const rejectionReasons = {
+    'base_constraint': 0,
+    'occupied': 0,
+    'clumping': 0,
+    'sparsity': 0,
+    'connectivity': 0
+  };
+  
+  // Tester toutes les positions possibles
+  for (let x = 0; x < NODES; x++) {
+    for (let y = 0; y < NODES; y++) {
+      totalPositions++;
+      
+      const canPlace = canPlaceCross(pid, x, y);
+      const canPlaceWithConstraints = canPlaceCrossWithConstraints(pid, x, y);
+      
+      if (canPlace) {
+        if (canPlaceWithConstraints) {
+          validPositions++;
+        } else {
+          rejectedPositions++;
+          
+          // Déterminer la raison du rejet
+          if (isOwnBase(pid, x, y)) {
+            rejectionReasons.base_constraint++;
+          } else {
+            // Vérifier anti-clumping
+            let surroundingCount = 0;
+            for (const d of dirs8) {
+              const nx = x + d.dx;
+              const ny = y + d.dy;
+              
+              if (nx >= 0 && nx < NODES && ny >= 0 && ny < NODES) {
+                const mark = marks.get(keyOf(nx, ny));
+                if (mark && mark.owner === pid && mark.kind === "X") {
+                  surroundingCount++;
+                }
+              }
+            }
+            
+            if (surroundingCount > 1) {
+              rejectionReasons.clumping++;
+            } else if (surroundingCount === 1) {
+              // Vérifier si c'est une continuation autorisée
+              const surround = getSurroundingPosition(pid, x, y);
+              if (surround) {
+                const dx = x - surround.nx;
+                const dy = y - surround.ny;
+                const prevPos = getPreviousInLine(pid, surround.nx, surround.ny);
+                
+                if (prevPos) {
+                  const prevDx = surround.nx - prevPos.ix;
+                  const prevDy = surround.ny - prevPos.iy;
+                  
+                  if (!(dx === prevDx && dy === prevDy) && 
+                      !((dx === 0 && dy !== 0) || (dy === 0 && dx !== 0))) {
+                    rejectionReasons.clumping++;
+                  }
+                }
+              }
+            } else {
+              // Vérifier sparsité
+              if (!checkSparsityConstraint(pid, x, y)) {
+                rejectionReasons.sparsity++;
+              } else {
+                rejectionReasons.connectivity++;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  console.log(`Positions totales: ${totalPositions}`);
+  console.log(`Positions valides: ${validPositions}`);
+  console.log(`Positions rejetées: ${rejectedPositions}`);
+  console.log(`Taux de rejet: ${(rejectedPositions / (validPositions + rejectedPositions) * 100).toFixed(1)}%`);
+  
+  console.log(`Raisons de rejet:`);
+  for (const [reason, count] of Object.entries(rejectionReasons)) {
+    if (count > 0) {
+      console.log(`  ${reason}: ${count}`);
+    }
+  }
+  
+  // Afficher les lignes actuelles
+  const myLines = getMyLines(pid);
+  console.log(`Lignes actuelles: ${myLines.length}`);
+  
+  for (let i = 0; i < Math.min(myLines.length, 3); i++) {
+    const line = myLines[i];
+    console.log(`  Ligne ${i+1}: ${line.length} particules, de (${line[0].ix},${line[0].iy}) à (${line[line.length-1].ix},${line[line.length-1].iy})`);
+  }
+  
+  console.log(`=== FIN DÉBOGAGE CONTRAINTES ===`);
+}
+
+function getSurroundingPosition(pid, x, y) {
+  for (const d of dirs8) {
+    const nx = x + d.dx;
+    const ny = y + d.dy;
+    
+    if (nx >= 0 && nx < NODES && ny >= 0 && ny < NODES) {
+      const mark = marks.get(keyOf(nx, ny));
+      if (mark && mark.owner === pid && mark.kind === "X") {
+        return {nx, ny};
+      }
+    }
+  }
+  return null;
+}
+
+// Rendre la fonction accessible globalement
+window.debugAntiClumpingConstraints = debugAntiClumpingConstraints;
+
+// Fonction de débogage pour l'analyse des lignes adverses
+function debugEnemyLines(pid) {
+  console.log(`=== DÉBOGAGE LIGNES ADVERSES pour ${pid} ===`);
+  
+  const enemyLines = analyzeEnemyLines(pid);
+  console.log(`Lignes ennemies détectées:`, enemyLines.size);
+  
+  for (const [enemyPid, lines] of enemyLines) {
+    console.log(`  Joueur ${enemyPid}: ${lines.length} lignes`);
+    
+    for (let i = 0; i < Math.min(lines.length, 3); i++) {
+      const line = lines[i];
+      console.log(`    Ligne ${i+1}: criticité=${line.criticality.toFixed(1)}, ` +
+                  `de (${line.start.ix},${line.start.iy}) à (${line.end.ix},${line.end.iy})`);
+    }
+  }
+  
+  const breakPoints = findLineBreakPoints(pid);
+  console.log(`Points de rupture identifiés: ${breakPoints.length}`);
+  
+  for (let i = 0; i < Math.min(breakPoints.length, 5); i++) {
+    const bp = breakPoints[i];
+    console.log(`  Point ${i+1}: (${bp.position.ix},${bp.position.iy}) - ` +
+                `priorité=${bp.priority.toFixed(1)} - ${bp.strategy}`);
+  }
+  
+  console.log(`=== FIN DÉBOGAGE LIGNES ADVERSES ===`);
+function unblockBlueIA() {
+  console.log('=== DÉBLOCAGE FORCÉ IA BLEUE ===');
+  
+  // Identifier l'IA bleue (joueur D normalement)
+  let bluePlayer = null;
+  for (const p of PLAYERS) {
+    if (p.id === "D" && control.get(p.id) === "AI") {
+      bluePlayer = p;
+      break;
+    }
+  }
+  
+  // Si pas de joueur D, chercher la première IA
+  if (!bluePlayer) {
+    for (const p of PLAYERS) {
+      if (control.get(p.id) === "AI") {
+        bluePlayer = p;
+        break;
+      }
+    }
+  }
+  
+  if (!bluePlayer) {
+    console.log('❌ Aucune IA bleue trouvée');
+    return false;
+  }
+  
+  console.log(`🔵 Tentative de déblocage pour IA ${bluePlayer.id} (Couleur: ${bluePlayer.color})`);
+  
+  // Vérifier si l'IA est vraiment bloquée
+  const candidates = generateAICandidates(bluePlayer.id);
+  if (candidates.crosses.length > 0) {
+    console.log(`✅ L'IA ${bluePlayer.id} n'est pas bloquée, elle a ${candidates.crosses.length} mouvements possibles`);
+    return false;
+  }
+  
+  console.log(`❌ L'IA ${bluePlayer.id} est bloquée - Aucun mouvement généré`);
+  
+  // Réinitialiser les contrôleurs de placement
+  const placementController = placementControllers.get(bluePlayer.id);
+  if (placementController) {
+    console.log('🔄 Réinitialisation du contrôleur de placement...');
+    placementController.activeParticlesPerTurn = 0;
+    placementController.placedPositions = [];
+  }
+  
+  // Chercher n'importe quelle position valide sans contraintes
+  const powered = computePoweredSet(bluePlayer.id);
+  console.log(`📍 Positions powered: ${powered.size}`);
+  
+  let foundMove = false;
+  let attempts = 0;
+  
+  for (const pk of powered) {
+    if (foundMove) break;
+    const a = parseKey(pk);
+    
+    for (const d of dirs8) {
+      const nx = a.ix + d.dx, ny = a.iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      
+      const kk = keyOf(nx, ny);
+      if (marks.has(kk)) continue;
+      
+      attempts++;
+      
+      // Test simple sans contraintes
+      if (canPlaceCross(bluePlayer.id, nx, ny)) {
+        console.log(`🔧 Forcer le mouvement vers (${nx},${ny}) après ${attempts} tentatives`);
+        
+        // Placer la croix manuellement
+        const moveInfo = placeCross(bluePlayer.id, nx, ny);
+        
+        // Mettre à jour les compteurs
+        if (placementController) {
+          placementController.registerParticlePlacement(nx, ny);
+        }
+        
+        // Traiter le mouvement
+        afterMove(bluePlayer.id, moveInfo);
+        
+        console.log('✅ IA bleue débloquée avec succès');
+        console.log(`📍 Croix placée en (${nx},${ny})`);
+        foundMove = true;
+        return true;
+      }
+    }
+  }
+  
+  console.log(`❌ Aucun mouvement possible après ${attempts} tentatives`);
+  
+  // Si vraiment bloqué, essayer de passer le tour
+  if (movesLeft > 0) {
+    console.log('⏭️ Passage forcé du tour...');
+    movesLeft = 0;
+    endTurn(true);
+    return true;
+  }
+  
+  return false;
+}
+
+// Rendre la fonction accessible globalement
+window.unblockBlueIA = unblockBlueIA;
+
+// Fonction de débogage pour l'analyse des lignes adverses
+function debugEnemyLines(pid) {
+  console.log(`=== DÉBOGAGE LIGNES ADVERSES pour ${pid} ===`);
+  
+  const enemyLines = analyzeEnemyLines(pid);
+  console.log(`Lignes ennemies détectées:`, enemyLines.size);
+  
+  for (const [enemyPid, lines] of enemyLines) {
+    console.log(`  Joueur ${enemyPid}: ${lines.length} lignes`);
+    
+    for (let i = 0; i < Math.min(lines.length, 3); i++) {
+      const line = lines[i];
+      console.log(`    Ligne ${i+1}: criticité=${line.criticality.toFixed(1)}, ` +
+                  `de (${line.start.ix},${line.start.iy}) à (${line.end.ix},${line.end.iy})`);
+    }
+  }
+  
+  const breakPoints = findLineBreakPoints(pid);
+  console.log(`Points de rupture identifiés: ${breakPoints.length}`);
+  
+  for (let i = 0; i < Math.min(breakPoints.length, 5); i++) {
+    const bp = breakPoints[i];
+    console.log(`  Point ${i+1}: (${bp.position.ix},${bp.position.iy}) - ` +
+                `priorité=${bp.priority.toFixed(1)} - ${bp.strategy}`);
+  }
+  
+  console.log(`=== FIN DÉBOGAGE LIGNES ADVERSES ===`);
+}
+
+// Rendre la fonction accessible globalement
+window.debugEnemyLines = debugEnemyLines;
+
+// Fonction de débogage pour la défense proactive
+function debugDefenseSystem(pid) {
+  console.log(`=== DÉBOGAGE DÉFENSE PROACTIVE pour ${pid} ===`);
+  
+  const defenseSystem = defenseSystems.get(pid);
+  if (!defenseSystem) {
+    console.log(`❌ Aucun système de défense trouvé pour ${pid}`);
+    return;
+  }
+  
+  // Mettre à jour le système
+  const status = defenseSystem.update();
+  
+  console.log(`Niveau menace: ${status.threatLevel}`);
+  console.log(`Mode urgence: ${status.emergencyMode}`);
+  console.log(`Menaces détectées: ${status.threats.length}`);
+  console.log(`Cibles d'interception: ${status.interceptionTargets.length}`);
+  
+  // Détail des menaces
+  if (status.threats.length > 0) {
+    console.log(`\n--- Détail des menaces ---`);
+    for (let i = 0; i < Math.min(3, status.threats.length); i++) {
+      const threat = status.threats[i];
+      console.log(`  Menace ${i+1}: Joueur ${threat.enemyPid} à distance ${threat.distance.toFixed(1)} en (${threat.position.ix},${threat.position.iy})`);
+    }
+  }
+  
+  // Détail des cibles d'interception
+  if (status.interceptionTargets.length > 0) {
+    console.log(`\n--- Cibles d'interception ---`);
+    for (let i = 0; i < Math.min(2, status.interceptionTargets.length); i++) {
+      const target = status.interceptionTargets[i];
+      console.log(`  Cible ${i+1}: Joueur ${target.enemyPid}`);
+      console.log(`    Point de coupe: (${target.cutPoint.ix},${target.cutPoint.iy})`);
+      console.log(`    Distance menace: ${target.threatDistance.toFixed(1)}`);
+      console.log(`    Priorité: ${target.priority.toFixed(1)}`);
+      console.log(`    Longueur chemin: ${target.path.length} particules`);
+    }
+  }
+  
+  // Simuler les manœuvres d'interception
+  if (status.emergencyMode && status.interceptionTargets.length > 0) {
+    console.log(`\n--- Simulation manœuvres d'interception ---`);
+    const maneuvers = defenseSystem.generateInterceptionManeuvers(status.interceptionTargets, 5);
+    console.log(`Manœuvres générées: ${maneuvers.length}`);
+    
+    for (let i = 0; i < Math.min(3, maneuvers.length); i++) {
+      const maneuver = maneuvers[i];
+      console.log(`  Manœuvre ${i+1}: (${maneuver.ix},${maneuver.iy}) - ${maneuver.strategy} - priorité ${maneuver.priority}`);
+    }
+  }
+  
+  console.log(`=== FIN DÉBOGAGE DÉFENSE ===`);
+}
+
+// Fonction de test pour toutes les défenses
+function debugAllDefenseSystems() {
+  console.log('=== DÉBOGAGE TOUS LES SYSTÈMES DE DÉFENSE ===');
+  
+  for (const p of PLAYERS) {
+    if (control.get(p.id) === "AI") {
+      debugDefenseSystem(p.id);
+    }
+  }
+  
+  console.log('=== FIN DÉBOGAGE GLOBAL ===');
+}
+
+// Rendre les fonctions accessibles globalement
+window.debugDefenseSystem = debugDefenseSystem;
+window.debugAllDefenseSystems = debugAllDefenseSystems;
+
+// Fonction de débogage pour le système de placement technique
+function debugPlacementController(pid) {
+  console.log(`=== DÉBOGAGE PLACEMENT TECHNIQUE pour ${pid} ===`);
+  
+  const controller = placementControllers.get(pid);
+  if (!controller) {
+    console.log(`❌ Aucun contrôleur de placement trouvé pour ${pid}`);
+    return;
+  }
+  
+  const stats = controller.getStats();
+  console.log(`Statistiques:`);
+  console.log(`  Particules actives ce tour: ${stats.activeParticles}`);
+  console.log(`  Limite par tour: ${stats.maxParticles}`);
+  console.log(`  Particules restantes: ${stats.remainingParticles}`);
+  console.log(`  Total placées: ${stats.placedPositions}`);
+  console.log(`  Peut encore placer: ${stats.canPlaceMore ? '✅' : '❌'}`);
+  
+  // Tester la détection de carrés 2x2
+  console.log(`\n--- Test détection carrés 2x2 ---`);
+  let squareTests = 0;
+  let squaresDetected = 0;
+  
+  // Tester quelques positions aléatoires
+  for (let i = 0; i < 10; i++) {
+    const testX = Math.floor(Math.random() * NODES);
+    const testY = Math.floor(Math.random() * NODES);
+    
+    squareTests++;
+    if (controller.wouldCreate2x2Square(testX, testY)) {
+      squaresDetected++;
+      console.log(`  Position (${testX},${testY}): ❌ Carré 2x2 détecté`);
+    }
+  }
+  
+  console.log(`Tests de carrés: ${squareTests}, Carrés détectés: ${squaresDetected}`);
+  
+  // Tester le jitter
+  console.log(`\n--- Test jitter ---`);
+  const jitterTests = 5;
+  let jitterApplied = 0;
+  
+  for (let i = 0; i < jitterTests; i++) {
+    if (controller.shouldApplyJitter()) {
+      jitterApplied++;
+      console.log(`  Test ${i+1}: 🎲 Jitter appliqué`);
+    } else {
+      console.log(`  Test ${i+1}: Pas de jitter`);
+    }
+  }
+  
+  console.log(`Tests jitter: ${jitterTests}/${jitterApplied} appliqués`);
+  
+  // Tester le ratio de branchement
+  console.log(`\n--- Test ratio de branchement ---`);
+  const shouldBranch = controller.shouldCreateBranch();
+  console.log(`Devrait créer une branche: ${shouldBranch ? '✅' : '❌'}`);
+  
+  const straightCount = controller.countStraightLineParticles();
+  console.log(`Particules en ligne droite: ${straightCount}`);
+  
+  console.log(`=== FIN DÉBOGAGE PLACEMENT TECHNIQUE ===`);
+}
+
+// Fonction de test pour tous les contrôleurs de placement
+function debugAllPlacementControllers() {
+  console.log('=== DÉBOGAGE TOUS LES CONTRÔLEURS DE PLACEMENT ===');
+  
+  for (const p of PLAYERS) {
+    if (control.get(p.id) === "AI") {
+      debugPlacementController(p.id);
+    }
+  }
+  
+  console.log('=== FIN DÉBOGAGE GLOBAL ===');
+}
+
+// Rendre les fonctions accessibles globalement
+window.debugPlacementController = debugPlacementController;
+window.debugAllPlacementControllers = debugAllPlacementControllers;
+
+// Fonction de test spécifique pour l'IA bleue
+function testBlueIA() {
+  console.log('=== DIAGNOSTIC SPÉCIFIQUE IA BLEUE ===');
+  
+  // Identifier l'IA bleue (généralement joueur A ou B selon la configuration)
+  let bluePlayer = null;
+  for (const p of PLAYERS) {
+    if (control.get(p.id) === "AI") {
+      // L'IA bleue est généralement la première IA
+      if (!bluePlayer || p.id < bluePlayer.id) {
+        bluePlayer = p;
+      }
+    }
+  }
+  
+  if (!bluePlayer) {
+    console.log('❌ Aucune IA trouvée');
+    return;
+  }
+  
+  console.log(`🔵 IA Bleue identifiée: ${bluePlayer.id}`);
+  
+  // État actuel du joueur
+  const isAlive = alive.get(bluePlayer.id);
+  console.log(`État: ${isAlive ? '✅ Vivant' : '❌ Éliminé'}`);
+  
+  if (!isAlive) {
+    console.log('❌ L\'IA bleue est éliminée, ne peut pas jouer');
+    return;
+  }
+  
+  // Compter les particules actuelles
+  let particleCount = 0;
+  let circleCount = 0;
+  for (const [k, m] of marks.entries()) {
+    if (m.owner === bluePlayer.id) {
+      particleCount++;
+      if (m.kind === "O") circleCount++;
+    }
+  }
+  
+  console.log(`Particules totales: ${particleCount}`);
+  console.log(`Cercles: ${circleCount}`);
+  console.log(`Croix: ${particleCount - circleCount}`);
+  
+  // Tester les mouvements possibles
+  const powered = computePoweredSet(bluePlayer.id);
+  console.log(`Cases powered: ${powered.size}`);
+  
+  let basicMoves = 0;
+  let constrainedMoves = 0;
+  const testPositions = [];
+  
+  for (const pk of powered) {
+    const a = parseKey(pk);
+    for (const d of dirs8) {
+      const nx = a.ix + d.dx, ny = a.iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      if (marks.has(keyOf(nx, ny))) continue;
+      
+      const canNormal = canPlaceCross(bluePlayer.id, nx, ny);
+      const canConstrained = canPlaceCrossWithConstraints(bluePlayer.id, nx, ny);
+      
+      if (canNormal) {
+        basicMoves++;
+        if (canConstrained) {
+          constrainedMoves++;
+        } else {
+          testPositions.push({nx, ny, reason: 'rejected_by_constraints'});
+        }
+      }
+    }
+    
+    // Limiter le test pour éviter trop de logs
+    if (basicMoves > 20) break;
+  }
+  
+  console.log(`Mouvements de base possibles: ${basicMoves}`);
+  console.log(`Mouvements avec contraintes: ${constrainedMoves}`);
+  console.log(`Taux de rejet par contraintes: ${((basicMoves - constrainedMoves) / basicMoves * 100).toFixed(1)}%`);
+  
+  // Afficher quelques exemples de positions rejetées
+  console.log('Exemples de positions rejetées par les contraintes:');
+  for (let i = 0; i < Math.min(5, testPositions.length); i++) {
+    const pos = testPositions[i];
+    console.log(`  Position (${pos.nx},${pos.ny}): ${pos.reason}`);
+  }
+  
+  // Tester la génération complète de candidats
+  console.log('\n--- Test génération complète ---');
+  try {
+    const candidates = generateAICandidates(bluePlayer.id);
+    console.log(`✅ Génération réussie: ${candidates.circles.length} cercles, ${candidates.crosses.length} croix`);
+    
+    if (candidates.crosses.length > 0) {
+      console.log('Top 3 mouvements:');
+      for (let i = 0; i < Math.min(3, candidates.crosses.length); i++) {
+        const move = candidates.crosses[i];
+        console.log(`  ${i+1}. (${move.ix},${move.iy}) - priorité: ${move.priority.toFixed(2)} - ${move.strategy}`);
+      }
+    } else {
+      console.log('⚠️  Aucun mouvement généré - problème dans les contraintes');
+    }
+  } catch (error) {
+    console.log('❌ Erreur lors de la génération:', error.message);
+  }
+  
+  // Vérifier le profil de l'IA
+  const prof = aiProfile.get(bluePlayer.id);
+  console.log(`\nProfil IA: ${prof?.name || 'Non défini'}`);
+  if (prof) {
+    console.log(`  diagWeight: ${prof.diagWeight}`);
+    console.log(`  lineWeight: ${prof.lineWeight}`);
+    console.log(`  circleBiasAttack: ${prof.circleBiasAttack}`);
+  }
+  
+  console.log('\n=== FIN DIAGNOSTIC IA BLEUE ===');
+}
+
+// Rendre la fonction accessible globalement
+window.testBlueIA = testBlueIA;
+
+// Fonction de test rapide pour diagnostiquer le blocage des IA
+function testIAMovement() {
+  console.log('=== TEST RAPIDE MOUVEMENTS IA ===');
+  
+  for (const p of PLAYERS) {
+    if (control.get(p.id) === "AI") {
+      console.log(`\n--- Test IA ${p.id} ---`);
+      
+      // Tester les mouvements normaux
+      const normalCandidates = generateAICandidates(p.id);
+      console.log(`Candidats normaux: ${normalCandidates.circles.length} cercles, ${normalCandidates.crosses.length} croix`);
+      
+      // Si aucun mouvement normal, tester sans contraintes
+      if (normalCandidates.crosses.length === 0) {
+        console.log(`⚠️  Aucun mouvement normal trouvé pour ${p.id}!`);
+        
+        // Tester sans contraintes anti-remplissage
+        const powered = computePoweredSet(p.id);
+        console.log(`Positions powered: ${powered.size}`);
+        
+        let basicMoves = 0;
+        for (const pk of powered) {
+          const a = parseKey(pk);
+          for (const d of dirs8) {
+            const nx = a.ix + d.dx, ny = a.iy + d.dy;
+            if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+            if (marks.has(keyOf(nx, ny))) continue;
+            if (canPlaceCross(p.id, nx, ny)) {
+              basicMoves++;
+            }
+          }
+        }
+        
+        console.log(`Mouvements de base possibles: ${basicMoves}`);
+        
+        if (basicMoves > 0) {
+          console.log(`🔧 Les contraintes anti-remplissage bloquent l'IA ${p.id}`);
+          
+          // Tester quelques positions spécifiques
+          for (const pk of powered) {
+            const a = parseKey(pk);
+            for (const d of dirs8) {
+              const nx = a.ix + d.dx, ny = a.iy + d.dy;
+              if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+              if (marks.has(keyOf(nx, ny))) continue;
+              
+              const canNormal = canPlaceCross(p.id, nx, ny);
+              const canConstrained = canPlaceCrossWithConstraints(p.id, nx, ny);
+              
+              if (canNormal && !canConstrained) {
+                console.log(`  Position (${nx},${ny}) rejetée par les contraintes`);
+                break;
+              }
+            }
+            break; // Juste tester quelques positions
+          }
+        } else {
+          console.log(`🚫 L'IA ${p.id} n'a vraiment aucun mouvement possible`);
+        }
+      } else {
+        console.log(`✅ IA ${p.id} a ${normalCandidates.crosses.length} mouvements possibles`);
+      }
+    }
+  }
+  
+  console.log('\n=== FIN TEST MOUVEMENTS IA ===');
+}
+
+// Rendre la fonction accessible globalement
+window.testIAMovement = testIAMovement;
+
+// Fonction de test rapide pour l'IA EXPERT
+function testExpertSystem() {
+  console.log('=== TEST RAPIDE SYSTÈME EXPERT ===');
+  
+  // Vérifier les profils assignés
+  for (const p of PLAYERS) {
+    const prof = aiProfile.get(p.id);
+    console.log(`Joueur ${p.id}: ${prof?.name || 'Pas de profil'}`);
+    
+    if (prof && prof.name === "EXPERT") {
+      const system = expertSystems.get(p.id);
+      console.log(`  Système expert: ${system ? 'Présent' : 'Absent'}`);
+      
+      if (system) {
+        console.log(`  Cible:`, system.targetBase);
+        console.log(`  Épine dorsale: ${system.spineNodes.length} nœuds`);
+        console.log(`  Côtes: ${system.ribNodes.length} branches`);
+        
+        // Forcer une mise à jour pour tester
+        console.log(`  Forçage mise à jour...`);
+        system.update();
+        console.log(`  Après mise à jour - Épine: ${system.spineNodes.length} nœuds`);
+      }
+    }
+  }
+  
+  console.log('=== FIN TEST RAPIDE ===');
+}
+
+// Rendre la fonction accessible globalement
+window.testExpertSystem = testExpertSystem;
+
+// Rendre les fonctions accessibles globalement pour le débogage
+window.debugExpertSystem = debugExpertSystem;
+window.debugAllExpertSystems = debugAllExpertSystems;
+window.debugExpertMoves = debugExpertMoves;
+
+// ----------------------------
+// Débogage Blitz (optionnel)
+// ----------------------------
+function debugBlitzPath(pid) {
+  const path = getBlitzPath(pid);
+  if (!path) return;
+  
+  console.log(`[BLITZ ${pid}] Target:`, path.target);
+  console.log(`[BLITZ ${pid}] Primary Dir:`, path.primaryDir);
+  console.log(`[BLITZ ${pid}] Secondary Dirs:`, path.secondaryDirs);
+  console.log(`[BLITZ ${pid}] Is Diagonal:`, path.isDiagonal);
+}
+
+// Activer le débogage pour les IA Blitz (commenter pour désactiver)
+function debugBlitzMoves() {
+  for (const p of PLAYERS) {
+    if (control.get(p.id) === "AI") {
+      const prof = aiProfile.get(p.id);
+      if (prof && prof.name === "BLITZ") {
+        debugBlitzPath(p.id);
+      }
+    }
+  }
+}
+
+// ----------------------------
+// IA EXPERT - Nervures Adaptatives
+// ----------------------------
+class AdaptiveSpinalSystem {
+  constructor(pid, profile) {
+    this.pid = pid;
+    this.profile = profile;
+    this.spineNodes = []; // Axe principal (épine dorsale)
+    this.ribNodes = [];  // Branches latérales (côtes)
+    this.ribInterval = profile.ribInterval || 4;
+    this.chaosLevel = profile.chaosLevel || 0.15;
+    this.targetBase = null;
+    this.lastRibIndex = 0;
+    this.collisionPoints = new Set();
+  }
+
+  // Analyse du terrain et détection de la cible la plus vulnérable
+  analyzeTerrain() {
+    const myBase = baseRectFor(this.pid);
+    const myCenter = { ix: myBase.ix + 1, iy: myBase.iy + 1 };
+    
+    // Scanner toutes les bases adverses
+    let weakestTarget = null;
+    let minVulnerability = Infinity;
+    
+    for (const targetPid of PLAYERS.slice(0, PLAYER_COUNT)) {
+      if (targetPid.id === this.pid || !alive.get(targetPid.id)) continue;
+      
+      const targetBase = baseRectFor(targetPid.id);
+      const targetCenter = { ix: targetBase.ix + 1, iy: targetBase.iy + 1 };
+      
+      // Calculer la vulnérabilité (distance + densité ennemie)
+      const distance = dist2(myCenter, targetCenter);
+      const enemyDensity = this.calculateEnemyDensity(targetCenter);
+      const vulnerability = distance - (enemyDensity * 100); // Plus de densité = plus vulnérable
+      
+      if (vulnerability < minVulnerability) {
+        minVulnerability = vulnerability;
+        weakestTarget = targetCenter;
+      }
+    }
+    
+    this.targetBase = weakestTarget;
+    return weakestTarget;
+  }
+
+  // Calculer la densité des particules ennemies autour d'un point
+  calculateEnemyDensity(center) {
+    let density = 0;
+    const radius = 5;
+    
+    for (let dx = -radius; dx <= radius; dx++) {
+      for (let dy = -radius; dy <= radius; dy++) {
+        const nx = center.ix + dx;
+        const ny = center.iy + dy;
+        
+        if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+        
+        const mark = marks.get(keyOf(nx, ny));
+        if (mark && mark.owner !== this.pid && mark.kind === "X") {
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          density += 1 / (1 + dist); // Poids inverse de la distance
+        }
+      }
+    }
+    
+    return density;
+  }
+
+  // Générer la direction principale de l'épine dorsale
+  generateSpinalDirection() {
+    console.log(`[EXPERT ${this.pid}] Génération de direction - cible:`, this.targetBase);
+    
+    if (!this.targetBase) {
+      console.log(`[EXPERT ${this.pid}] Pas de cible définie`);
+      return null;
+    }
+    
+    const myBase = baseRectFor(this.pid);
+    const myCenter = { ix: myBase.ix + 1, iy: myBase.iy + 1 };
+    
+    console.log(`[EXPERT ${this.pid}] Ma base: (${myCenter.ix}, ${myCenter.iy})`);
+    
+    // Direction de base vers la cible
+    let dx = this.targetBase.ix - myCenter.ix;
+    let dy = this.targetBase.iy - myCenter.iy;
+    
+    console.log(`[EXPERT ${this.pid}] Direction brute: (${dx}, ${dy})`);
+    
+    // Ajouter le chaos (jitter) pour simuler l'hésitation humaine
+    if (Math.random() < this.chaosLevel) {
+      const jitter = Math.random() * 0.3 - 0.15; // ±15%
+      dx += dx * jitter;
+      dy += dy * jitter;
+      console.log(`[EXPERT ${this.pid}] Direction avec chaos: (${dx}, ${dy})`);
+    }
+    
+    // Normaliser la direction
+    const length = Math.sqrt(dx * dx + dy * dy);
+    if (length > 0) {
+      const normalized = { dx: dx / length, dy: dy / length };
+      console.log(`[EXPERT ${this.pid}] Direction normalisée:`, normalized);
+      return normalized;
+    }
+    
+    console.log(`[EXPERT ${this.pid}] Longueur nulle, pas de direction`);
+    return null;
+  }
+
+  // Créer une nervure (branche latérale)
+  createRib(spineNode, side) {
+    const perpDir = this.getPerpendicularDirection(spineNode.direction);
+    const ribDirection = side === 'left' ? perpDir : { dx: -perpDir.dx, dy: -perpDir.dy };
+    
+    const rib = {
+      origin: { ...spineNode.position },
+      direction: ribDirection,
+      length: 0,
+      maxLength: 3 + Math.floor(Math.random() * 3), // 3-5 nœuds
+      side: side,
+      nodes: []
+    };
+    
+    return rib;
+  }
+
+  // Obtenir la direction perpendiculaire
+  getPerpendicularDirection(direction) {
+    return { dx: -direction.dy, dy: direction.dx };
+  }
+
+  // Détecter les collisions et planifier une esquive
+  detectCollision(position) {
+    const key = keyOf(position.ix, position.iy);
+    
+    // Vérifier si la position est occupée
+    if (marks.has(key)) {
+      this.collisionPoints.add(key);
+      return true;
+    }
+    
+    // Vérifier la densité environnante
+    const nearbyDensity = this.calculateNearbyDensity(position, 2);
+    if (nearbyDensity > 0.7) { // 70% de densité = collision probable
+      this.collisionPoints.add(key);
+      return true;
+    }
+    
+    return false;
+  }
+
+  // Calculer la densité environnante
+  calculateNearbyDensity(center, radius) {
+    let occupied = 0;
+    let total = 0;
+    
+    for (let dx = -radius; dx <= radius; dx++) {
+      for (let dy = -radius; dy <= radius; dy++) {
+        const nx = center.ix + dx;
+        const ny = center.iy + dy;
+        
+        if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+        
+        total++;
+        if (marks.has(keyOf(nx, ny))) occupied++;
+      }
+    }
+    
+    return total > 0 ? occupied / total : 0;
+  }
+
+  // Planifier une esquive (branche à 90 degrés)
+  planEvasion(spineNode) {
+    const evasionDirections = [
+      { dx: 0, dy: 1 },   // Nord
+      { dx: 1, dy: 0 },   // Est
+      { dx: 0, dy: -1 },  // Sud
+      { dx: -1, dy: 0 }   // Ouest
+    ];
+    
+    // Tester chaque direction d'esquive
+    for (const dir of evasionDirections) {
+      const testPos = {
+        ix: spineNode.position.ix + dir.dx,
+        iy: spineNode.position.iy + dir.dy
+      };
+      
+      if (testPos.ix >= 0 && testPos.ix < NODES && 
+          testPos.iy >= 0 && testPos.iy < NODES &&
+          !this.detectCollision(testPos)) {
+        
+        return {
+          type: "evasion",
+          direction: dir,
+          from: spineNode.position,
+          priority: 1.0
+        };
+      }
+    }
+    
+    return null;
+  }
+
+  // Mettre à jour le système de nervures
+  update() {
+    this.analyzeTerrain();
+    
+    // Mettre à jour l'épine dorsale
+    this.updateSpine();
+    
+    // Mettre à jour les côtes
+    this.updateRibs();
+  }
+
+  updateSpine() {
+    console.log(`[EXPERT ${this.pid}] Mise à jour épine dorsale - nœuds actuels: ${this.spineNodes.length}`);
+    
+    const direction = this.generateSpinalDirection();
+    console.log(`[EXPERT ${this.pid}] Direction générée:`, direction);
+    
+    if (!direction) {
+      console.log(`[EXPERT ${this.pid}] Pas de direction générée`);
+      return;
+    }
+    
+    if (this.spineNodes.length === 0) {
+      console.log(`[EXPERT ${this.pid}] Pas de nœuds dans l'épine dorsale`);
+      return;
+    }
+    
+    const lastNode = this.spineNodes[this.spineNodes.length - 1];
+    console.log(`[EXPERT ${this.pid}] Dernier nœud: (${lastNode.position.ix}, ${lastNode.position.iy})`);
+    
+    const nextPos = {
+      ix: lastNode.position.ix + Math.round(direction.dx),
+      iy: lastNode.position.iy + Math.round(direction.dy)
+    };
+    
+    console.log(`[EXPERT ${this.pid}] Position suivante calculée: (${nextPos.ix}, ${nextPos.iy})`);
+    
+    // Vérifier les limites
+    if (nextPos.ix < 0 || nextPos.ix >= NODES || 
+        nextPos.iy < 0 || nextPos.iy >= NODES) {
+      console.log(`[EXPERT ${this.pid}] Position hors limites`);
+      return;
+    }
+    
+    // Détecter collision
+    const hasCollision = this.detectCollision(nextPos);
+    console.log(`[EXPERT ${this.pid}] Collision détectée: ${hasCollision}`);
+    
+    if (hasCollision) {
+      // Planifier une esquive
+      const evasion = this.planEvasion(lastNode);
+      console.log(`[EXPERT ${this.pid}] Esquive planifiée:`, evasion);
+      if (evasion) {
+        this.collisionPoints.add(keyOf(nextPos.ix, nextPos.iy));
+      }
+      return;
+    }
+    
+    // Ajouter le nouveau nœud à l'épine dorsale
+    this.spineNodes.push({
+      position: nextPos,
+      direction: direction,
+      index: this.spineNodes.length
+    });
+    
+    console.log(`[EXPERT ${this.pid}] Nouveau nœud ajouté: (${nextPos.ix}, ${nextPos.iy})`);
+    
+    // Créer une côte à intervalles réguliers
+    if (this.spineNodes.length - this.lastRibIndex >= this.ribInterval) {
+      const side = Math.random() < 0.5 ? 'left' : 'right';
+      const rib = this.createRib(lastNode, side);
+      this.ribNodes.push(rib);
+      this.lastRibIndex = this.spineNodes.length;
+      console.log(`[EXPERT ${this.pid}] Nouvelle côte créée côté ${side}`);
+    }
+  }
+
+  updateRibs() {
+    for (const rib of this.ribNodes) {
+      if (rib.length >= rib.maxLength) continue;
+      
+      const lastRibNode = rib.nodes.length > 0 ? 
+        rib.nodes[rib.nodes.length - 1] : rib.origin;
+      
+      const nextPos = {
+        ix: lastRibNode.ix + Math.round(rib.direction.dx),
+        iy: lastRibNode.iy + Math.round(rib.direction.dy)
+      };
+      
+      // Vérifier les limites et collisions
+      if (nextPos.ix >= 0 && nextPos.ix < NODES && 
+          nextPos.iy >= 0 && nextPos.iy < NODES &&
+          !this.detectCollision(nextPos)) {
+        
+        rib.nodes.push(nextPos);
+        rib.length++;
+      }
+    }
+  }
+
+  // Obtenir les mouvements candidates basés sur le système de nervures
+  getCandidateMoves() {
+    const moves = [];
+    
+    // Mouvements de l'épine dorsale
+    for (const node of this.spineNodes) {
+      if (marks.has(keyOf(node.position.ix, node.position.iy))) continue;
+      
+      moves.push({
+        type: "CROSS",
+        ix: node.position.ix,
+        iy: node.position.iy,
+        priority: 1.0,
+        origin: "spine",
+        strategy: "spinal_expansion"
+      });
+    }
+    
+    // Mouvements des côtes
+    for (const rib of this.ribNodes) {
+      for (const node of rib.nodes) {
+        if (marks.has(keyOf(node.ix, node.iy))) continue;
+        
+        moves.push({
+          type: "CROSS",
+          ix: node.ix,
+          iy: node.iy,
+          priority: 0.8,
+          origin: "rib",
+          strategy: "lateral_expansion"
+        });
+      }
+    }
+    
+    // Mouvements d'esquive
+    for (const collisionKey of this.collisionPoints) {
+      const pos = parseKey(collisionKey);
+      const evasion = this.planEvasion({ position: pos });
+      
+      if (evasion) {
+        moves.push({
+          type: "CROSS",
+          ix: evasion.from.ix + evasion.direction.dx,
+          iy: evasion.from.iy + evasion.direction.dy,
+          priority: 0.9,
+          origin: "evasion",
+          strategy: "collision_avoidance"
+        });
+      }
+    }
+    
+    return moves;
+  }
+}
+
+// ----------------------------
+// Pathfinding Blitz (ligne directe)
+// ----------------------------
+function getBlitzPath(pid) {
+  const myBase = baseRectFor(pid);
+  const myCenter = { ix: myBase.ix + 1, iy: myBase.iy + 1 };
+  
+  // Trouver la base adverse la plus proche
+  let nearestTarget = null;
+  let minDist = Infinity;
+  
+  for (const targetPid of PLAYERS.slice(0, PLAYER_COUNT)) {
+    if (targetPid.id === pid || !alive.get(targetPid.id)) continue;
+    
+    const targetBase = baseRectFor(targetPid.id);
+    const targetCenter = { ix: targetBase.ix + 1, iy: targetBase.iy + 1 };
+    const dist = dist2(myCenter, targetCenter);
+    
+    if (dist < minDist) {
+      minDist = dist;
+      nearestTarget = targetCenter;
+    }
+  }
+  
+  if (!nearestTarget) return null;
+  
+  // Calculer la direction principale (8 directions)
+  const dx = nearestTarget.ix - myCenter.ix;
+  const dy = nearestTarget.iy - myCenter.iy;
+  
+  // Prioriser les diagonales pures pour la vitesse maximale
+  let primaryDir = null;
+  let secondaryDirs = [];
+  
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // Mouvement horizontal dominant
+    if (dx > 0) primaryDir = { dx: 1, dy: 0 };
+    else primaryDir = { dx: -1, dy: 0 };
+    
+    // Ajouter diagonales pour optimisation
+    if (dy > 0) secondaryDirs.push({ dx: dx > 0 ? 1 : -1, dy: 1 });
+    else if (dy < 0) secondaryDirs.push({ dx: dx > 0 ? 1 : -1, dy: -1 });
+  } else if (Math.abs(dy) > Math.abs(dx)) {
+    // Mouvement vertical dominant
+    if (dy > 0) primaryDir = { dx: 0, dy: 1 };
+    else primaryDir = { dx: 0, dy: -1 };
+    
+    // Ajouter diagonales pour optimisation
+    if (dx > 0) secondaryDirs.push({ dx: 1, dy: dy > 0 ? 1 : -1 });
+    else if (dx < 0) secondaryDirs.push({ dx: -1, dy: dy > 0 ? 1 : -1 });
+  } else {
+    // Mouvement diagonal pur - le plus rapide!
+    primaryDir = { dx: dx > 0 ? 1 : -1, dy: dy > 0 ? 1 : -1 };
+  }
+  
+  return {
+    target: nearestTarget,
+    primaryDir,
+    secondaryDirs,
+    isDiagonal: Math.abs(dx) === Math.abs(dy)
+  };
+}
+
+function scoreBlitzMove(pid, mv, pathInfo) {
+  if (!pathInfo) return 0;
+  
+  const pos = mv.type === "CROSS" ? { ix: mv.ix, iy: mv.iy } : parseKey(mv.key);
+  const distToTarget = dist2(pos, pathInfo.target);
+  
+  // Score de base: distance à la cible (plus proche = meilleur)
+  let score = 200_000 - Math.sqrt(distToTarget) * 1000;
+  
+  // Bonus énorme pour les mouvements dans la direction principale
+  if (mv.type === "CROSS") {
+    // Calculer la direction du mouvement depuis la position actuelle
+    const powered = computePoweredSet(pid);
+    let currentPos = null;
+    
+    // Trouver une position powered pour calculer la direction
+    for (const pk of powered) {
+      const p = parseKey(pk);
+      const dist = dist2(p, pos);
+      if (dist <= 2) { // Mouvement adjacent
+        currentPos = p;
+        break;
+      }
+    }
+    
+    if (currentPos) {
+      const dx = mv.ix - currentPos.ix;
+      const dy = mv.iy - currentPos.iy;
+      
+      // Vérifier si le mouvement suit la direction principale
+      if (pathInfo.primaryDir && 
+          ((dx > 0 && pathInfo.primaryDir.dx > 0) || (dx < 0 && pathInfo.primaryDir.dx < 0)) &&
+          ((dy > 0 && pathInfo.primaryDir.dy > 0) || (dy < 0 && pathInfo.primaryDir.dy < 0))) {
+        score += 50_000;
+      }
+      
+      // Bonus maximum pour les diagonales pures
+      if (pathInfo.isDiagonal && Math.abs(dx) === Math.abs(dy) && dx !== 0 && dy !== 0) {
+        score += 80_000;
+      }
+      
+      // Pénalité pour les mouvements latéraux (non directionnels)
+      const isLateral = (dx === 0 && dy !== 0) || (dy === 0 && dx !== 0);
+      if (isLateral) {
+        score -= 30_000;
+      }
+    }
+    
+    // Pénalité forte pour les cercles (Blitz ne fait pas de défense de zone)
+    if (mv.type === "CIRCLE") {
+      score -= 150_000;
+    }
+  }
+  
+  return score;
+}
+
+// ----------------------------
 // IA profiles (styles différents)
 // ----------------------------
 // Chaque IA reçoit un profil distinct au reset, pour éviter les schémas identiques en début de partie.
 // Les profils influencent : choix de cible, appétence CROSS vs CIRCLE, et mélange diagonale/ligne.
 const AI_PROFILE_DEFS = {
-  RAIDER:    { name:"RAIDER",    circleBiasAttack: 0.08, circleBiasDefense: 0.55, diagWeight: 0.55, lineWeight: 1.10, targetMode: "HUMAN_FIRST", noise: 1400 },
-  BALANCED:  { name:"BALANCED",  circleBiasAttack: 0.12, circleBiasDefense: 0.62, diagWeight: 0.70, lineWeight: 1.00, targetMode: "NEAREST",     noise: 1200 },
-  SWARM:     { name:"SWARM",     circleBiasAttack: 0.10, circleBiasDefense: 0.58, diagWeight: 0.85, lineWeight: 0.92, targetMode: "WEAKEST",     noise: 1700 },
-  SIEGER:    { name:"SIEGER",    circleBiasAttack: 0.06, circleBiasDefense: 0.50, diagWeight: 0.45, lineWeight: 1.20, targetMode: "RANDOM_ROTATE", noise: 1500 },
+  RAIDER:    { name:"RAIDER",    circleBiasAttack: 0.08, circleBiasDefense: 0.55, diagWeight: 0.85, lineWeight: 0.90, targetMode: "HUMAN_FIRST", noise: 1400 },
+  BALANCED:  { name:"BALANCED",  circleBiasAttack: 0.12, circleBiasDefense: 0.62, diagWeight: 1.20, lineWeight: 0.80, targetMode: "NEAREST",     noise: 1200 },
+  SWARM:     { name:"SWARM",     circleBiasAttack: 0.10, circleBiasDefense: 0.58, diagWeight: 1.10, lineWeight: 0.85, targetMode: "WEAKEST",     noise: 1700 },
+  SIEGER:    { name:"SIEGER",    circleBiasAttack: 0.06, circleBiasDefense: 0.50, diagWeight: 0.95, lineWeight: 1.10, targetMode: "RANDOM_ROTATE", noise: 1500 },
+  BLITZ:     { name:"BLITZ",     circleBiasAttack: 0.00, circleBiasDefense: 0.00, diagWeight: 2.00, lineWeight: 0.10, targetMode: "NEAREST",     noise: 800 },
+  EXPERT:    { name:"EXPERT",    circleBiasAttack: 0.15, circleBiasDefense: 0.25, diagWeight: 0.60, lineWeight: 0.80, targetMode: "WEAKEST",     noise: 1500, spinalMode: true, ribInterval: 4, chaosLevel: 0.15 },
 };
 const aiProfile = new Map();          // pid -> profile object
 const aiTargetOverride = new Map();   // pid -> targetPid (pour RANDOM_ROTATE)
@@ -797,13 +3539,44 @@ function shuffle(arr){
 }
 
 function assignAIProfiles(){
-  const pool = shuffle(Object.keys(AI_PROFILE_DEFS).slice());
-  for (const p of PLAYERS){
-    if (control.get(p.id) !== "AI") continue;
-    const key = pool.length ? pool.pop() : "BALANCED";
+  // Réinitialiser les systèmes experts existants
+  expertSystems.clear();
+  
+  // Créer un pool avec au moins un EXPERT et un BLITZ
+  const profiles = Object.keys(AI_PROFILE_DEFS).slice();
+  const pool = shuffle(profiles);
+  
+  // S'assurer qu'il y a au moins un EXPERT et un BLITZ dans les IA
+  let hasExpert = false;
+  let hasBlitz = false;
+  const aiPlayers = PLAYERS.filter(p => control.get(p.id) === "AI");
+  
+  for (const p of aiPlayers) {
+    let key;
+    
+    // Forcer EXPERT pour la première IA si pas encore d'Expert
+    if (!hasExpert) {
+      key = "EXPERT";
+      hasExpert = true;
+      console.log(`[IA] ${p.id} assigné au profil EXPERT (Nervures Adaptatives)`);
+    } else if (!hasBlitz && aiPlayers.length > 1) {
+      key = "BLITZ";
+      hasBlitz = true;
+      console.log(`[IA] ${p.id} assigné au profil BLITZ (Ligne Directe)`);
+    } else {
+      key = pool.length ? pool.pop() : "BALANCED";
+      console.log(`[IA] ${p.id} assigné au profil ${key}`);
+    }
+    
     aiProfile.set(p.id, AI_PROFILE_DEFS[key]);
     aiTargetOverride.delete(p.id);
+    
+    // Initialiser le système expert si nécessaire
+    if (key === "EXPERT") {
+      initializeExpertSystem(p.id, AI_PROFILE_DEFS[key]);
+    }
   }
+  
   // Si plusieurs IA et pool insuffisant, on mélange quand même via noise/target rotate.
 }
 
@@ -901,20 +3674,24 @@ function opponentTargetPoint(pid, prof) {
     }
     NODES = GRID_CELLS + 1;
     
-    // Mettre en surbrillance le bouton sélectionné, griser l'autre
+    // Gérer le grisé des boutons (mais permettre de cliquer pour changer d'avis)
     const btn2Players = document.getElementById('btn-2players');
     const btn4Players = document.getElementById('btn-4players');
-
+    
     if (count === 2) {
-      btn2Players.classList.add('btn-active');
-      btn2Players.classList.remove('btn-inactive');
-      btn4Players.classList.add('btn-inactive');
-      btn4Players.classList.remove('btn-active');
+      // Mode 2 joueurs : griser le bouton 4 joueurs mais permettre le clic
+      btn2Players.style.opacity = '1';
+      btn2Players.style.cursor = 'pointer';
+      
+      btn4Players.style.opacity = '0.5';
+      btn4Players.style.cursor = 'pointer'; // Garder pointer pour permettre le clic
     } else {
-      btn4Players.classList.add('btn-active');
-      btn4Players.classList.remove('btn-inactive');
-      btn2Players.classList.add('btn-inactive');
-      btn2Players.classList.remove('btn-active');
+      // Mode 4 joueurs : griser le bouton 2 joueurs mais permettre le clic
+      btn4Players.style.opacity = '1';
+      btn4Players.style.cursor = 'pointer';
+      
+      btn2Players.style.opacity = '0.5';
+      btn2Players.style.cursor = 'pointer'; // Garder pointer pour permettre le clic
     }
     
     // Mettre à jour l'affichage du nombre de joueurs
@@ -962,7 +3739,7 @@ function opponentTargetPoint(pid, prof) {
     }
   }
 
-  function startGame() {
+  window.startGame = function() {
     console.log('startGame appelé');
     
     // Cacher le menu
@@ -1030,6 +3807,8 @@ function opponentTargetPoint(pid, prof) {
   document.addEventListener('DOMContentLoaded', function() {
     const player1Input = document.getElementById('player1-name');
     const player2Input = document.getElementById('player2-name');
+    const player3Input = document.getElementById('player3-name');
+    const player4Input = document.getElementById('player4-name');
     
     if (player1Input) {
       player1Input.addEventListener('input', function() {
@@ -1042,25 +3821,48 @@ function opponentTargetPoint(pid, prof) {
         console.log('Input Joueur 2:', this.value);
       });
     }
+    
+    if (player3Input) {
+      player3Input.addEventListener('input', function() {
+        console.log('Input Joueur 3:', this.value);
+      });
+    }
+    
+    if (player4Input) {
+      player4Input.addEventListener('input', function() {
+        console.log('Input Joueur 4:', this.value);
+      });
+    }
   });
   
   // Variables globales pour les joueurs
   let playerNames = {
     player1: '',
-    player2: ''
+    player2: '',
+    player3: '',
+    player4: ''
   };
   
   // Fonctions de gestion des joueurs et classement
-  function showPlayerNamesScreen() {
+  window.showPlayerNamesScreen = function(playerCount) {
     const menu = document.getElementById('main-menu');
     const namesScreen = document.getElementById('player-names-screen');
-
-    // Mettre en surbrillance le bouton 2 joueurs
-    const btn2 = document.getElementById('btn-2players');
-    const btn4 = document.getElementById('btn-4players');
-    if (btn2) { btn2.classList.add('btn-active'); btn2.classList.remove('btn-inactive'); }
-    if (btn4) { btn4.classList.add('btn-inactive'); btn4.classList.remove('btn-active'); }
-
+    
+    // Stocker le nombre de joueurs sélectionné
+    window.selectedPlayerCount = playerCount;
+    
+    // Afficher/masquer les champs joueurs 3 et 4 selon le nombre de joueurs
+    const player3Field = document.getElementById('player3-field');
+    const player4Field = document.getElementById('player4-field');
+    
+    if (playerCount === 4) {
+      player3Field.style.display = 'block';
+      player4Field.style.display = 'block';
+    } else {
+      player3Field.style.display = 'none';
+      player4Field.style.display = 'none';
+    }
+    
     // Charger les derniers pseudos sauvegardés
     loadSavedNames();
     
@@ -1074,23 +3876,48 @@ function opponentTargetPoint(pid, prof) {
   function loadSavedNames() {
     const savedPlayer1 = localStorage.getItem('player1_name') || '';
     const savedPlayer2 = localStorage.getItem('player2_name') || '';
+    const savedPlayer3 = localStorage.getItem('player3_name') || '';
+    const savedPlayer4 = localStorage.getItem('player4_name') || '';
     
     document.getElementById('player1-name').value = savedPlayer1;
     document.getElementById('player2-name').value = savedPlayer2;
+    document.getElementById('player3-name').value = savedPlayer3;
+    document.getElementById('player4-name').value = savedPlayer4;
   }
   
   function saveNames() {
+    console.log('=== DÉBOGAGE saveNames ===');
+    
     const player1Name = document.getElementById('player1-name').value.trim();
     const player2Name = document.getElementById('player2-name').value.trim();
+    const player3Name = document.getElementById('player3-name').value.trim();
+    const player4Name = document.getElementById('player4-name').value.trim();
+    
+    console.log('Pseudos extraits des inputs:', { player1Name, player2Name, player3Name, player4Name });
     
     if (player1Name) {
       localStorage.setItem('player1_name', player1Name);
       playerNames.player1 = player1Name;
+      console.log('player1 sauvegardé:', player1Name);
     }
     if (player2Name) {
       localStorage.setItem('player2_name', player2Name);
       playerNames.player2 = player2Name;
+      console.log('player2 sauvegardé:', player2Name);
     }
+    if (player3Name) {
+      localStorage.setItem('player3_name', player3Name);
+      playerNames.player3 = player3Name;
+      console.log('player3 sauvegardé:', player3Name);
+    }
+    if (player4Name) {
+      localStorage.setItem('player4_name', player4Name);
+      playerNames.player4 = player4Name;
+      console.log('player4 sauvegardé:', player4Name);
+    }
+    
+    console.log('playerNames après sauvegarde:', playerNames);
+    console.log('=== FIN DÉBOGAGE saveNames ===');
   }
   
   function startGameWithNames() {
@@ -1098,12 +3925,25 @@ function opponentTargetPoint(pid, prof) {
     
     const player1Name = document.getElementById('player1-name').value.trim();
     const player2Name = document.getElementById('player2-name').value.trim();
+    const player3Name = document.getElementById('player3-name').value.trim();
+    const player4Name = document.getElementById('player4-name').value.trim();
     
-    console.log('Pseudos:', player1Name, player2Name);
+    const playerCount = window.selectedPlayerCount || 2;
     
-    if (!player1Name || !player2Name) {
-      alert('Veuillez entrer un pseudo pour chaque joueur');
-      return;
+    console.log('Pseudos:', player1Name, player2Name, player3Name, player4Name);
+    console.log('Nombre de joueurs:', playerCount);
+    
+    // Validation selon le nombre de joueurs
+    if (playerCount === 2) {
+      if (!player1Name || !player2Name) {
+        alert('Veuillez entrer un pseudo pour chaque joueur');
+        return;
+      }
+    } else if (playerCount === 4) {
+      if (!player1Name || !player2Name || !player3Name || !player4Name) {
+        alert('Veuillez entrer un pseudo pour chaque joueur');
+        return;
+      }
     }
     
     saveNames();
@@ -1119,8 +3959,8 @@ function opponentTargetPoint(pid, prof) {
       namesScreen.style.opacity = '0';
     }
     
-    console.log('Appel setPlayerCount(2)');
-    setPlayerCount(2);
+    console.log('Appel setPlayerCount(' + playerCount + ')');
+    setPlayerCount(playerCount);
     
     console.log('Appel startGame()');
     startGame();
@@ -1128,7 +3968,7 @@ function opponentTargetPoint(pid, prof) {
     console.log('startGameWithNames terminé');
   }
   
-  function backToMenu() {
+  window.backToMenu = function() {
     const menu = document.getElementById('main-menu');
     const namesScreen = document.getElementById('player-names-screen');
     const rankingScreen = document.getElementById('ranking-screen');
@@ -1144,7 +3984,7 @@ function opponentTargetPoint(pid, prof) {
     menu.style.opacity = '1';
   }
   
-  function showRankingScreen() {
+  window.showRankingScreen = function() {
     const menu = document.getElementById('main-menu');
     const rankingScreen = document.getElementById('ranking-screen');
     
@@ -1158,24 +3998,36 @@ function opponentTargetPoint(pid, prof) {
   }
   
   function saveResult(winnerName, loserName) {
+    console.log('=== DÉBOGAGE saveResult ===');
+    console.log('winnerName:', winnerName);
+    console.log('loserName:', loserName);
+    console.log('playerNames actuel:', playerNames);
+    
     // Charger les statistiques existantes
     let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+    console.log('stats existantes:', stats);
     
     // Mettre à jour le gagnant
     if (!stats[winnerName]) {
       stats[winnerName] = { wins: 0, losses: 0 };
+      console.log('Création nouvelle entrée pour:', winnerName);
     }
     stats[winnerName].wins++;
+    console.log('Nouvelles victoires pour', winnerName, ':', stats[winnerName].wins);
     
     // Mettre à jour le perdant
     if (!stats[loserName]) {
       stats[loserName] = { wins: 0, losses: 0 };
+      console.log('Création nouvelle entrée pour:', loserName);
     }
     stats[loserName].losses++;
+    console.log('Nouvelles défaites pour', loserName, ':', stats[loserName].losses);
     
     // Sauvegarder
     localStorage.setItem('voltclash_stats', JSON.stringify(stats));
-    console.log(`Résultat sauvegardé: ${winnerName} bat ${loserName}`);
+    console.log('Stats sauvegardées:', stats);
+    console.log('Résultat sauvegardé: ${winnerName} bat ${loserName}');
+    console.log('=== FIN DÉBOGAGE saveResult ===');
   }
   
   function displayRanking() {
@@ -1217,6 +4069,35 @@ function opponentTargetPoint(pid, prof) {
     rankingList.innerHTML = html;
   }
   
+  // Fonction de test pour le débogage du classement
+function testRankingSystem() {
+  console.log('=== TEST DU SYSTÈME DE CLASSEMENT ===');
+  
+  // Vérifier localStorage
+  const stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+  console.log('Stats dans localStorage:', stats);
+  
+  // Vérifier playerNames
+  console.log('playerNames global:', playerNames);
+  
+  // Vérifier pseudos sauvegardés
+  const savedNames = {
+    player1: localStorage.getItem('player1_name'),
+    player2: localStorage.getItem('player2_name'),
+    player3: localStorage.getItem('player3_name'),
+    player4: localStorage.getItem('player4_name')
+  };
+  console.log('Pseudos dans localStorage:', savedNames);
+  
+  // Vérifier affichage du classement
+  displayRanking();
+  
+  console.log('=== FIN TEST CLASSEMENT ===');
+}
+
+// Rendre la fonction accessible globalement pour le débogage
+window.testRankingSystem = testRankingSystem;
+
   function clearRanking() {
     if (confirm('Êtes-vous sûr de vouloir effacer toutes les statistiques ?')) {
       localStorage.removeItem('voltclash_stats');
@@ -1230,7 +4111,7 @@ function opponentTargetPoint(pid, prof) {
   let gameOptionsVisible = false;
   
   // Fonction pour basculer la musique
-  function toggleMusic() {
+  window.toggleMusic = function() {
     const btn = document.getElementById('btn-music-toggle');
     const modalBtn = document.getElementById('modal-music-toggle');
     const panelBtn = document.getElementById('panel-music-toggle');
@@ -1904,126 +4785,324 @@ function opponentTargetPoint(pid, prof) {
     return true;
   }
 
-  function showVictoryAnimation(winner, color) {
-    // Récupérer le nom du joueur gagnant
-    let winnerName = `Joueur ${winner}`;
+  function showVictory(winner, color) {
+    console.log('=== DÉBOGAGE showVictory ===');
+    console.log('winner ID:', winner);
+    console.log('PLAYER_COUNT:', PLAYER_COUNT);
+    console.log('playerNames avant traitement:', playerNames);
+    
+    // Récupérer les informations du joueur gagnant
+    const winnerPlayer = PLAYERS.find(p => p.id === winner);
+    let winnerName = winnerPlayer ? winnerPlayer.name : `Joueur ${winner}`;
+    console.log('winnerName par défaut:', winnerName);
+    
+    // Utiliser les pseudos si disponibles selon le nombre de joueurs
     if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
-      winnerName = winner === 1 ? playerNames.player1 : playerNames.player2;
+      // Joueur A (Rouge) = player1, Joueur B (Vert) = player2
+      if (winner === "A") {
+        winnerName = playerNames.player1;
+        console.log('2 joueurs - winner A, player1 utilisé:', winnerName);
+      } else if (winner === "B") {
+        winnerName = playerNames.player2;
+        console.log('2 joueurs - winner B, player2 utilisé:', winnerName);
+      }
+    } else if (PLAYER_COUNT === 4 && playerNames.player1 && playerNames.player2 && playerNames.player3 && playerNames.player4) {
+      // Joueur A (Rouge) = player1, Joueur B (Vert) = player2, Joueur C (Jaune) = player3, Joueur D (Bleu) = player4
+      if (winner === "A") {
+        winnerName = playerNames.player1;
+        console.log('4 joueurs - winner A, player1 utilisé:', winnerName);
+      } else if (winner === "B") {
+        winnerName = playerNames.player2;
+        console.log('4 joueurs - winner B, player2 utilisé:', winnerName);
+      } else if (winner === "C") {
+        winnerName = playerNames.player3;
+        console.log('4 joueurs - winner C, player3 utilisé:', winnerName);
+      } else if (winner === "D") {
+        winnerName = playerNames.player4;
+        console.log('4 joueurs - winner D, player4 utilisé:', winnerName);
+      }
     }
     
-    // Sauvegarder le résultat pour les parties à 2 joueurs
+    console.log('winnerName final:', winnerName);
+    console.log('=== FIN DÉBOGAGE showVictory ===');
+    
+    // Sauvegarder le résultat pour les parties à 2 joueurs seulement
     if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
-      const loser = winner === 1 ? 2 : 1;
-      const loserName = loser === 1 ? playerNames.player1 : playerNames.player2;
-      saveResult(winnerName, loserName);
+      let loserName = "";
+      if (winner === "A") {
+        loserName = playerNames.player2;
+        saveResult(playerNames.player1, playerNames.player2);
+      } else if (winner === "B") {
+        loserName = playerNames.player1;
+        saveResult(playerNames.player2, playerNames.player1);
+      }
     }
     
-    // Créer un élément pour l'animation avec CSS optimisé
-    const victoryDiv = document.createElement('div');
-    victoryDiv.id = 'victory-animation';
-    victoryDiv.style.cssText = `
+    // Créer le conteneur principal pour l'écran de victoire
+    const victoryContainer = document.createElement('div');
+    victoryContainer.id = 'victory-container';
+    victoryContainer.style.cssText = `
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 4rem;
-      font-weight: bold;
-      color: #9d4edd; /* Violet brillant */
-      text-shadow: 
-        2px 2px 0 #000,
-        -2px 2px 0 #000,
-        2px -2px 0 #000,
-        -2px -2px 0 #000,
-        0 0 30px #9d4edd, 
-        0 0 60px #9d4edd;
-      z-index: 1000;
-      animation: victoryPulse 1.5s ease-in-out;
-      text-align: center;
-      -webkit-text-stroke: 2px black;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(0, 20, 40, 0.95) 0%, rgba(0, 0, 0, 1) 100%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      animation: victoryFadeIn 1s ease-out;
     `;
-    victoryDiv.innerHTML = `Victoire<br>${winnerName}`;
     
-    // Ajouter l'animation CSS
+    // Créer le texte VICTOIRE néon bleu imposant
+    const victoryText = document.createElement('div');
+    victoryText.id = 'victory-text';
+    victoryText.style.cssText = `
+      font-family: 'Orbitron', sans-serif;
+      font-size: 8rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: #00ffff;
+      text-align: center;
+      text-shadow: 
+        0 0 10px #00ffff,
+        0 0 20px #00ffff,
+        0 0 30px #00ffff,
+        0 0 40px #0088ff,
+        0 0 70px #0088ff,
+        0 0 80px #0088ff,
+        0 0 100px #0088ff,
+        0 0 150px #0088ff;
+      animation: neonFlicker 2s infinite alternate;
+      margin-bottom: 2rem;
+      transform: perspective(500px) rotateX(15deg);
+    `;
+    victoryText.textContent = 'VICTOIRE';
+    
+    // Créer le texte du nom du gagnant
+    const winnerText = document.createElement('div');
+    winnerText.id = 'winner-text';
+    winnerText.style.cssText = `
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-align: center;
+      text-shadow: 
+        0 0 20px rgba(255, 255, 255, 0.8),
+        0 0 40px rgba(0, 255, 255, 0.6);
+      animation: winnerGlow 3s ease-in-out infinite;
+      margin-bottom: 3rem;
+      letter-spacing: 0.1em;
+    `;
+    winnerText.textContent = winnerName;
+    
+    // Créer le canvas pour les particules électriques en fond
+    const particleCanvas = document.createElement('canvas');
+    particleCanvas.id = 'victory-particles';
+    particleCanvas.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    `;
+    
+    // Ajouter les animations CSS
     const style = document.createElement('style');
     style.textContent = `
-      @keyframes victoryPulse {
-        0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-        50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-      }\n    `;
-    
-    document.head.appendChild(style);
-    document.body.appendChild(victoryDiv);
-    
-    // Supprimer après 1.5 secondes
-    setTimeout(() => {
-      if (document.getElementById('victory-animation')) {
-        document.getElementById('victory-animation').remove();
+      @keyframes victoryFadeIn {
+        0% { opacity: 0; transform: scale(0.8); }
+        50% { opacity: 1; transform: scale(1.05); }
+        100% { opacity: 1; transform: scale(1); }
       }
-      if (style.parentNode) {
-        style.parentNode.removeChild(style);
-      }
-    }, 1500);
-  }
-
-  function checkVictory() {
-    let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
-    let aliveCount = 0, last = null;
-    let eliminatedPlayer = null;
-    
-    for (const p of activePlayers) {
-      if (alive.get(p.id)) { 
-        aliveCount++; 
-        last = p.id; 
-      } else {
-        eliminatedPlayer = p.id; // Le joueur qui vient d'être éliminé
-      }
-    }
-    
-    if (aliveCount <= 1) {
-      gameOver = true;
       
-      if (last) {
-        // Créer une explosion sur la base du joueur éliminé (si applicable)
-        if (eliminatedPlayer) {
-          const basePos = startNodeFor(eliminatedPlayer);
-          createElectricExplosion(basePos.ix, basePos.iy, 'large');
+      @keyframes neonFlicker {
+        0%, 100% { 
+          text-shadow: 
+            0 0 10px #00ffff,
+            0 0 20px #00ffff,
+            0 0 30px #00ffff,
+            0 0 40px #0088ff,
+            0 0 70px #0088ff,
+            0 0 80px #0088ff,
+            0 0 100px #0088ff,
+            0 0 150px #0088ff;
+          transform: perspective(500px) rotateX(15deg) scale(1);
         }
-        
-        // Afficher l'animation de victoire
-        showVictoryAnimation(last, playerById(last).color);
-        
-        // Afficher le nom du gagnant
-        let winnerName = `Joueur ${last}`;
-        if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
-          winnerName = last === 1 ? playerNames.player1 : playerNames.player2;
+        50% { 
+          text-shadow: 
+            0 0 5px #00ffff,
+            0 0 10px #00ffff,
+            0 0 15px #00ffff,
+            0 0 20px #0088ff,
+            0 0 35px #0088ff,
+            0 0 40px #0088ff,
+            0 0 50px #0088ff,
+            0 0 75px #0088ff;
+          transform: perspective(500px) rotateX(15deg) scale(1.02);
         }
-        message = `Victoire : ${winnerName}`;
-        
-        // Arrêter l'animation des particules après 2 secondes (explosion éphémère)
-        setTimeout(() => {
-          console.log('Nettoyage des particules - Avant:', electricExplosion.particles.length);
-          electricExplosion.particles = [];
-          electricExplosion.shockwave = null;
-          electricExplosion.isActive = false;
-          console.log('Nettoyage des particules - Après:', electricExplosion.particles.length);
-          
-          // Forcer le rafraîchissement du canvas pour effacer les particules restantes
-          requestRedraw();
-        }, 2000);
-      } else {
-        showBanner("FIN", "Fin de partie.", "#eee");
-        message = "Fin de partie.";
       }
-      setBadges();
-      requestRedraw();
-      stopAI();
-      return true;
+      
+      @keyframes winnerGlow {
+        0%, 100% { 
+          text-shadow: 
+            0 0 20px rgba(255, 255, 255, 0.8),
+            0 0 40px rgba(0, 255, 255, 0.6);
+          transform: scale(1);
+        }
+        50% { 
+          text-shadow: 
+            0 0 30px rgba(255, 255, 255, 1),
+            0 0 60px rgba(0, 255, 255, 0.8);
+          transform: scale(1.05);
+        }
+      }
+    `;
+    
+    // Ajouter tous les éléments au DOM
+    document.head.appendChild(style);
+    victoryContainer.appendChild(particleCanvas);
+    victoryContainer.appendChild(victoryText);
+    victoryContainer.appendChild(winnerText);
+    document.body.appendChild(victoryContainer);
+    
+    // Démarrer la pluie de particules électriques
+    startVictoryParticles(particleCanvas);
+    
+    // Créer des explosions électriques synchronisées
+    createVictoryExplosions();
+    
+    // Jouer un son de victoire (si disponible)
+    try {
+      soundSystem.playExplosion();
+      setTimeout(() => soundSystem.playExplosion(), 200);
+      setTimeout(() => soundSystem.playExplosion(), 400);
+    } catch(e) {
+      console.log("Son de victoire non disponible");
     }
-    return false;
+    
+    // Auto-suppression après 8 secondes
+    setTimeout(() => {
+      if (document.getElementById('victory-container')) {
+        victoryContainer.style.animation = 'victoryFadeIn 1s ease-out reverse';
+        setTimeout(() => {
+          victoryContainer.remove();
+          style.remove();
+        }, 1000);
+      }
+    }, 8000);
+  }
+  
+  // Fonction pour créer la pluie de particules électriques
+  function startVictoryParticles(canvas) {
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const victoryParticles = [];
+    const particleCount = 150;
+    
+    // Créer les particules
+    for (let i = 0; i < particleCount; i++) {
+      victoryParticles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        vx: (Math.random() - 0.5) * 2,
+        vy: Math.random() * 3 + 2,
+        size: Math.random() * 3 + 1,
+        color: `hsl(${180 + Math.random() * 40}, 100%, ${50 + Math.random() * 30}%)`,
+        life: 1,
+        decay: Math.random() * 0.01 + 0.005,
+        glow: Math.random() * 20 + 10
+      });
+    }
+    
+    // Animation loop
+    function animateVictoryParticles() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Mettre à jour et dessiner les particules
+      for (let i = victoryParticles.length - 1; i >= 0; i--) {
+        const p = victoryParticles[i];
+        
+        // Mettre à jour la position
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= p.decay;
+        
+        // Ajouter un effet de serpentement
+        p.x += Math.sin(p.y * 0.01) * 0.5;
+        
+        // Réinitialiser les particules qui sortent de l'écran
+        if (p.y > canvas.height || p.life <= 0) {
+          p.y = -10;
+          p.x = Math.random() * canvas.width;
+          p.life = 1;
+          p.vx = (Math.random() - 0.5) * 2;
+          p.vy = Math.random() * 3 + 2;
+        }
+        
+        // Dessiner la particule avec effet de glow
+        ctx.save();
+        ctx.globalAlpha = p.life;
+        
+        // Glow effect
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = p.glow;
+        
+        // Particule principale
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Trail effect
+        ctx.globalAlpha = p.life * 0.3;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x - p.vx * 3, p.y - p.vy * 3);
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = p.size * 0.5;
+        ctx.stroke();
+        
+        ctx.restore();
+      }
+      
+      requestAnimationFrame(animateVictoryParticles);
+    }
+    
+    animateVictoryParticles();
+  }
+  
+  // Fonction pour créer des explosions électriques synchronisées
+  function createVictoryExplosions() {
+    const positions = [
+      { x: 20, y: 20 },
+      { x: 80, y: 20 },
+      { x: 50, y: 50 },
+      { x: 20, y: 80 },
+      { x: 80, y: 80 }
+    ];
+    
+    positions.forEach((pos, index) => {
+      setTimeout(() => {
+        createElectricExplosion(
+          Math.floor(pos.x * window.innerWidth / 100),
+          Math.floor(pos.y * window.innerHeight / 100),
+          'large'
+        );
+      }, index * 200);
+    });
   }
 
+  
   function afterMove(actorPid, moveInfo) {
     if (gameOver) return;
 
@@ -2099,33 +5178,526 @@ function opponentTargetPoint(pid, prof) {
     return { threatD2: bestD2, threatPos: bestPos, baseCenter: c };
   }
 
+    // ----------------------------
+// Système de gestion des IA EXPERT
+// ----------------------------
+const expertSystems = new Map(); // pid -> AdaptiveSpinalSystem
+
+function initializeExpertSystem(pid, profile) {
+  const system = new AdaptiveSpinalSystem(pid, profile);
+  
+  // Initialiser l'épine dorsale depuis la base
+  const myBase = baseRectFor(pid);
+  const startNode = startNodeFor(pid);
+  
+  system.spineNodes.push({
+    position: startNode,
+    direction: null, // Sera calculé lors du premier update
+    index: 0
+  });
+  
+  expertSystems.set(pid, system);
+  console.log(`[EXPERT] Système initialisé pour ${pid} avec stratégie de nervures adaptatives`);
+  
+  return system;
+}
+
+function generateExpertCandidates(pid) {
+  console.log(`[EXPERT] Génération de candidats pour ${pid}`);
+  
+  const prof = aiProfile.get(pid);
+  if (!prof || prof.name !== "EXPERT") {
+    console.log(`[EXPERT] Profil non trouvé ou non EXPERT pour ${pid}:`, prof?.name);
+    return { circles: [], crosses: [] };
+  }
+  
+  // Récupérer ou initialiser le système expert
+  let system = expertSystems.get(pid);
+  if (!system) {
+    console.log(`[EXPERT] Initialisation du système pour ${pid}`);
+    system = initializeExpertSystem(pid, prof);
+  }
+  
+  console.log(`[EXPERT] Mise à jour du système pour ${pid}`);
+  // Mettre à jour le système
+  system.update();
+  
+  console.log(`[EXPERT] Épine dorsale: ${system.spineNodes.length} nœuds`);
+  console.log(`[EXPERT] Côtes: ${system.ribNodes.length} branches`);
+  
+  // Obtenir les mouvements candidates
+  const expertMoves = system.getCandidateMoves();
+  console.log(`[EXPERT] Mouvements candidates: ${expertMoves.length}`);
+  
+  const crosses = [];
+  
+  // Convertir les mouvements experts en format standard
+  for (const move of expertMoves) {
+    if (canPlaceCross(pid, move.ix, move.iy)) {
+      crosses.push({
+        type: "CROSS",
+        ix: move.ix,
+        iy: move.iy,
+        priority: move.priority,
+        origin: move.origin,
+        strategy: move.strategy
+      });
+      console.log(`[EXPERT] Mouvement valide: (${move.ix}, ${move.iy}) - ${move.strategy}`);
+    } else {
+      console.log(`[EXPERT] Mouvement invalide: (${move.ix}, ${move.iy}) - ne peut pas placer`);
+    }
+  }
+  
+  // Ajouter quelques cercles tactiques pour l'encerclement
+  const circles = [];
+  for (const [k, m] of marks.entries()) {
+    if (!alive.get(m.owner)) continue;
+    if (m.kind === "X" && m.owner !== pid) {
+      if (canCircle(pid, k)) {
+        // Prioriser les cercles qui complètent des boucles d'encerclement
+        const pos = parseKey(k);
+        const encirclementScore = calculateEncirclementScore(pid, pos, system);
+        
+        if (encirclementScore > 0.5) {
+          circles.push({ 
+            type: "CIRCLE", 
+            key: k,
+            priority: encirclementScore,
+            strategy: "dynamic_surrounding"
+          });
+          console.log(`[EXPERT] Cercle d'encerclement: ${k} avec score ${encirclementScore}`);
+        }
+      }
+    }
+  }
+  
+  console.log(`[EXPERT] Final: ${crosses.length} croix, ${circles.length} cercles`);
+  return { circles, crosses };
+}
+
+// Calculer le score d'encerclement pour les cercles
+function calculateEncirclementScore(pid, targetPos, system) {
+  let score = 0;
+  const radius = 3;
+  
+  // Compter les particules alliées autour de la cible
+  let alliedCount = 0;
+  let totalCount = 0;
+  
+  for (let dx = -radius; dx <= radius; dx++) {
+    for (let dy = -radius; dy <= radius; dy++) {
+      const nx = targetPos.ix + dx;
+      const ny = targetPos.iy + dy;
+      
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      
+      totalCount++;
+      const mark = marks.get(keyOf(nx, ny));
+      if (mark && mark.owner === pid && mark.kind === "X") {
+        alliedCount++;
+      }
+    }
+  }
+  
+  // Score basé sur la densité alliée
+  const density = totalCount > 0 ? alliedCount / totalCount : 0;
+  score = density;
+  
+  // Bonus si la position complète une boucle avec le système de nervures
+  for (const rib of system.ribNodes) {
+    for (const node of rib.nodes) {
+      const dist = dist2(node, targetPos);
+      if (dist <= 4) { // Proche d'une nervure
+        score += 0.3;
+        break;
+      }
+    }
+  }
+  
+  return Math.min(score, 1.0);
+}
+
+function scoreExpertMove(pid, mv, system) {
+  let score = 100_000; // Score de base
+  
+  if (mv.type === "CROSS") {
+    const pos = { ix: mv.ix, iy: mv.iy };
+    
+    // Bonus selon la stratégie
+    if (mv.strategy === "spinal_expansion") {
+      score += 80_000; // Priorité maximale pour l'épine dorsale
+    } else if (mv.strategy === "lateral_expansion") {
+      score += 60_000; // Priorité moyenne pour les côtes
+    } else if (mv.strategy === "collision_avoidance") {
+      score += 90_000; // Priorité haute pour l'esquive
+    }
+    
+    // Bonus de progression vers la cible
+    if (system.targetBase) {
+      const distToTarget = dist2(pos, system.targetBase);
+      score -= distToTarget * 100;
+    }
+    
+    // Bonus pour la création de boucles d'encerclement
+    const encirclementPotential = calculateEncirclementPotential(pid, pos);
+    score += encirclementPotential * 40_000;
+    
+  } else if (mv.type === "CIRCLE") {
+    // Score pour les cercles d'encerclement
+    score = 70_000;
+    
+    if (mv.strategy === "dynamic_surrounding") {
+      score += 50_000; // Bonus pour l'encerclement dynamique
+    }
+    
+    // Bonus basé sur la priorité calculée
+    if (mv.priority) {
+      score += mv.priority * 30_000;
+    }
+  }
+  
+  return score;
+}
+
+// Calculer le potentiel d'encerclement d'une position
+function calculateEncirclementPotential(pid, pos) {
+  let potential = 0;
+  const radius = 2;
+  
+  // Compter les ennemis encerclables
+  let enemiesInside = 0;
+  let alliedRing = 0;
+  
+  for (let dx = -radius; dx <= radius; dx++) {
+    for (let dy = -radius; dy <= radius; dy++) {
+      const nx = pos.ix + dx;
+      const ny = pos.iy + dy;
+      
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      
+      const mark = marks.get(keyOf(nx, ny));
+      if (mark) {
+        if (mark.owner !== pid && mark.kind === "X") {
+          enemiesInside++;
+        } else if (mark.owner === pid && mark.kind === "X") {
+          alliedRing++;
+        }
+      }
+    }
+  }
+  
+  // Potentiel basé sur le ratio ennemis/alliés
+  if (enemiesInside > 0) {
+    potential = Math.min(enemiesInside / (alliedRing + 1), 1.0);
+  }
+  
+  return potential;
+}
+
+    function generateBlitzCandidates(pid) {
+  const powered = computePoweredSet(pid);
+  const blitzPath = getBlitzPath(pid);
+  
+  if (!blitzPath) return { circles: [], crosses: [] };
+  
+  const crosses = [];
+  const seen = new Set();
+  
+  // Priorité aux mouvements dans la direction de la cible
+  for (const pk of powered) {
+    const a = parseKey(pk);
+    
+    // Explorer d'abord la direction principale
+    const directions = [];
+    
+    if (blitzPath.primaryDir) {
+      directions.push(blitzPath.primaryDir);
+    }
+    
+    // Ajouter les directions secondaires (diagonales optimisées)
+    for (const secDir of blitzPath.secondaryDirs) {
+      directions.push(secDir);
+    }
+    
+    // Explorer seulement les directions pertinentes pour Blitz
+    for (const d of directions) {
+      const nx = a.ix + d.dx;
+      const ny = a.iy + d.dy;
+      
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      const kk = keyOf(nx, ny);
+      if (seen.has(kk)) continue;
+      seen.add(kk);
+      if (marks.has(kk)) continue;
+      if (!canPlaceCross(pid, nx, ny)) continue;
+      
+      // Vérifier si ce mouvement nous rapproche de la cible
+      const currentDist = dist2(a, blitzPath.target);
+      const newDist = dist2({ ix: nx, iy: ny }, blitzPath.target);
+      
+      // N'ajouter que si ça nous rapproche de la cible
+      if (newDist < currentDist) {
+        crosses.push({ type: "CROSS", ix: nx, iy: ny });
+      }
+    }
+  }
+  
+  // Blitz n'utilise jamais les cercles (pas de défense de zone)
+  return { circles: [], crosses };
+}
+
     function generateAICandidates(pid) {
+    console.log(`[IA ${pid}] Génération de candidats - début`);
+    
     const powered = computePoweredSet(pid);
+    console.log(`[IA ${pid}] Positions powered: ${powered.size}`);
+    
+    const prof = aiProfile.get(pid) || AI_PROFILE_DEFS.BALANCED;
+    console.log(`[IA ${pid}] Profil: ${prof.name}`);
+
+    // Initialiser ou récupérer le système de défense proactive
+    let defenseSystem = defenseSystems.get(pid);
+    if (!defenseSystem) {
+      defenseSystem = initializeDefenseSystem(pid);
+    }
+    
+    // Initialiser ou récupérer le contrôleur de placement
+    let placementController = placementControllers.get(pid);
+    if (!placementController) {
+      placementController = initializePlacementController(pid);
+    }
+    
+    // Mettre à jour le système de défense
+    const defenseStatus = defenseSystem.update();
+    console.log(`[IA ${pid}] Niveau menace: ${defenseStatus.threatLevel}, Mode urgence: ${defenseStatus.emergencyMode}`);
+
+    // Obtenir les statistiques de placement
+    const placementStats = placementController.getStats();
+    console.log(`[IA ${pid}] Placement: ${placementStats.activeParticles}/${placementStats.maxParticles} particules ce tour`);
 
     const circles = [];
     for (const [k, m] of marks.entries()) {
       if (!alive.get(m.owner)) continue;
       if (m.kind === "X" && m.owner !== pid) {
-        if (canCircle(pid, k)) circles.push({ type:"CIRCLE", key:k });
+        if (canCircle(pid, k)) {
+          circles.push({ type:"CIRCLE", key:k });
+        }
       }
     }
+    
+    console.log(`[IA ${pid}] Cercles possibles: ${circles.length}`);
 
     const crosses = [];
     const seen = new Set();
+    
+    // MODE DÉFENSE PROACTIVE : Priorité absolue à l'interception
+    if (defenseStatus.emergencyMode && defenseStatus.interceptionTargets.length > 0 && placementController.canPlaceMoreParticles()) {
+      console.log(`[IA ${pid}] 🚨 MODE DÉFENSE D'URGENCE ACTIVÉ 🚨`);
+      
+      // Générer les manœuvres d'interception chirurgicale
+      const interceptionManeuvers = defenseSystem.generateInterceptionManeuvers(
+        defenseStatus.interceptionTargets, 
+        Math.min(5, placementController.remainingParticles)  // Budget limité par particules restantes
+      );
+      
+      console.log(`[IA ${pid}] Manœuvres d'interception générées: ${interceptionManeuvers.length}`);
+      
+      // Ajouter les manœuvres d'interception avec priorité maximale
+      for (const maneuver of interceptionManeuvers) {
+        if (!seen.has(keyOf(maneuver.ix, maneuver.iy))) {
+          // Vérifier les contraintes techniques
+          if (placementController.canPlaceParticle(maneuver.ix, maneuver.iy)) {
+            seen.add(keyOf(maneuver.ix, maneuver.iy));
+            crosses.push(maneuver);
+          }
+        }
+      }
+      
+      // Si on a des manœuvres d'interception, on les retourne directement
+      if (crosses.length > 0) {
+        console.log(`[IA ${pid}] 🛡️ DÉFENSE PRIORITAIRE - ${crosses.length} mouvements d'interception`);
+        return { circles: [], crosses: crosses }; // Pas de cercles en mode urgence
+      }
+    }
+
+    // MODE NORMAL : Analyse des points de rupture et progression standard
+    const lineBreakPoints = findLineBreakPoints(pid);
+    const lineBreakSet = new Set();
+    
+    for (const breakPoint of lineBreakPoints.slice(0, 5)) { // Top 5 points critiques
+      const key = keyOf(breakPoint.position.ix, breakPoint.position.iy);
+      lineBreakSet.add(key);
+    }
+    
+    console.log(`[IA ${pid}] Points de rupture: ${lineBreakSet.size}`);
+    
+    let totalAttempts = 0;
+    let rejectedByConstraints = 0;
+    let rejectedByOccupied = 0;
+    let rejectedByTechnicalLimits = 0;
+    let validPositions = 0;
+    
+    // Prioriser les mouvements en diagonale et les points de rupture
     for (const pk of powered) {
       const a = parseKey(pk);
-      for (const d of dirs8) {
+      
+      // Explorer les 8 directions avec priorité aux diagonales
+      let directions = [
+        {dx: 1, dy: 1},   // Diagonale NE - priorité max
+        {dx: -1, dy: 1},  // Diagonale NW
+        {dx: 1, dy: -1},  // Diagonale SE
+        {dx: -1, dy: -1}, // Diagonale SW
+        {dx: 1, dy: 0},   // Horizontal
+        {dx: -1, dy: 0},  // Horizontal
+        {dx: 0, dy: 1},   // Vertical
+        {dx: 0, dy: -1}   // Vertical
+      ];
+      
+      // Appliquer 20% de jitter pour l'hésitation humaine
+      if (placementController.shouldApplyJitter()) {
+        directions = placementController.applyJitterToDirection(directions);
+      }
+      
+      for (let i = 0; i < directions.length; i++) {
+        const d = directions[i];
         const nx = a.ix + d.dx, ny = a.iy + d.dy;
         if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
         const kk = keyOf(nx, ny);
         if (seen.has(kk)) continue;
         seen.add(kk);
-        if (marks.has(kk)) continue;
-        if (!canPlaceCross(pid, nx, ny)) continue;
-        crosses.push({ type:"CROSS", ix:nx, iy:ny });
+        if (marks.has(kk)) {
+          rejectedByOccupied++;
+          continue;
+        }
+        
+        totalAttempts++;
+        
+        // Vérifier les contraintes techniques en premier
+        if (!placementController.canPlaceParticle(nx, ny)) {
+          rejectedByTechnicalLimits++;
+          continue;
+        }
+        
+        validPositions++;
+        
+        // Calculer le score de priorité
+        let priority = 1.0;
+        let strategy = "normal";
+        
+        // Bonus pour les diagonales (selon le profil)
+        if (Math.abs(d.dx) === 1 && Math.abs(d.dy) === 1) {
+          priority += (prof.diagWeight || 1.0) * 0.5;
+          strategy = "diagonal";
+        }
+        
+        // Bonus énorme pour les points de rupture de ligne
+        if (lineBreakSet.has(kk)) {
+          priority += 3.0;
+          strategy = "line_break";
+        }
+        
+        // Bonus pour la progression vers les bases adverses
+        const myBase = baseRectFor(pid);
+        const myCenter = {ix: myBase.ix + 1, iy: myBase.iy + 1};
+        
+        for (const targetPid of PLAYERS.slice(0, PLAYER_COUNT)) {
+          if (targetPid.id === pid || !alive.get(targetPid.id)) continue;
+          
+          const targetBase = baseRectFor(targetPid.id);
+          const targetCenter = {ix: targetBase.ix + 1, iy: targetBase.iy + 1};
+          
+          const currentDist = dist2(a, targetCenter);
+          const newDist = dist2({ix: nx, iy: ny}, targetCenter);
+          
+          if (newDist < currentDist) {
+            priority += 0.3; // Bonus progression
+            if (strategy === "normal") strategy = "advancement";
+          }
+        }
+        
+        // Vérifier les collisions avec les lignes ennemies pour encerclement
+        for (const d of dirs8) {
+          const checkX = nx + d.dx;
+          const checkY = ny + d.dy;
+          
+          if (checkX >= 0 && checkX < NODES && checkY >= 0 && checkY < NODES) {
+            const checkMark = marks.get(keyOf(checkX, checkY));
+            
+            if (checkMark && checkMark.kind === "X" && checkMark.owner !== pid) {
+              // Collision avec ligne ennemie -> tentative d'encerclement
+              const encirclementPoints = attemptEncirclement(pid, checkX, checkY);
+              
+              for (const encPoint of encirclementPoints) {
+                const encKey = keyOf(encPoint.ix, encPoint.iy);
+                if (!seen.has(encKey)) {
+                  if (placementController.canPlaceParticle(encPoint.ix, encPoint.iy)) {
+                    seen.add(encKey);
+                    crosses.push({ 
+                      type:"CROSS", 
+                      ix:encPoint.ix, 
+                      iy:encPoint.iy,
+                      priority: priority + 2.0, // Bonus encerclement
+                      strategy: "encirclement"
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        crosses.push({ 
+          type:"CROSS", 
+          ix:nx, 
+          iy:ny,
+          priority: priority,
+          strategy: strategy
+        });
       }
     }
 
+    console.log(`[IA ${pid}] Statistiques:`);
+    console.log(`  Tentatives totales: ${totalAttempts}`);
+    console.log(`  Positions valides: ${validPositions}`);
+    console.log(`  Rejetées (occupées): ${rejectedByOccupied}`);
+    console.log(`  Rejetées (limites techniques): ${rejectedByTechnicalLimits}`);
+    console.log(`  Croix générées: ${crosses.length}`);
+
+    // FALLBACK: Si aucune croix trouvée, désactiver les contraintes techniques
+    if (crosses.length === 0 && placementController.canPlaceMoreParticles()) {
+      console.log(`[IA ${pid}] ⚠️  AUCUN MOUVEMENT TROUVÉ - Activation du fallback sans contraintes techniques`);
+      
+      // Générer des mouvements sans contraintes techniques mais avec limite de 5
+      for (const pk of powered) {
+        const a = parseKey(pk);
+        
+        for (const d of dirs8) {
+          const nx = a.ix + d.dx, ny = a.iy + d.dy;
+          if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+          const kk = keyOf(nx, ny);
+          if (seen.has(kk)) continue;
+          seen.add(kk);
+          if (marks.has(kk)) continue;
+          
+          if (canPlaceCross(pid, nx, ny)) {
+            crosses.push({ 
+              type:"CROSS", 
+              ix:nx, 
+              iy:ny,
+              priority: 0.5, // Priorité plus faible pour fallback
+              strategy: "fallback"
+            });
+          }
+        }
+      }
+      
+      console.log(`[IA ${pid}] Fallback: ${crosses.length} mouvements de secours générés`);
+    }
+
+    // Trier les croix par priorité décroissante
+    crosses.sort((a, b) => b.priority - a.priority);
+
+    console.log(`[IA ${pid}] Génération terminée - ${crosses.length} croix, ${circles.length} cercles`);
     return { circles, crosses };
   }
 
@@ -2258,8 +5830,40 @@ function opponentTargetPoint(pid, prof) {
       // Priorité claire : progresser vers la base cible
       let s = 95_000 - Math.sqrt(d2) * 620;
 
-      // Motif diagonal (évite des murs faciles) — pondéré par profil
-      s += diagonalPreferenceBonus(mv.ix, mv.iy) * p.diagWeight;
+      // Bonus énorme pour les points de rupture de ligne
+      if (mv.strategy === "line_break") {
+        s += 150_000; // Priorité maximale
+        console.log(`[IA ${pid}] Mouvement de rupture de ligne: (${mv.ix}, ${mv.iy})`);
+      }
+
+      // Bonus pour l'encerclement (U-turn)
+      if (mv.strategy === "encirclement") {
+        s += 120_000; // Priorité haute pour encerclement
+        console.log(`[IA ${pid}] Mouvement d'encerclement: (${mv.ix}, ${mv.iy})`);
+      }
+
+      // Bonus pour les diagonales (selon le profil)
+      if (mv.strategy === "diagonal") {
+        s += diagonalPreferenceBonus(mv.ix, mv.iy) * (p.diagWeight || 1.0);
+        s += 25_000; // Bonus diagonal supplémentaire
+      }
+
+      // Bonus pour la progression vers les bases
+      if (mv.strategy === "advancement") {
+        s += 40_000;
+      }
+
+      // Bonus pour le respect des contraintes anti-remplissage
+      const lineLength = getLineLengthFromStart(pid, mv.ix, mv.iy);
+      if (lineLength > 0) {
+        // Bonus pour les lignes longues (structure filaire)
+        s += lineLength * 1000;
+        
+        // Bonus pour les branches correctement espacées
+        if (shouldCreateBranch(pid, mv.ix, mv.iy)) {
+          s += 30_000; // Bonus de branchement
+        }
+      }
 
       // Technique en ligne: utile pour "passer" entre des ronds / prolonger une chaîne — pondéré
       s += lineTechniqueBonus(pid, mv.ix, mv.iy, tgt) * p.lineWeight;
@@ -2275,11 +5879,150 @@ function opponentTargetPoint(pid, prof) {
 
 
 function pickAIMoveNormal(pid) {
-  const { circles, crosses } = generateAICandidates(pid);
-
   const prof = aiProfile.get(pid) || AI_PROFILE_DEFS.BALANCED;
 
-  // Défense si menace proche
+  // Initialiser le système de défense si nécessaire
+  let defenseSystem = defenseSystems.get(pid);
+  if (!defenseSystem) {
+    defenseSystem = initializeDefenseSystem(pid);
+  }
+
+  // Initialiser le contrôleur de placement si nécessaire
+  let placementController = placementControllers.get(pid);
+  if (!placementController) {
+    placementController = initializePlacementController(pid);
+  }
+
+  // Réinitialiser le compteur de particules si nécessaire
+  placementController.checkTurnReset();
+
+  // STRATÉGIE EXPERT: Nervures Adaptatives et Encerclement Dynamique
+  if (prof.name === "EXPERT") {
+    const { circles, crosses } = generateExpertCandidates(pid);
+    const system = expertSystems.get(pid);
+    const actions = [];
+    
+    // Combiner les mouvements experts
+    for (const c of circles) actions.push(c);
+    for (const x of crosses) actions.push(x);
+    
+    if (!actions.length) return { mv: null, mode: "EXPERT_ADAPTIVE", threat: null };
+    
+    let best = null;
+    let bestS = -Infinity;
+    
+    for (const mv of actions) {
+      // Utiliser le scoring expert spécialisé
+      let s = scoreExpertMove(pid, mv, system);
+      
+      // Ajouter le chaos pour simuler l'hésitation humaine
+      s += (Math.random() - 0.5) * (prof.noise || 1500);
+      
+      if (s > bestS) { bestS = s; best = mv; }
+    }
+    
+    // Enregistrer le placement si un mouvement est choisi
+    if (best && best.type === "CROSS") {
+      placementController.registerParticlePlacement(best.ix, best.iy);
+    }
+    
+    return { mv: best, mode: "EXPERT_ADAPTIVE", threat: null };
+  }
+
+  // STRATÉGIE BLITZ: ligne directe vers la base adverse
+  if (prof.name === "BLITZ") {
+    const { circles, crosses } = generateBlitzCandidates(pid);
+    const blitzPath = getBlitzPath(pid);
+    const actions = crosses; // Seulement les croix pour Blitz
+    
+    if (!actions.length) return { mv: null, mode: "BLITZ_ATTACK", threat: null };
+    
+    let best = null;
+    let bestS = -Infinity;
+    
+    for (const mv of actions) {
+      // Utiliser le scoring Blitz spécialisé
+      let s = scoreBlitzMove(pid, mv, blitzPath);
+      
+      // Petit bruit pour éviter les comportements trop rigides
+      s += (Math.random() - 0.5) * (prof.noise || 800);
+      
+      if (s > bestS) { bestS = s; best = mv; }
+    }
+    
+    // Enregistrer le placement si un mouvement est choisi
+    if (best && best.type === "CROSS") {
+      placementController.registerParticlePlacement(best.ix, best.iy);
+    }
+    
+    return { mv: best, mode: "BLITZ_ATTACK", threat: null };
+  }
+
+  // Stratégie normale pour les autres profils avec défense proactive
+  const { circles, crosses } = generateAICandidates(pid);
+
+  // Vérifier si on est en mode défense d'urgence
+  const defenseStatus = defenseSystem.update();
+  
+  if (defenseStatus.emergencyMode && crosses.length > 0) {
+    // MODE DÉFENSE : Utiliser uniquement les manœuvres d'interception
+    console.log(`[IA ${pid}] 🛡️ MODE DÉFENSE ACTIF - Interception prioritaire`);
+    
+    let best = null;
+    let bestS = -Infinity;
+    
+    for (const mv of crosses) {
+      // Priorité maximale aux manœuvres de défense
+      let s = mv.priority || 1000;
+      
+      // Ajouter un petit bruit pour éviter la prédictibilité
+      s += (Math.random() - 0.5) * (prof.noise || 800);
+      
+      if (s > bestS) { bestS = s; best = mv; }
+    }
+    
+    // Enregistrer le placement si un mouvement est choisi
+    if (best && best.type === "CROSS") {
+      placementController.registerParticlePlacement(best.ix, best.iy);
+    }
+    
+    return { mv: best, mode: "DEFENSE_INTERCEPTION", threat: null };
+  }
+
+  // MODE CONTRE-ATTAQUE : Après une défense réussie
+  if (defenseStatus.threatLevel === "NORMAL" && defenseSystem.lastThreatCheck > 0) {
+    console.log(`[IA ${pid}] ⚔️ MODE CONTRE-ATTAQUE - Reprise de l'offensive`);
+    
+    // Prioriser la progression vers les bases adverses
+    let best = null;
+    let bestS = -Infinity;
+    
+    for (const mv of crosses) {
+      let s = scoreMove(pid, mv, "ATTACK", {threatD2: 999999}, prof);
+      
+      // Bonus de contre-attaque
+      if (mv.strategy === "advancement") {
+        s += 50_000; // Bonus progression après défense
+      }
+      
+      // Ajouter le chaos pour l'imprévisibilité
+      s += (Math.random() - 0.5) * (prof.noise || 1200);
+      
+      if (s > bestS) { bestS = s; best = mv; }
+    }
+    
+    // Réinitialiser le compteur de menace après contre-attaque
+    defenseSystem.lastThreatCheck = 0;
+    
+    // Enregistrer le placement si un mouvement est choisi
+    if (best && best.type === "CROSS") {
+      placementController.registerParticlePlacement(best.ix, best.iy);
+    }
+    
+    return { mv: best, mode: "COUNTER_ATTACK", threat: null };
+  }
+
+  // MODE NORMAL : Défense si menace proche, sinon attaque standard
   const threat = getThreatInfo(pid);
   const mode = (threat.threatD2 <= DEFENSE_RADIUS2) ? "DEFENSE" : "ATTACK";
 
@@ -2310,6 +6053,16 @@ function pickAIMoveNormal(pid) {
     }
 
     if (s > bestS) { bestS = s; best = mv; }
+  }
+
+  // Mettre à jour le compteur de menace
+  if (defenseStatus.threatLevel !== "NORMAL") {
+    defenseSystem.lastThreatCheck = Date.now();
+  }
+
+  // Enregistrer le placement si un mouvement est choisi
+  if (best && best.type === "CROSS") {
+    placementController.registerParticlePlacement(best.ix, best.iy);
   }
 
   return { mv: best, mode, threat };
@@ -4260,13 +8013,32 @@ let lastTime = performance.now();
           createElectricExplosion(basePos.ix, basePos.iy, 'large');
         }
         
-        // Afficher l'animation de victoire IMMÉDIATEMENT pour ne pas bloquer
-        showVictoryAnimation(last, playerById(last).color);
+        // Afficher l'écran de victoire impressionnant IMMÉDIATEMENT pour ne pas bloquer
+        showVictory(last, playerById(last).color);
         
         // Afficher le nom du gagnant
-        let winnerName = `Joueur ${last}`;
+        const winnerPlayer = PLAYERS.find(p => p.id === last);
+        let winnerName = winnerPlayer ? winnerPlayer.name : `Joueur ${last}`;
+        
+        // Utiliser les pseudos si disponibles selon le nombre de joueurs
         if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
-          winnerName = last === 1 ? playerNames.player1 : playerNames.player2;
+          // Joueur A (Rouge) = player1, Joueur B (Vert) = player2
+          if (last === "A") {
+            winnerName = playerNames.player1;
+          } else if (last === "B") {
+            winnerName = playerNames.player2;
+          }
+        } else if (PLAYER_COUNT === 4 && playerNames.player1 && playerNames.player2 && playerNames.player3 && playerNames.player4) {
+          // Joueur A (Rouge) = player1, Joueur B (Vert) = player2, Joueur C (Jaune) = player3, Joueur D (Bleu) = player4
+          if (last === "A") {
+            winnerName = playerNames.player1;
+          } else if (last === "B") {
+            winnerName = playerNames.player2;
+          } else if (last === "C") {
+            winnerName = playerNames.player3;
+          } else if (last === "D") {
+            winnerName = playerNames.player4;
+          }
         }
         message = `Victoire : ${winnerName}`;
       } else {
@@ -4283,6 +8055,14 @@ let lastTime = performance.now();
     return false;
   }
 
+}
+// --- EXPORT GLOBAL POUR LES BOUTONS HTML ---
+  window.startGame = startGame;
+  window.showPlayerNamesScreen = showPlayerNamesScreen;
+  window.toggleMusic = toggleMusic;
+  window.showRankingScreen = showRankingScreen;
+  
+  console.log("✅ Fonctions exportées avec succès !");
 })();
 </script>
 </div>
