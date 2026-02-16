@@ -2036,54 +2036,163 @@ function opponentTargetPoint(pid, prof) {
       }
       localStorage.setItem('voltclash_stats', JSON.stringify(stats));
     }
-    
-    // Créer un élément pour l'animation avec CSS optimisé
-    const victoryDiv = document.createElement('div');
-    victoryDiv.id = 'victory-animation';
-    victoryDiv.style.cssText = `
+
+    // Supprimer un éventuel écran de victoire existant
+    const existing = document.getElementById('victory-screen');
+    if (existing) existing.remove();
+
+    // Keyframes CSS (injecté une seule fois)
+    if (!document.getElementById('victory-screen-style')) {
+      const style = document.createElement('style');
+      style.id = 'victory-screen-style';
+      style.textContent = `
+        @keyframes victoryFadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Écran plein écran
+    const screen = document.createElement('div');
+    screen.id = 'victory-screen';
+    screen.style.cssText = `
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 4rem;
-      font-weight: bold;
-      color: #9d4edd; /* Violet brillant */
-      text-shadow: 
-        2px 2px 0 #000,
-        -2px 2px 0 #000,
-        2px -2px 0 #000,
-        -2px -2px 0 #000,
-        0 0 30px #9d4edd, 
-        0 0 60px #9d4edd;
-      z-index: 1000;
-      animation: victoryPulse 1.5s ease-in-out;
-      text-align: center;
-      -webkit-text-stroke: 2px black;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.88);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      overflow: hidden;
     `;
-    victoryDiv.innerHTML = `Victoire<br>${winnerName}`;
-    
-    // Ajouter l'animation CSS
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes victoryPulse {
-        0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-        50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-      }\n    `;
-    
-    document.head.appendChild(style);
-    document.body.appendChild(victoryDiv);
-    
-    // Supprimer après 1.5 secondes
-    setTimeout(() => {
-      if (document.getElementById('victory-animation')) {
-        document.getElementById('victory-animation').remove();
+
+    // Canvas de particules (arrière-plan)
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = `
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    `;
+    screen.appendChild(canvas);
+
+    // Contenu centré
+    const content = document.createElement('div');
+    content.style.cssText = `
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    `;
+
+    const title = document.createElement('div');
+    title.textContent = 'VICTOIRE';
+    title.style.cssText = `
+      font-family: 'Orbitron', sans-serif;
+      font-size: 6rem;
+      font-weight: 900;
+      color: ${color};
+      text-shadow:
+        0 0 20px ${color},
+        0 0 40px ${color},
+        0 0 80px ${color},
+        0 0 120px ${color};
+      letter-spacing: 0.1em;
+      animation: victoryFadeIn 0.6s ease-out both;
+    `;
+
+    const nameEl = document.createElement('div');
+    nameEl.textContent = winnerName;
+    nameEl.style.cssText = `
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(255,255,255,0.5);
+      letter-spacing: 0.05em;
+      animation: victoryFadeIn 0.8s ease-out both;
+    `;
+
+    const menuBtn = document.createElement('button');
+    menuBtn.textContent = 'MENU';
+    menuBtn.className = 'futuristic-btn';
+    menuBtn.style.cssText = `margin-top: 20px; animation: victoryFadeIn 1s ease-out both;`;
+
+    content.appendChild(title);
+    content.appendChild(nameEl);
+    content.appendChild(menuBtn);
+    screen.appendChild(content);
+    document.body.appendChild(screen);
+
+    // Dimensionner le canvas après insertion dans le DOM
+    canvas.width = screen.offsetWidth || window.innerWidth;
+    canvas.height = screen.offsetHeight || window.innerHeight;
+    const onResize = () => {
+      canvas.width = screen.offsetWidth || window.innerWidth;
+      canvas.height = screen.offsetHeight || window.innerHeight;
+    };
+    window.addEventListener('resize', onResize);
+
+    // Initialiser les particules (traits lumineux tombants)
+    const particles = [];
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        length: 40 + Math.random() * 80,
+        speed: 2 + Math.random() * 4,
+        opacity: 0.4 + Math.random() * 0.6,
+        width: 1 + Math.random() * 2
+      });
+    }
+
+    let animFrameId;
+    function drawParticles() {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const p of particles) {
+        ctx.save();
+        ctx.globalAlpha = p.opacity;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = p.width;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x, p.y + p.length);
+        ctx.stroke();
+        ctx.restore();
+        p.y += p.speed;
+        if (p.y > canvas.height) {
+          p.y = -p.length;
+          p.x = Math.random() * canvas.width;
+        }
       }
-      if (style.parentNode) {
-        style.parentNode.removeChild(style);
+      animFrameId = requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    // Bouton MENU : retour au menu principal
+    menuBtn.addEventListener('click', () => {
+      cancelAnimationFrame(animFrameId);
+      window.removeEventListener('resize', onResize);
+      screen.remove();
+      const menu = document.getElementById('main-menu');
+      if (menu) {
+        menu.style.display = 'flex';
+        menu.style.visibility = 'visible';
+        menu.style.pointerEvents = 'auto';
+        menu.style.opacity = '1';
       }
-    }, 1500);
+      document.getElementById('playersRow').style.display = 'none';
+      document.getElementById('gameControls').style.display = 'none';
+      gameOver = true;
+      stopAI();
+    });
   }
 
   function afterMove(actorPid, moveInfo) {
