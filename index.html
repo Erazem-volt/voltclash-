@@ -1,14 +1,10 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Volt Clash</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Press+Start+2P&display=swap" rel="stylesheet">
-
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Combat Électrique — V4 Final (30×30)</title>
   <style>
     /* ================================
        BOUTONS FUTURISTES - VOLT CLASH
@@ -2024,11 +2020,21 @@ function opponentTargetPoint(pid, prof) {
     // Récupérer le nom du joueur gagnant
     const winnerName = getPlayerName(winner);
 
-    // Sauvegarder le résultat pour les parties à 2 joueurs
+    // Sauvegarder le résultat (2 et 4 joueurs)
     if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
       const loserPid = PLAYERS.find(p => p.id !== winner && PLAYERS.indexOf(p) < 2)?.id;
       const loserName = loserPid ? getPlayerName(loserPid) : '';
       if (loserName) saveResult(winnerName, loserName);
+    } else if (PLAYER_COUNT === 4 && playerNames.player1 && playerNames.player2 && playerNames.player3 && playerNames.player4) {
+      let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+      if (!stats[winnerName]) stats[winnerName] = { wins: 0, losses: 0 };
+      stats[winnerName].wins++;
+      for (const p of PLAYERS.slice(0, 4).filter(p => p.id !== winner)) {
+        const loserName = getPlayerName(p.id);
+        if (!stats[loserName]) stats[loserName] = { wins: 0, losses: 0 };
+        stats[loserName].losses++;
+      }
+      localStorage.setItem('voltclash_stats', JSON.stringify(stats));
     }
     
     // Créer un élément pour l'animation avec CSS optimisé
@@ -2078,59 +2084,6 @@ function opponentTargetPoint(pid, prof) {
         style.parentNode.removeChild(style);
       }
     }, 1500);
-  }
-
-  function checkVictory() {
-    let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
-    let aliveCount = 0, last = null;
-    let eliminatedPlayer = null;
-    
-    for (const p of activePlayers) {
-      if (alive.get(p.id)) { 
-        aliveCount++; 
-        last = p.id; 
-      } else {
-        eliminatedPlayer = p.id; // Le joueur qui vient d'être éliminé
-      }
-    }
-    
-    if (aliveCount <= 1) {
-      gameOver = true;
-      
-      if (last) {
-        // Créer une explosion sur la base du joueur éliminé (si applicable)
-        if (eliminatedPlayer) {
-          const basePos = startNodeFor(eliminatedPlayer);
-          createElectricExplosion(basePos.ix, basePos.iy, 'large');
-        }
-        
-        // Afficher l'animation de victoire
-        showVictoryAnimation(last, playerById(last).color);
-        
-        // Afficher le nom du gagnant
-        message = `Victoire : ${getPlayerName(last)}`;
-
-        // Arrêter l'animation des particules après 2 secondes (explosion éphémère)
-        setTimeout(() => {
-          console.log('Nettoyage des particules - Avant:', electricExplosion.particles.length);
-          electricExplosion.particles = [];
-          electricExplosion.shockwave = null;
-          electricExplosion.isActive = false;
-          console.log('Nettoyage des particules - Après:', electricExplosion.particles.length);
-          
-          // Forcer le rafraîchissement du canvas pour effacer les particules restantes
-          requestRedraw();
-        }, 2000);
-      } else {
-        showBanner("FIN", "Fin de partie.", "#eee");
-        message = "Fin de partie.";
-      }
-      setBadges();
-      requestRedraw();
-      stopAI();
-      return true;
-    }
-    return false;
   }
 
   function afterMove(actorPid, moveInfo) {
@@ -3884,6 +3837,7 @@ ctx.restore();
     movesLeft = MOVES_PER_TURN;
     message = "";
     gameOver = false;
+    window.previousPoweredNodes = new Map();
 
     setBadges();
     requestRedraw();
@@ -4232,9 +4186,6 @@ ctx.restore();
         // Optimisation : ne pas dessiner si trop petit ou invisible
         if (this.size < 0.3 || this.life <= 0) return;
         
-        // Debug : afficher si on essaie de dessiner
-        console.log(`Dessin particule à (${this.x}, ${this.y}) taille: ${this.size} vie: ${this.life}`);
-        
         ctx.save();
         
         // Opacité basée sur la durée de vie
@@ -4311,9 +4262,6 @@ let lastTime = performance.now();
       // Couleur électrique cyan
       const color = '#00ffff';
       
-      // Debug : afficher dans la console
-      console.log(`Explosion créée à (${gridX}, ${gridY}) -> (${pixelX}, ${pixelY})`);
-      
       // Tailles réduites et plus rapides
       let particleCount;
       switch(size) {
@@ -4327,9 +4275,7 @@ let lastTime = performance.now();
               particleCount = 20; // Réduit de 30
       }
       
-      console.log(`Création de ${particleCount} particules`);
       createExplosion(pixelX, pixelY, color, particleCount);
-      console.log(`Total particules après création: ${particles.length}`);
   }
 
   // Modifier la fonction d'élimination pour inclure des explosions
