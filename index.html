@@ -559,6 +559,7 @@
           <div><span style="color: #9d4edd; font-weight: bold;">↑/↓</span> : Volume</div>
           <div><span style="color: #9d4edd; font-weight: bold;">R</span> : Reset</div>
           <div><span style="color: #9d4edd; font-weight: bold;">ESC</span> : Menu</div>
+          <div><span style="color: #9d4edd; font-weight: bold;">T</span> : Pause</div>
         </div>
       </div>
     </div>
@@ -743,6 +744,9 @@
           </div>
           <div class="shortcut-item">
             <span class="key">X</span> : Mode expert
+          </div>
+          <div class="shortcut-item">
+            <span class="key">T</span> : Pause
           </div>
         </div>
       </div>
@@ -1747,6 +1751,7 @@ function opponentTargetPoint(pid, prof) {
   let movesLeft = MOVES_PER_TURN;
   let message = "";
   let gameOver = false;
+  let gamePaused = false;
 
   const cursors = new Map(PLAYERS.map(p => [p.id, { ...startNodeFor(p.id) } ]));
 
@@ -2235,6 +2240,7 @@ function opponentTargetPoint(pid, prof) {
 
   function endTurn(silent=false) {
     if (gameOver) return;
+    if (gamePaused) return;
     stopAI();
     if (typeof clearDrag === 'function') clearDrag();
 
@@ -2253,6 +2259,20 @@ function opponentTargetPoint(pid, prof) {
     if (control.get(pid) === "AI") {
       scheduleAITick(0);
     }
+  }
+
+  function togglePause() {
+    if (gameOver) return;
+    gamePaused = !gamePaused;
+    if (gamePaused) {
+      stopAI();
+      message = "⏸ PAUSE — Appuie sur T pour reprendre";
+    } else {
+      message = "";
+      maybeStartAITurn();
+    }
+    setBadges();
+    requestRedraw();
   }
 
   function scheduleAITick(ms) {
@@ -2790,6 +2810,7 @@ function pickAIMove(pid) {
   function aiTick() {
     aiTimer = null;
     if (gameOver) return;
+    if (gamePaused) return;
 
     const pid = currentPlayerId();
     if (!alive.get(pid)) { endTurn(true); return; }
@@ -2836,6 +2857,7 @@ function pickAIMove(pid) {
   // ----------------------------
   function validateMoveHuman() {
     if (gameOver) return;
+    if (gamePaused) return;
 
     const pid = currentPlayerId();
     if (!alive.get(pid)) { endTurn(true); return; }
@@ -3621,6 +3643,8 @@ ctx.restore();
       return;
     }
     
+    if (k === "t") { togglePause(); return; }
+
     if (gameOver) return;
 
     const pid = currentPlayerId();
@@ -3932,6 +3956,7 @@ ctx.restore();
   // Reset
   // ----------------------------
   function reset() {
+    gamePaused = false;
     stopAI();
     if (typeof clearDrag === 'function') clearDrag();
 
