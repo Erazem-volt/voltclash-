@@ -2050,6 +2050,10 @@ function opponentTargetPoint(pid, prof) {
       localStorage.setItem('voltclash_stats', JSON.stringify(stats));
     }
 
+    // Jingle de victoire + relance musique de fond
+    soundSystem.playVictoryJingle();
+    soundSystem.restartBackgroundMusic();
+
     // Supprimer un éventuel écran de victoire existant
     const existing = document.getElementById('victory-screen');
     if (existing) existing.remove();
@@ -4180,6 +4184,30 @@ ctx.restore();
       return this.musicPlaying || false;
     }
     
+    async playVictoryJingle() {
+      if (!soundsEnabled) return;
+      try {
+        console.log("Tentative lecture victory.ogg");
+        const audio = new Audio('victory.ogg');
+        audio.volume = 0.5;
+        audio.addEventListener('error', (e) => {
+          console.log("ERREUR fichier victory.ogg:", audio.error);
+        });
+        await audio.play();
+        console.log("victory.ogg en lecture OK");
+      } catch (e) {
+        console.log("ERREUR play victory.ogg:", e);
+      }
+    }
+
+    restartBackgroundMusic() {
+      if (!musicEnabled) return;
+      this.stopBackgroundMusic();
+      setTimeout(() => {
+        this.playBackgroundMusic();
+      }, 1500);
+    }
+
     // Son synthétique de secours pour explosion
     playExplosionSynthetic() {
       // Vérifier si les sons sont activés
@@ -4405,6 +4433,7 @@ let lastTime = performance.now();
 
   // Fonction pour créer une explosion à des coordonnées de grille
   function createElectricExplosion(gridX, gridY, size = 'medium') {
+      if (gameOver) return;
       const pixelX = MARGIN_PX + gridX * CELL_PX;
       const pixelY = MARGIN_PX + gridY * CELL_PX;
       
@@ -4434,11 +4463,14 @@ let lastTime = performance.now();
   const originalEliminatePlayer = eliminatePlayer;
   eliminatePlayer = function(elimPid, eliminatorPid, reason) {
       const result = originalEliminatePlayer(elimPid, eliminatorPid, reason);
-      
-      // Créer une explosion sur la base du joueur éliminé
-      const basePos = startNodeFor(elimPid);
-      createElectricExplosion(basePos.ix, basePos.iy, 'large');
-      
+
+      // Ne pas jouer l'explosion si c'est la victoire finale
+      const aliveCount = PLAYERS.slice(0, PLAYER_COUNT).filter(p => alive.get(p.id)).length;
+      if (aliveCount > 1) {
+        const basePos = startNodeFor(elimPid);
+        createElectricExplosion(basePos.ix, basePos.iy, 'large');
+      }
+
       return result;
   };
 
