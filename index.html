@@ -1507,17 +1507,24 @@ function opponentTargetPoint(pid, prof) {
     }
   }
   
-  // Démarrer la musique automatiquement au chargement de la page
+  // Démarrer le starfield au chargement
   window.addEventListener('load', () => {
-    setTimeout(() => {
-      soundSystem.playBackgroundMusic();
-    }, 500);
     initStarfield();
   });
+
+  // Démarrer la musique au premier clic ou touche (restriction AudioContext navigateur)
+  function startMusicOnInteraction() {
+    if (musicEnabled) {
+      soundSystem.playBackgroundMusic();
+    }
+    document.removeEventListener('click', startMusicOnInteraction);
+    document.removeEventListener('keydown', startMusicOnInteraction);
+  }
+  document.addEventListener('click', startMusicOnInteraction);
+  document.addEventListener('keydown', startMusicOnInteraction);
   
   // Démarrer l'arrière-plan immédiatement
   document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM chargé, initialisation du starfield...");
     initStarfield();
   });
   
@@ -1571,31 +1578,22 @@ function opponentTargetPoint(pid, prof) {
   let lastStarfieldTime = 0;
   
   function initStarfield() {
-    console.log("Initialisation du starfield...");
-    
     starfieldCanvas = document.getElementById('starfield');
-    if (!starfieldCanvas) {
-      console.error("Canvas starfield non trouvé!");
-      return;
-    }
-    
+    if (!starfieldCanvas) return;
+
     starfieldCtx = starfieldCanvas.getContext('2d');
-    console.log("Canvas starfield trouvé:", starfieldCanvas.width, "x", starfieldCanvas.height);
-    
+
     function resizeStarfield() {
-      console.log("Redimensionnement du starfield...");
       starfieldCanvas.width = window.innerWidth;
       starfieldCanvas.height = window.innerHeight;
-      console.log("Nouvelles dimensions:", starfieldCanvas.width, "x", starfieldCanvas.height);
       createStars();
     }
-    
+
     function createStars() {
       stars = [];
       for (let i = 0; i < 400; i++) {
         stars.push(new Star(starfieldCanvas));
       }
-      console.log("Création de", stars.length, "étoiles");
     }
     
     function animateStarfield(currentTime) {
@@ -1620,7 +1618,6 @@ function opponentTargetPoint(pid, prof) {
     window.addEventListener('resize', resizeStarfield);
     requestAnimationFrame(animateStarfield);
     
-    console.log("Arrière-plan spatial initialisé avec", stars.length, "étoiles");
   }
 
   function updateCanvasSize() {
@@ -2030,7 +2027,6 @@ function opponentTargetPoint(pid, prof) {
   }
 
   function showVictoryAnimation(winner, color) {
-    // Récupérer le nom du joueur gagnant
     const winnerName = getPlayerName(winner);
 
     // Sauvegarder le résultat (2 et 4 joueurs)
@@ -2050,111 +2046,84 @@ function opponentTargetPoint(pid, prof) {
       localStorage.setItem('voltclash_stats', JSON.stringify(stats));
     }
 
-    // Jingle de victoire + relance musique de fond
-    soundSystem.playVictoryJingle();
-    soundSystem.restartBackgroundMusic();
-
     // Supprimer un éventuel écran de victoire existant
     const existing = document.getElementById('victory-screen');
     if (existing) existing.remove();
 
-    // Keyframes CSS (injecté une seule fois)
-    if (!document.getElementById('victory-screen-style')) {
-      const style = document.createElement('style');
-      style.id = 'victory-screen-style';
-      style.textContent = `
-        @keyframes victoryFadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    // Écran plein écran
-    const screen = document.createElement('div');
-    screen.id = 'victory-screen';
-    screen.style.cssText = `
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.88);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      overflow: hidden;
+    // Conteneur principal (au-dessus de tout, non interactif au départ)
+    const victoryScreen = document.createElement('div');
+    victoryScreen.id = 'victory-screen';
+    victoryScreen.style.cssText = `
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 2000; pointer-events: none; overflow: hidden;
     `;
 
-    // Canvas de particules (arrière-plan)
+    // Fond noir qui monte en opacité à T+1.5s
+    const bg = document.createElement('div');
+    bg.style.cssText = `
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: black; opacity: 0;
+      transition: opacity 1s ease;
+    `;
+    victoryScreen.appendChild(bg);
+
+    // Canvas de particules (sous le contenu)
     const canvas = document.createElement('canvas');
     canvas.style.cssText = `
-      position: absolute;
-      top: 0; left: 0;
+      position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
       pointer-events: none;
     `;
-    screen.appendChild(canvas);
+    victoryScreen.appendChild(canvas);
 
-    // Contenu centré
-    const content = document.createElement('div');
-    content.style.cssText = `
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-    `;
-
+    // Texte VICTOIRE
     const title = document.createElement('div');
     title.textContent = 'VICTOIRE';
     title.style.cssText = `
-      font-family: 'Orbitron', sans-serif;
-      font-size: 6rem;
-      font-weight: 900;
-      color: ${color};
-      text-shadow:
-        0 0 20px ${color},
-        0 0 40px ${color},
-        0 0 80px ${color},
-        0 0 120px ${color};
+      position: relative; z-index: 1;
+      font-family: 'Orbitron', sans-serif; font-size: 6rem; font-weight: 900;
+      color: ${color}; opacity: 0;
+      text-shadow: 0 0 30px ${color}, 0 0 60px ${color}, 0 0 90px ${color};
       letter-spacing: 0.1em;
-      animation: victoryFadeIn 0.6s ease-out both;
+      transition: opacity 1s ease;
     `;
+    victoryScreen.appendChild(title);
 
+    // Pseudo du gagnant
     const nameEl = document.createElement('div');
     nameEl.textContent = winnerName;
     nameEl.style.cssText = `
-      font-family: 'Orbitron', sans-serif;
-      font-size: 2rem;
-      color: #ffffff;
-      text-shadow: 0 0 10px rgba(255,255,255,0.5);
-      letter-spacing: 0.05em;
-      animation: victoryFadeIn 0.8s ease-out both;
+      position: relative; z-index: 1;
+      font-family: 'Orbitron', sans-serif; font-size: 2rem;
+      color: #ffffff; opacity: 0; margin-top: 20px;
+      transition: opacity 0.8s ease;
     `;
+    victoryScreen.appendChild(nameEl);
 
+    // Bouton MENU
     const menuBtn = document.createElement('button');
     menuBtn.textContent = 'MENU';
     menuBtn.className = 'futuristic-btn';
-    menuBtn.style.cssText = `margin-top: 20px; animation: victoryFadeIn 1s ease-out both;`;
+    menuBtn.style.cssText = `
+      position: relative; z-index: 1;
+      opacity: 0; margin-top: 40px;
+      transition: opacity 0.8s ease;
+    `;
+    victoryScreen.appendChild(menuBtn);
 
-    content.appendChild(title);
-    content.appendChild(nameEl);
-    content.appendChild(menuBtn);
-    screen.appendChild(content);
-    document.body.appendChild(screen);
+    document.body.appendChild(victoryScreen);
 
-    // Dimensionner le canvas après insertion dans le DOM
-    canvas.width = screen.offsetWidth || window.innerWidth;
-    canvas.height = screen.offsetHeight || window.innerHeight;
+    // Canvas dimensionné après insertion
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     const onResize = () => {
-      canvas.width = screen.offsetWidth || window.innerWidth;
-      canvas.height = screen.offsetHeight || window.innerHeight;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     };
     window.addEventListener('resize', onResize);
 
-    // Initialiser les particules (traits lumineux tombants)
+    // Particules prêtes mais pas encore animées
     const particles = [];
     for (let i = 0; i < 60; i++) {
       particles.push({
@@ -2166,8 +2135,7 @@ function opponentTargetPoint(pid, prof) {
         width: 1 + Math.random() * 2
       });
     }
-
-    let animFrameId;
+    let animFrameId = null;
     function drawParticles() {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2191,13 +2159,12 @@ function opponentTargetPoint(pid, prof) {
       }
       animFrameId = requestAnimationFrame(drawParticles);
     }
-    drawParticles();
 
     // Bouton MENU : retour au menu principal
     menuBtn.addEventListener('click', () => {
-      cancelAnimationFrame(animFrameId);
+      if (animFrameId) cancelAnimationFrame(animFrameId);
       window.removeEventListener('resize', onResize);
-      screen.remove();
+      victoryScreen.remove();
       const menu = document.getElementById('main-menu');
       if (menu) {
         menu.style.display = 'flex';
@@ -2208,10 +2175,30 @@ function opponentTargetPoint(pid, prof) {
       document.getElementById('playersRow').style.display = 'none';
       document.getElementById('gameControls').style.display = 'none';
       const sheetVic = document.querySelector('.sheet');
-      if (sheetVic) sheetVic.style.display = 'none';
+      if (sheetVic) { sheetVic.style.display = 'none'; }
       gameOver = true;
       stopAI();
     });
+
+    // === SÉQUENCE TEMPORELLE ===
+
+    // T+0s : VICTOIRE apparaît
+    requestAnimationFrame(() => { title.style.opacity = '1'; });
+
+    // T+0.8s : pseudo apparaît
+    setTimeout(() => { nameEl.style.opacity = '1'; }, 800);
+
+    // T+1s : fond noir monte
+    setTimeout(() => { bg.style.opacity = '1'; }, 1000);
+
+    // T+1.5s : particules + son + musique + bouton MENU
+    setTimeout(() => {
+      drawParticles();
+      soundSystem.playVictoryJingle();
+      soundSystem.restartBackgroundMusic();
+      menuBtn.style.opacity = '1';
+      victoryScreen.style.pointerEvents = 'auto';
+    }, 1500);
   }
 
   function afterMove(actorPid, moveInfo) {
@@ -3008,12 +2995,6 @@ function isInAnyBaseNode(ix, iy) {
     if (!alive.get(p.id)) continue;
     const b = baseRectFor(p.id);
     
-    // Debug : affiche les valeurs une seule fois
-    if (ix === 0 && iy === 0) {
-      console.log(`Base ${p.id}: ix=${b.ix}, iy=${b.iy}, cells=${b.cells}`);
-      console.log(`NODES = ${NODES}`);
-    }
-    
     if (ix >= b.ix && ix <= b.ix + b.cells && 
         iy >= b.iy && iy <= b.iy + b.cells) {
       return true;
@@ -3497,7 +3478,6 @@ ctx.restore();
     const currentNodes = new Set(poweredNodes);
     
     // Vérifier si des marques ont perdu leur connexion
-    console.log(`Vérification déconnexion pour joueur ${playerId}, marques: ${marks.size}`);
     let disconnectionDetected = false;
     
     for (const [k, m] of marks.entries()) {
@@ -3677,7 +3657,7 @@ ctx.restore();
       document.getElementById('playersRow').style.display = 'none';
       document.getElementById('gameControls').style.display = 'none';
       const sheetEsc = document.querySelector('.sheet');
-      if (sheetEsc) sheetEsc.style.display = 'none';
+      // if (sheetEsc) sheetEsc.style.display = 'none';
 
       // Réinitialiser le jeu
       gameOver = false;
@@ -3703,7 +3683,7 @@ ctx.restore();
     document.getElementById('playersRow').style.display = 'none';
     document.getElementById('gameControls').style.display = 'none';
     const sheetMenu = document.querySelector('.sheet');
-    if (sheetMenu) sheetMenu.style.display = 'none';
+    // if (sheetMenu) sheetMenu.style.display = 'none';
 
     gameOver = true;
     stopAI();
@@ -4002,6 +3982,8 @@ ctx.restore();
   function initializeMenu() {
     document.getElementById('playersRow').style.display = 'none';
     document.getElementById('gameControls').style.display = 'none';
+    // Guard : ne pas cacher la sheet si l'écran de victoire est affiché
+    if (document.getElementById('victory-screen')) return;
     const sheet = document.querySelector('.sheet');
     if (sheet) sheet.style.display = 'none';
     const menu = document.getElementById('main-menu');
@@ -4105,12 +4087,21 @@ ctx.restore();
     
     // Musique de fond avec Web Audio API
     async playBackgroundMusic() {
+      if (!musicEnabled) return;
       if (!this.initialized) this.init();
       if (!this.audioContext) return;
-      
+
+      // Arrêter immédiatement toute source existante avant d'en créer une nouvelle
+      if (this.musicSource) {
+        try { this.musicSource.stop(); } catch(e) {}
+        this.musicSource = null;
+        this.musicGainNode = null;
+        this.musicPlaying = false;
+      }
+
       try {
         console.log("Chargement de la musique de fond: theme-volt-clash.ogg");
-        
+
         // Charger le fichier audio
         const response = await fetch('theme-volt-clash.ogg');
         const arrayBuffer = await response.arrayBuffer();
@@ -4202,10 +4193,16 @@ ctx.restore();
 
     restartBackgroundMusic() {
       if (!musicEnabled) return;
-      this.stopBackgroundMusic();
+      // Arrêt immédiat puis relance après un court délai
+      if (this.musicSource) {
+        try { this.musicSource.stop(); } catch(e) {}
+        this.musicSource = null;
+        this.musicGainNode = null;
+        this.musicPlaying = false;
+      }
       setTimeout(() => {
-        this.playBackgroundMusic();
-      }, 1500);
+        if (musicEnabled) this.playBackgroundMusic();
+      }, 500);
     }
 
     // Son synthétique de secours pour explosion
