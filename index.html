@@ -494,8 +494,8 @@
 
     /* Bouton de sélection inactif */
     .btn-inactive {
-      opacity: 0.35 !important;
-      filter: brightness(0.5) !important;
+      opacity: 0.55 !important;
+      filter: brightness(0.7) !important;
       box-shadow: none !important;
     }
 </style>
@@ -2910,7 +2910,9 @@ function pickAIMove(pid) {
 
       const label = document.createElement("span");
       const st = alive.get(p.id) ? "EN JEU" : "ÉLIMINÉ";
-      label.textContent = `${p.name} — ${st}`;
+      const pseudo = getPlayerName(p.id);
+      label.textContent = pseudo;
+      label.style.color = p.color;
 
       const sel = document.createElement("select");
       sel.innerHTML = `<option value="HUMAN">Humain</option><option value="AI">IA</option>`;
