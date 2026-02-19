@@ -2416,6 +2416,26 @@ function opponentTargetPoint(pid, prof) {
     return 0;
   }
 
+  // ÉVALUE LE GAIN D'UN CIRCLE (vol de croix ennemie)
+  // Heuristique rapide : compte les voisins ennemis (8 dirs).
+  // Un nœud avec beaucoup de voisins ennemis est un point critique du réseau.
+  function circuitCutValue(pid, targetKey) {
+    const target = marks.get(targetKey);
+    if (!target) return 0;
+    const enemyPid = target.owner;
+    if (!alive.get(enemyPid)) return 0;
+
+    const {ix, iy} = parseKey(targetKey);
+    let enemyNeighbors = 0;
+    for (const d of dirs8) {
+      const nx = ix + d.dx, ny = iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      const m = marks.get(keyOf(nx, ny));
+      if (m && m.owner === enemyPid) enemyNeighbors++;
+    }
+    return enemyNeighbors;
+  }
+
   function scoreMove(pid, mv, mode, threat, prof) {
     if (mv.type === "CROSS") {
       const owner = baseOwnerAt(mv.ix, mv.iy);
@@ -2435,6 +2455,12 @@ function opponentTargetPoint(pid, prof) {
         s += (nearBase <= SHIELD_RADIUS2) ? 90_000 : 0;
         s += (nearBase <= DEFENSE_RADIUS2) ? 40_000 : 0;
         s += (towardThreat <= 16) ? 30_000 : 0;
+
+        // BONUS : si ce vol coupe le circuit de l'attaquant
+        const cutCount = circuitCutValue(pid, mv.key);
+        if (cutCount >= 3) s += 200_000;
+        else if (cutCount >= 1) s += 120_000;
+
         s -= nearBase * 6;
         return s;
       }
@@ -2459,10 +2485,18 @@ function opponentTargetPoint(pid, prof) {
     if (mv.type === "CIRCLE") {
       const pos = parseKey(mv.key);
       const d2 = dist2(pos, tgt);
-      let s = 125_000 - Math.sqrt(d2) * 520;
-      if (d2 > 144) s -= 55_000;
-      if (d2 > 400) s -= 35_000;
-      s -= (1.0 - p.circleBiasAttack) * 45_000;
+      let s = 130_000 - Math.sqrt(d2) * 300;
+
+      // BONUS MAJEUR : si ce vol coupe le circuit ennemi
+      const cutCount = circuitCutValue(pid, mv.key);
+      if (cutCount >= 5) s += 250_000;       // coupe massive = priorité absolue
+      else if (cutCount >= 3) s += 180_000;   // coupe significative
+      else if (cutCount >= 1) s += 100_000;   // coupe légère mais utile
+      else s -= 20_000;                        // vol sans effet = moins intéressant
+
+      // Bonus si le vol est proche de notre réseau (facile à connecter)
+      if (hasAdjacentFriendlyOrBase(pid, pos.ix, pos.iy)) s += 15_000;
+
       return s;
     }
 
@@ -2507,9 +2541,10 @@ function pickAIMoveNormal(pid) {
     // Petit bruit pour éviter que toutes les IA prennent exactement les mêmes décisions
     s += (Math.random() - 0.5) * (prof.noise || 1200);
 
-    // En ATTACK: limiter les cercles non tactiques (en plus du scoring) via un gate léger
+    // En ATTACK: ne pénaliser les cercles que s'ils ne coupent aucun circuit
     if (mode === "ATTACK" && mv.type === "CIRCLE") {
-      if (Math.random() > (prof.circleBiasAttack || 0.10)) s -= 35_000;
+      const cutCheck = circuitCutValue(pid, mv.key);
+      if (cutCheck <= 0 && Math.random() > (prof.circleBiasAttack || 0.10)) s -= 35_000;
     }
     // En DEFENSE: autoriser davantage les cercles
     if (mode === "DEFENSE" && mv.type === "CIRCLE") {
@@ -2756,6 +2791,23 @@ function zigzagBonus_state(st, pid, ix, iy) {
   return 0;
 }
 
+function circuitCutValue_state(st, pid, targetKey) {
+  const target = st.marks.get(targetKey);
+  if (!target) return 0;
+  const enemyPid = target.owner;
+  if (!st.alive.get(enemyPid)) return 0;
+
+  const {ix, iy} = parseKey(targetKey);
+  let enemyNeighbors = 0;
+  for (const d of dirs8) {
+    const nx = ix + d.dx, ny = iy + d.dy;
+    if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+    const m = st.marks.get(keyOf(nx, ny));
+    if (m && m.owner === enemyPid) enemyNeighbors++;
+  }
+  return enemyNeighbors;
+}
+
 function evalMove_state(st, pid, mv, prof) {
   if (mv.type === "CROSS") {
     const owner = baseOwnerAt_state(st, mv.ix, mv.iy);
@@ -2770,7 +2822,13 @@ function evalMove_state(st, pid, mv, prof) {
   if (mv.type === "CIRCLE") {
     const d2 = dist2(pos, tgt);
     sAttack += 25_000 - d2 * 35;
-    sAttack -= 10_000;
+
+    // BONUS : si ce vol coupe le circuit ennemi
+    const cutCount = circuitCutValue_state(st, pid, mv.key);
+    if (cutCount >= 5) sAttack += 250_000;
+    else if (cutCount >= 3) sAttack += 180_000;
+    else if (cutCount >= 1) sAttack += 100_000;
+    else sAttack -= 20_000;
   } else {
     sAttack += networkShapeBonus_state(st, pid, mv.ix, mv.iy);
     sAttack += clusterDensityPenalty_state(st, pid, mv.ix, mv.iy);
