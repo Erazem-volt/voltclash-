@@ -830,10 +830,10 @@ const AI_BEAM = {
 // Chaque IA reçoit un profil distinct au reset, pour éviter les schémas identiques en début de partie.
 // Les profils influencent : choix de cible, appétence CROSS vs CIRCLE, et mélange diagonale/ligne.
 const AI_PROFILE_DEFS = {
-  RAIDER:    { name:"RAIDER",    circleBiasAttack: 0.08, circleBiasDefense: 0.55, diagWeight: 0.55, lineWeight: 1.10, targetMode: "HUMAN_FIRST", noise: 1400 },
-  BALANCED:  { name:"BALANCED",  circleBiasAttack: 0.12, circleBiasDefense: 0.62, diagWeight: 0.70, lineWeight: 1.00, targetMode: "NEAREST",     noise: 1200 },
-  SWARM:     { name:"SWARM",     circleBiasAttack: 0.10, circleBiasDefense: 0.58, diagWeight: 0.85, lineWeight: 0.92, targetMode: "WEAKEST",     noise: 1700 },
-  SIEGER:    { name:"SIEGER",    circleBiasAttack: 0.06, circleBiasDefense: 0.50, diagWeight: 0.45, lineWeight: 1.20, targetMode: "RANDOM_ROTATE", noise: 1500 },
+  RAIDER:    { name:"RAIDER",    circleBiasAttack: 0.08, circleBiasDefense: 0.55, targetMode: "HUMAN_FIRST", noise: 1400 },
+  BALANCED:  { name:"BALANCED",  circleBiasAttack: 0.12, circleBiasDefense: 0.62, targetMode: "NEAREST",     noise: 1200 },
+  SWARM:     { name:"SWARM",     circleBiasAttack: 0.10, circleBiasDefense: 0.58, targetMode: "WEAKEST",     noise: 1700 },
+  SIEGER:    { name:"SIEGER",    circleBiasAttack: 0.06, circleBiasDefense: 0.50, targetMode: "RANDOM_ROTATE", noise: 1500 },
 };
 const aiProfile = new Map();          // pid -> profile object
 const aiTargetOverride = new Map();   // pid -> targetPid (pour RANDOM_ROTATE)
@@ -2342,30 +2342,81 @@ function opponentTargetPoint(pid, prof) {
     return c;
   }
 
-  // Encourage "straight-line" technique when it is useful (e.g., threading between enemy circles),
-  // while still keeping a mild preference for diagonal (checker) placement by default.
-  function lineTechniqueBonus(pid, ix, iy, target){
-    const c = orthAdjOwnCount(pid, ix, iy);
-    if (c <= 0) return 0;
+  // ============================================================
+  // IA v2 — FONCTIONS RÉSEAU RAMIFIÉ
+  // ============================================================
 
-    let bonus = 1800 * c; // reward extending an orthogonal chain
-    if (target) {
-      // Additional bonus when aligning toward a strategic point (threat or enemy base)
-      if (ix === target.ix || iy === target.iy) bonus += 2200;
+  function countNeighborFriendly8(pid, ix, iy) {
+    let c = 0;
+    for (const d of dirs8) {
+      const nx = ix + d.dx, ny = iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      const m = marks.get(keyOf(nx, ny));
+      if (m && m.owner === pid) c++;
     }
+    return c;
+  }
 
-    // Small penalty if it creates a rigid "cross junction" (too easy to wall off)
-    if (c >= 2) bonus -= 900;
+  function networkShapeBonus(pid, ix, iy) {
+    const n8 = countNeighborFriendly8(pid, ix, iy);
+    if (n8 === 1) return 15000;
+    if (n8 === 2) return 8000;
+    if (n8 === 3) return -12000;
+    if (n8 >= 4) return -25000;
+    return 0;
+  }
+
+  function clusterDensityPenalty(pid, ix, iy) {
+    let count = 0;
+    for (let dy = -2; dy <= 2; dy++) {
+      for (let dx = -2; dx <= 2; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        const nx = ix + dx, ny = iy + dy;
+        if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+        const m = marks.get(keyOf(nx, ny));
+        if (m && m.owner === pid) count++;
+      }
+    }
+    if (count <= 2) return 5000;
+    if (count <= 4) return 0;
+    return -(count - 4) * 6000;
+  }
+
+  function diagonalProgressionBonus(pid, ix, iy, target) {
+    if (!target) return 0;
+    const myBase = baseCenter(pid);
+    const baseDist = Math.sqrt(dist2(myBase, target));
+    if (baseDist < 1) return 0;
+    const dirX = (target.ix - myBase.ix) / baseDist;
+    const dirY = (target.iy - myBase.iy) / baseDist;
+    const dx = ix - myBase.ix, dy = iy - myBase.iy;
+    const projection = dx * dirX + dy * dirY;
+    const perpDist = Math.abs(dx * dirY - dy * dirX);
+    let bonus = projection * 1800;
+    if (perpDist >= 1 && perpDist <= 5) bonus += 6000;
+    if (perpDist > 8) bonus -= (perpDist - 8) * 2000;
+    if (perpDist < 0.5) bonus -= 4000;
     return bonus;
   }
 
-  function diagonalPreferenceBonus(ix, iy){
-    // Motif en diagonale (damier) : évite les alignements qui facilitent la formation de murs adverses
-    return ((((ix + iy) & 1) === 0) ? 2500 : 0);
+  function zigzagBonus(pid, ix, iy) {
+    let hasDiag = false, hasOrth = false;
+    for (const d of dirs8) {
+      const nx = ix + d.dx, ny = iy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      const m = marks.get(keyOf(nx, ny));
+      if (m && m.owner === pid) {
+        if (Math.abs(d.dx) + Math.abs(d.dy) === 2) hasDiag = true;
+        else hasOrth = true;
+      }
+    }
+    if (hasDiag && !hasOrth) return 10000;
+    if (hasDiag && hasOrth) return 3000;
+    if (hasOrth && !hasDiag) return -5000;
+    return 0;
   }
 
   function scoreMove(pid, mv, mode, threat, prof) {
-    // capture de base ennemie = priorité absolue
     if (mv.type === "CROSS") {
       const owner = baseOwnerAt(mv.ix, mv.iy);
       if (owner && owner !== pid) return 1_000_000;
@@ -2376,21 +2427,14 @@ function opponentTargetPoint(pid, prof) {
     const tgt = opponentTargetPoint(pid, p);
 
     if (mode === "DEFENSE") {
-      // Défense : privilégier actions proches de sa base, surtout côté menace
       if (mv.type === "CIRCLE") {
         const pos = parseKey(mv.key);
         const nearBase = dist2(pos, myC);
         const towardThreat = threat.threatPos ? dist2(pos, threat.threatPos) : 999999;
-
-        // voler près base est très fort
         let s = 200_000;
         s += (nearBase <= SHIELD_RADIUS2) ? 90_000 : 0;
         s += (nearBase <= DEFENSE_RADIUS2) ? 40_000 : 0;
-
-        // bonus si le vol est près de la menace (pour casser une infiltration)
-        s += (towardThreat <= 16) ? 30_000 : 0; // 4^2
-
-        // un petit biais pour rester "compact"
+        s += (towardThreat <= 16) ? 30_000 : 0;
         s -= nearBase * 6;
         return s;
       }
@@ -2399,66 +2443,37 @@ function opponentTargetPoint(pid, prof) {
         const pos = { ix: mv.ix, iy: mv.iy };
         const nearBase = dist2(pos, myC);
         const towardThreat = threat.threatPos ? dist2(pos, threat.threatPos) : 999999;
-
-        // En défense : on NE perd PAS de temps à "encercler" la base.
-        // On place plutôt des croix dans l'axe de la menace (ou vers l'extérieur), et en diagonale (damier),
-        // en évitant les alignements orthogonaux qui favorisent la formation de murs adverses.
         let s = 110_000;
-
-        // priorité : casser l'infiltration (se rapprocher de la menace), pas coller à la base
-        s += (towardThreat <= 25) ? 70_000 : 0;   // 5^2
-        s += (towardThreat <= 9)  ? 55_000 : 0;   // 3^2
-
-        // forte pénalité : croix trop proches de la base en mode défense (le "ring" est contre-productif)
+        s += (towardThreat <= 25) ? 70_000 : 0;
+        s += (towardThreat <= 9) ? 55_000 : 0;
         if (nearBase <= SHIELD_RADIUS2) s -= 120_000;
         else if (nearBase <= DEFENSE_RADIUS2) s -= 35_000;
-
-        // pattern diagonal (par défaut)
-        s += diagonalPreferenceBonus(mv.ix, mv.iy) * p.diagWeight;
-
-        // évite les lignes (adjacence orthogonale à ses propres marques)
-        s += lineTechniqueBonus(pid, mv.ix, mv.iy, threat.threatPos || myC) * p.lineWeight;
-
-        // léger biais : ne pas s'éloigner infiniment (mais bien moins que l'ancien "bouclier")
+        s += networkShapeBonus(pid, mv.ix, mv.iy);
+        s += clusterDensityPenalty(pid, mv.ix, mv.iy);
+        s += zigzagBonus(pid, mv.ix, mv.iy);
         s -= nearBase * 6;
-
         return s;
       }
     }
 
-    // Attaque (mode normal) — objectif: envahir une base (CROSS prioritaire).
     if (mv.type === "CIRCLE") {
       const pos = parseKey(mv.key);
       const d2 = dist2(pos, tgt);
-
-      // Les cercles sont "tactiques" : utiles surtout près de la base cible (ou pour casser un verrou).
-      // Loin de la base cible, c'est généralement une perte de tempo => pénalité.
-      let s = 125_000 - Math.sqrt(d2) * 520; // décroît avec la distance
-      if (d2 > 144) s -= 55_000;             // > 12 nœuds : trop loin
-      if (d2 > 400) s -= 35_000;             // > 20 nœuds : encore moins logique
-
-      // Biais profil: en attaque, on limite encore la fréquence des cercles
+      let s = 125_000 - Math.sqrt(d2) * 520;
+      if (d2 > 144) s -= 55_000;
+      if (d2 > 400) s -= 35_000;
       s -= (1.0 - p.circleBiasAttack) * 45_000;
-
       return s;
     }
 
     if (mv.type === "CROSS") {
       const pos = { ix: mv.ix, iy: mv.iy };
       const d2 = dist2(pos, tgt);
-
-      // Priorité claire : progresser vers la base cible
-      let s = 95_000 - Math.sqrt(d2) * 620;
-
-      // Motif diagonal (évite des murs faciles) — pondéré par profil
-      s += diagonalPreferenceBonus(mv.ix, mv.iy) * p.diagWeight;
-
-      // Technique en ligne: utile pour "passer" entre des ronds / prolonger une chaîne — pondéré
-      s += lineTechniqueBonus(pid, mv.ix, mv.iy, tgt) * p.lineWeight;
-
-      // Biais profil: plus le profil est "CROSS-first", plus on boost les croix en attaque
-      s += (1.0 - p.circleBiasAttack) * 18_000;
-
+      let s = 95_000 - Math.sqrt(d2) * 500;
+      s += networkShapeBonus(pid, mv.ix, mv.iy);
+      s += clusterDensityPenalty(pid, mv.ix, mv.iy);
+      s += diagonalProgressionBonus(pid, mv.ix, mv.iy, tgt);
+      s += zigzagBonus(pid, mv.ix, mv.iy);
       return s;
     }
 
@@ -2688,44 +2703,86 @@ function generateAICandidates_state(st, pid) {
   return { circles, crosses };
 }
 
-// Heuristique d'évaluation locale pour Beam (reste compatible avec tes profils)
+function countNeighborFriendly8_state(st, pid, ix, iy) {
+  let c = 0;
+  for (const d of dirs8) {
+    const nx = ix + d.dx, ny = iy + d.dy;
+    if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+    const m = st.marks.get(keyOf(nx, ny));
+    if (m && m.owner === pid) c++;
+  }
+  return c;
+}
+
+function networkShapeBonus_state(st, pid, ix, iy) {
+  const n8 = countNeighborFriendly8_state(st, pid, ix, iy);
+  if (n8 === 1) return 15000;
+  if (n8 === 2) return 8000;
+  if (n8 === 3) return -12000;
+  if (n8 >= 4) return -25000;
+  return 0;
+}
+
+function clusterDensityPenalty_state(st, pid, ix, iy) {
+  let count = 0;
+  for (let dy = -2; dy <= 2; dy++) {
+    for (let dx = -2; dx <= 2; dx++) {
+      if (dx === 0 && dy === 0) continue;
+      const nx = ix + dx, ny = iy + dy;
+      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+      const m = st.marks.get(keyOf(nx, ny));
+      if (m && m.owner === pid) count++;
+    }
+  }
+  if (count <= 2) return 5000;
+  if (count <= 4) return 0;
+  return -(count - 4) * 6000;
+}
+
+function zigzagBonus_state(st, pid, ix, iy) {
+  let hasDiag = false, hasOrth = false;
+  for (const d of dirs8) {
+    const nx = ix + d.dx, ny = iy + d.dy;
+    if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
+    const m = st.marks.get(keyOf(nx, ny));
+    if (m && m.owner === pid) {
+      if (Math.abs(d.dx) + Math.abs(d.dy) === 2) hasDiag = true;
+      else hasOrth = true;
+    }
+  }
+  if (hasDiag && !hasOrth) return 10000;
+  if (hasDiag && hasOrth) return 3000;
+  if (hasOrth && !hasDiag) return -5000;
+  return 0;
+}
+
 function evalMove_state(st, pid, mv, prof) {
-  // capture immédiate
   if (mv.type === "CROSS") {
     const owner = baseOwnerAt_state(st, mv.ix, mv.iy);
     if (owner && owner !== pid) return 1_000_000_000;
   }
 
-  // cible: point de base adverse choisi par la logique existante (profil)
   const tgt = opponentTargetPoint(pid, prof);
   const pos = (mv.type === "CROSS") ? {ix: mv.ix, iy: mv.iy} : parseKey(mv.key);
-
-  // attaque: distance Chebyshev au point cible
   const d = Math.max(Math.abs(pos.ix - tgt.ix), Math.abs(pos.iy - tgt.iy));
   let sAttack = 120_000 - d * 2400;
 
-  // ronds = "couper" : bonus si proche du réseau adverse (opportuniste)
   if (mv.type === "CIRCLE") {
-    // bonus si cercle proche base adverse ou proche cible
     const d2 = dist2(pos, tgt);
     sAttack += 25_000 - d2 * 35;
-    // léger coût pour éviter trop de ronds inutiles
     sAttack -= 10_000;
   } else {
-    // croix: bonus de progression (frontier)
-    sAttack += diagonalPreferenceBonus(pos.ix, pos.iy) * (prof.diagWeight || 0.7);
-    if (hasOrthAdjacentOwnMark(pid, pos.ix, pos.iy)) sAttack += 9_000 * (prof.lineWeight || 1.0);
+    sAttack += networkShapeBonus_state(st, pid, mv.ix, mv.iy);
+    sAttack += clusterDensityPenalty_state(st, pid, mv.ix, mv.iy);
+    sAttack += zigzagBonus_state(st, pid, mv.ix, mv.iy);
   }
 
-  // défense: très légère (éviter suicide de réseau)
   const myC = baseCenter(pid);
   const nearBase = dist2(pos, myC);
   let sDefense = 0;
   if (nearBase <= SHIELD_RADIUS2 && mv.type === "CROSS") sDefense -= 18_000;
 
-  // noise pour casser égalités (et éviter mirroring)
   const noise = (Math.random() - 0.5) * (AI_BEAM.tieNoise * 100_000);
-
   return AI_BEAM.wAttack * sAttack + AI_BEAM.wDefense * sDefense + noise;
 }
 
