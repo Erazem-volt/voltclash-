@@ -1275,47 +1275,59 @@ function opponentTargetPoint(pid, prof) {
     displayRanking();
   }
   
-  function saveResult(winnerName, loserName) {
-    // Charger les statistiques existantes
+  function saveResult(winnerName, loserNames, playerCount) {
     let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
-    
+
+    // Points : +3 en 4 joueurs, +1 en 2 joueurs
+    const points = (playerCount === 4) ? 3 : 1;
+
     // Mettre à jour le gagnant
     if (!stats[winnerName]) {
-      stats[winnerName] = { wins: 0, losses: 0 };
+      stats[winnerName] = { points: 0, wins: 0, games: 0 };
     }
+    // Migration : si ancien format (sans points), ajouter les champs manquants
+    if (stats[winnerName].points === undefined) stats[winnerName].points = stats[winnerName].wins || 0;
+    if (stats[winnerName].games === undefined) stats[winnerName].games = (stats[winnerName].wins || 0) + (stats[winnerName].losses || 0);
+
+    stats[winnerName].points += points;
     stats[winnerName].wins++;
-    
-    // Mettre à jour le perdant
-    if (!stats[loserName]) {
-      stats[loserName] = { wins: 0, losses: 0 };
+    stats[winnerName].games++;
+
+    // Mettre à jour les perdants
+    if (Array.isArray(loserNames)) {
+      for (const loserName of loserNames) {
+        if (!loserName) continue;
+        if (!stats[loserName]) {
+          stats[loserName] = { points: 0, wins: 0, games: 0 };
+        }
+        if (stats[loserName].points === undefined) stats[loserName].points = stats[loserName].wins || 0;
+        if (stats[loserName].games === undefined) stats[loserName].games = (stats[loserName].wins || 0) + (stats[loserName].losses || 0);
+        stats[loserName].games++;
+      }
     }
-    stats[loserName].losses++;
-    
-    // Sauvegarder
+
     localStorage.setItem('voltclash_stats', JSON.stringify(stats));
-    console.log(`Résultat sauvegardé: ${winnerName} bat ${loserName}`);
   }
   
   function displayRanking() {
     const stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
     const rankingList = document.getElementById('ranking-list');
-    
-    // Convertir en tableau et trier par victoires
+
     const players = Object.entries(stats).map(([name, data]) => ({
       name,
-      wins: data.wins,
-      losses: data.losses,
-      ratio: data.losses > 0 ? (data.wins / data.losses).toFixed(2) : data.wins
+      points: data.points || 0,
+      wins: data.wins || 0,
+      games: data.games || ((data.wins || 0) + (data.losses || 0)) || 0
     }));
-    
-    players.sort((a, b) => b.wins - a.wins);
-    
-    // Générer le HTML
+
+    // Trier par points (décroissant), puis victoires en cas d'égalité
+    players.sort((a, b) => b.points - a.points || b.wins - a.wins);
+
     if (players.length === 0) {
       rankingList.innerHTML = '<p style="color: #888; text-align: center;">Aucune statistique enregistrée</p>';
       return;
     }
-    
+
     let html = '';
     players.forEach((player, index) => {
       const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
@@ -1324,14 +1336,14 @@ function opponentTargetPoint(pid, prof) {
           <span class="ranking-position">#${index + 1} ${medal}</span>
           <span class="ranking-name">${player.name}</span>
           <div class="ranking-stats">
+            <span style="color: #00ffff; font-weight: bold; font-size: 14px;">${player.points} pts</span>
             <span class="ranking-wins">V: ${player.wins}</span>
-            <span class="ranking-losses">D: ${player.losses}</span>
-            <span class="ranking-ratio">R: ${player.ratio}</span>
+            <span style="color: #cfcfcf;">P: ${player.games}</span>
           </div>
         </div>
       `;
     });
-    
+
     rankingList.innerHTML = html;
   }
   
@@ -2033,17 +2045,10 @@ function opponentTargetPoint(pid, prof) {
     if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
       const loserPid = PLAYERS.find(p => p.id !== winner && PLAYERS.indexOf(p) < 2)?.id;
       const loserName = loserPid ? getPlayerName(loserPid) : '';
-      if (loserName) saveResult(winnerName, loserName);
+      if (loserName) saveResult(winnerName, [loserName], 2);
     } else if (PLAYER_COUNT === 4 && playerNames.player1 && playerNames.player2 && playerNames.player3 && playerNames.player4) {
-      let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
-      if (!stats[winnerName]) stats[winnerName] = { wins: 0, losses: 0 };
-      stats[winnerName].wins++;
-      for (const p of PLAYERS.slice(0, 4).filter(p => p.id !== winner)) {
-        const loserName = getPlayerName(p.id);
-        if (!stats[loserName]) stats[loserName] = { wins: 0, losses: 0 };
-        stats[loserName].losses++;
-      }
-      localStorage.setItem('voltclash_stats', JSON.stringify(stats));
+      const loserNames = PLAYERS.slice(0, 4).filter(p => p.id !== winner).map(p => getPlayerName(p.id));
+      saveResult(winnerName, loserNames, 4);
     }
 
     // Supprimer un éventuel écran de victoire existant
