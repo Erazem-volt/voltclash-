@@ -498,6 +498,57 @@
       filter: brightness(0.7) !important;
       box-shadow: none !important;
     }
+
+    /* Autocomplétion pseudo */
+    .pseudo-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .pseudo-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.95);
+      border: 1px solid #0ff;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 150px;
+      overflow-y: auto;
+      z-index: 200;
+      display: none;
+    }
+    .pseudo-suggestions.visible {
+      display: block;
+    }
+    .pseudo-suggestion-item {
+      padding: 8px 12px;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    }
+    .pseudo-suggestion-item:hover,
+    .pseudo-suggestion-item.selected {
+      background: rgba(0, 255, 255, 0.15);
+      color: #0ff;
+    }
+    .pseudo-suggestion-item .suggestion-stats {
+      font-size: 11px;
+      color: #888;
+      margin-left: 8px;
+    }
+    .pseudo-indicator {
+      font-size: 11px;
+      margin-top: 3px;
+      height: 16px;
+    }
+    .pseudo-indicator.exists {
+      color: #0f0;
+    }
+    .pseudo-indicator.new-player {
+      color: #f80;
+    }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1004,6 +1055,160 @@ async function loadOnlineRanking() {
   }
 }
 
+// ============================================================
+// AUTOCOMPLÉTION PSEUDO
+// ============================================================
+let cachedPseudos = null;
+let cachedPseudosTime = 0;
+
+async function loadAllPseudos() {
+  const now = Date.now();
+  if (cachedPseudos && (now - cachedPseudosTime) < 30000) return cachedPseudos;
+
+  if (!supabaseClient) {
+    const stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+    cachedPseudos = Object.keys(stats).map(name => ({ pseudo: name, points: stats[name].points || 0, wins: stats[name].wins || 0 }));
+    cachedPseudosTime = now;
+    return cachedPseudos;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('players')
+      .select('pseudo, points, wins')
+      .order('points', { ascending: false })
+      .limit(200);
+    if (!error && data) {
+      cachedPseudos = data;
+      cachedPseudosTime = now;
+      return data;
+    }
+  } catch (e) {
+    console.warn('Pseudo search offline:', e.message);
+  }
+
+  const stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+  cachedPseudos = Object.keys(stats).map(name => ({ pseudo: name, points: stats[name].points || 0, wins: stats[name].wins || 0 }));
+  cachedPseudosTime = now;
+  return cachedPseudos;
+}
+
+function filterPseudos(allPseudos, query) {
+  if (!query || query.length < 1) return [];
+  const q = query.toLowerCase().trim();
+  return allPseudos
+    .filter(p => p.pseudo.toLowerCase().startsWith(q))
+    .slice(0, 8);
+}
+
+function setupPseudoAutocomplete(input) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'pseudo-wrapper';
+  input.parentNode.insertBefore(wrapper, input);
+  wrapper.appendChild(input);
+
+  const suggestionsDiv = document.createElement('div');
+  suggestionsDiv.className = 'pseudo-suggestions';
+  wrapper.appendChild(suggestionsDiv);
+
+  const indicator = document.createElement('div');
+  indicator.className = 'pseudo-indicator';
+  wrapper.appendChild(indicator);
+
+  let selectedIndex = -1;
+  let currentSuggestions = [];
+
+  input.addEventListener('input', async () => {
+    const query = input.value.trim();
+    if (query.length < 1) {
+      suggestionsDiv.classList.remove('visible');
+      indicator.textContent = '';
+      indicator.className = 'pseudo-indicator';
+      return;
+    }
+
+    const allPseudos = await loadAllPseudos();
+    currentSuggestions = filterPseudos(allPseudos, query);
+    selectedIndex = -1;
+
+    if (currentSuggestions.length > 0) {
+      suggestionsDiv.innerHTML = currentSuggestions.map((p, i) =>
+        `<div class="pseudo-suggestion-item" data-index="${i}">
+          ${p.pseudo}
+          <span class="suggestion-stats">${p.points} ${t('pts')} · ${p.wins} ${t('wins')}</span>
+        </div>`
+      ).join('');
+      suggestionsDiv.classList.add('visible');
+    } else {
+      suggestionsDiv.classList.remove('visible');
+    }
+
+    const exactMatch = allPseudos.find(p => p.pseudo.toLowerCase() === query.toLowerCase());
+    if (exactMatch) {
+      indicator.textContent = '\u2705 ' + exactMatch.pseudo + ' \u2014 ' + exactMatch.points + ' ' + t('pts');
+      indicator.className = 'pseudo-indicator exists';
+    } else if (query.length >= 2) {
+      indicator.textContent = '\u2728 ' + (currentLang === 'en' ? 'New player' : 'Nouveau joueur');
+      indicator.className = 'pseudo-indicator new-player';
+    } else {
+      indicator.textContent = '';
+      indicator.className = 'pseudo-indicator';
+    }
+  });
+
+  suggestionsDiv.addEventListener('click', (e) => {
+    const item = e.target.closest('.pseudo-suggestion-item');
+    if (item) {
+      const idx = parseInt(item.dataset.index);
+      input.value = currentSuggestions[idx].pseudo;
+      suggestionsDiv.classList.remove('visible');
+      input.dispatchEvent(new Event('input'));
+    }
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (!suggestionsDiv.classList.contains('visible')) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, currentSuggestions.length - 1);
+      updateSelection();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, -1);
+      updateSelection();
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault();
+      input.value = currentSuggestions[selectedIndex].pseudo;
+      suggestionsDiv.classList.remove('visible');
+      input.dispatchEvent(new Event('input'));
+    } else if (e.key === 'Escape') {
+      suggestionsDiv.classList.remove('visible');
+    }
+  });
+
+  function updateSelection() {
+    suggestionsDiv.querySelectorAll('.pseudo-suggestion-item').forEach((el, i) => {
+      el.classList.toggle('selected', i === selectedIndex);
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target)) {
+      suggestionsDiv.classList.remove('visible');
+    }
+  });
+}
+
+function initPseudoAutocomplete() {
+  document.querySelectorAll('.player-input').forEach(input => {
+    if (!input.dataset.autocompleteInit) {
+      input.dataset.autocompleteInit = 'true';
+      setupPseudoAutocomplete(input);
+    }
+  });
+}
+
 (() => {
   // ----------------------------
   // Config
@@ -1292,7 +1497,15 @@ function opponentTargetPoint(pid, prof) {
     console.log('Démarrage du jeu');
     gameOver = false;
     originalReset();
-    
+
+    // Snapshot des statuts humain/IA au lancement de la partie
+    // Utilisé pour le classement : seuls les humains au départ comptent
+    window.playerStartedAsHuman = {};
+    for (let i = 0; i < PLAYER_COUNT; i++) {
+      const pid = PLAYERS[i].id;
+      window.playerStartedAsHuman[pid] = (control.get(pid) === "HUMAN");
+    }
+
     console.log('startGame terminé');
   }
 
@@ -1361,8 +1574,11 @@ function opponentTargetPoint(pid, prof) {
     namesScreen.style.visibility = 'visible';
     namesScreen.style.pointerEvents = 'auto';
     namesScreen.style.opacity = '1';
+
+    // Activer l'autocomplétion
+    setTimeout(() => initPseudoAutocomplete(), 100);
   }
-  
+
   function loadSavedNames() {
     const savedPlayer1 = localStorage.getItem('player1_name') || '';
     const savedPlayer2 = localStorage.getItem('player2_name') || '';
@@ -1393,6 +1609,9 @@ function opponentTargetPoint(pid, prof) {
     screen4.style.visibility = 'visible';
     screen4.style.pointerEvents = 'auto';
     screen4.style.opacity = '1';
+
+    // Activer l'autocomplétion
+    setTimeout(() => initPseudoAutocomplete(), 100);
   }
 
   // --- 4 JOUEURS : lancer la partie ---
@@ -1510,6 +1729,22 @@ function opponentTargetPoint(pid, prof) {
   }
   
   function saveResult(winnerName, loserNames, playerCount) {
+    // Ignorer si pas de vrai gagnant humain
+    if (winnerName === '__NO_WINNER__') {
+      let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+      if (Array.isArray(loserNames)) {
+        for (const loserName of loserNames) {
+          if (!loserName) continue;
+          if (!stats[loserName]) stats[loserName] = { points: 0, wins: 0, games: 0 };
+          if (stats[loserName].points === undefined) stats[loserName].points = 0;
+          if (stats[loserName].games === undefined) stats[loserName].games = 0;
+          stats[loserName].games++;
+        }
+      }
+      localStorage.setItem('voltclash_stats', JSON.stringify(stats));
+      return;
+    }
+
     let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
 
     // Points : +3 en 4 joueurs, +1 en 2 joueurs
@@ -2293,14 +2528,42 @@ function opponentTargetPoint(pid, prof) {
   function showVictoryAnimation(winner, color) {
     const winnerName = getPlayerName(winner);
 
-    // Sauvegarder le résultat (2 et 4 joueurs)
+    // Sauvegarder le résultat — UNIQUEMENT les humains (snapshot au départ)
     if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
-      const loserPid = PLAYERS.find(p => p.id !== winner && PLAYERS.indexOf(p) < 2)?.id;
-      const loserName = loserPid ? getPlayerName(loserPid) : '';
-      if (loserName) saveResult(winnerName, [loserName], 2);
+      // Vérifier que les 2 joueurs étaient HUMAINS au départ
+      const p1 = PLAYERS[0].id;
+      const p2 = PLAYERS[1].id;
+      const bothHuman = window.playerStartedAsHuman &&
+                         window.playerStartedAsHuman[p1] &&
+                         window.playerStartedAsHuman[p2];
+      if (bothHuman) {
+        const loserPid = PLAYERS.find(p => p.id !== winner && PLAYERS.indexOf(p) < 2)?.id;
+        const loserName = loserPid ? getPlayerName(loserPid) : '';
+        if (loserName) saveResult(winnerName, [loserName], 2);
+      }
     } else if (PLAYER_COUNT === 4 && playerNames.player1 && playerNames.player2 && playerNames.player3 && playerNames.player4) {
-      const loserNames = PLAYERS.slice(0, 4).filter(p => p.id !== winner).map(p => getPlayerName(p.id));
-      saveResult(winnerName, loserNames, 4);
+      // Collecter uniquement les joueurs qui étaient HUMAINS au départ
+      const humanPlayers = PLAYERS.slice(0, 4).filter(p =>
+        window.playerStartedAsHuman && window.playerStartedAsHuman[p.id]
+      );
+
+      // Ne sauvegarder que si au moins 2 humains jouaient
+      if (humanPlayers.length >= 2) {
+        const winnerIsHuman = window.playerStartedAsHuman && window.playerStartedAsHuman[winner];
+        if (winnerIsHuman) {
+          // Le gagnant est humain : il gagne des points
+          const humanLoserNames = humanPlayers
+            .filter(p => p.id !== winner)
+            .map(p => getPlayerName(p.id));
+          saveResult(winnerName, humanLoserNames, humanPlayers.length);
+        } else {
+          // Le gagnant est une IA : les humains perdants comptent juste une partie jouée
+          const allHumanNames = humanPlayers.map(p => getPlayerName(p.id));
+          for (const name of allHumanNames) {
+            saveResult('__NO_WINNER__', [name], humanPlayers.length);
+          }
+        }
+      }
     }
 
     // Supprimer un éventuel écran de victoire existant
