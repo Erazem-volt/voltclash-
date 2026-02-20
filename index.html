@@ -524,7 +524,7 @@
     
     <!-- Case options verticale côté droit -->
     <div id="options-panel" style="display: none; position: fixed; top: 50%; right: 20px; transform: translateY(-50%); width: 250px; padding: 20px; background: rgba(0,0,0,0.95); border: 2px solid #444; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.7); z-index: 100;">
-      <div style="color: #9d4edd; font-weight: bold; margin-bottom: 15px; font-family: 'Orbitron'; text-align: center; font-size: 14px;">⚙️ OPTIONS</div>
+      <div style="color: #9d4edd; font-weight: bold; margin-bottom: 15px; font-family: 'Orbitron'; text-align: center; font-size: 14px;" data-lang="optionsTitle">⚙️ OPTIONS</div>
       
       <!-- Section Musique -->
       <div style="margin-bottom: 20px; padding: 15px; background: rgba(157, 78, 221, 0.1); border-radius: 8px; border: 1px solid #444;">
@@ -562,6 +562,15 @@
           <div><span style="color: #9d4edd; font-weight: bold;">T</span> : Pause</div>
         </div>
       </div>
+
+      <!-- Langue -->
+      <div style="margin-top: 15px; display:flex; justify-content:space-between; align-items:center; padding:8px 0;">
+        <label data-lang="langLabel" style="color:#ccc; font-size:12px;">Langue</label>
+        <button id="btn-lang-panel" onclick="toggleLanguage()"
+          style="background:rgba(0,255,255,0.15); border:1px solid #0ff; color:#0ff; padding:4px 12px; border-radius:6px; cursor:pointer; font-size:11px;">
+          Langue: Français
+        </button>
+      </div>
     </div>
   </div>
 
@@ -570,7 +579,7 @@
     <div class="menu-card">
       <h1 class="glow-text">VOLT CLASH</h1>
       <div class="menu-section">
-        <p style="color: #888; font-family: Orbitron; margin-bottom: 20px;">SAISIR LES PSEUDOS</p>
+        <p style="color: #888; font-family: Orbitron; margin-bottom: 20px;" data-lang="enterPseudos">SAISIR LES PSEUDOS</p>
         <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#ff5d5d; flex-shrink:0; box-shadow:0 0 8px #ff5d5d;"></span>
@@ -586,8 +595,8 @@
           </div>
         </div>
         <div style="display: flex; gap: 10px; justify-content: center;">
-          <button class="futuristic-btn" onclick="startGameWithNames()">COMMENCER</button>
-          <button class="futuristic-btn" onclick="backToMenu()">RETOUR</button>
+          <button class="futuristic-btn" onclick="startGameWithNames()" data-lang="startGame">COMMENCER</button>
+          <button class="futuristic-btn" onclick="backToMenu()" data-lang="back">RETOUR</button>
         </div>
       </div>
     </div>
@@ -598,7 +607,7 @@
     <div class="menu-card">
       <h1 class="glow-text">VOLT CLASH</h1>
       <div class="menu-section">
-        <p style="color: #888; font-family: Orbitron; margin-bottom: 20px;">SAISIR LES PSEUDOS — 4 JOUEURS</p>
+        <p style="color: #888; font-family: Orbitron; margin-bottom: 20px;" data-lang="enterPseudos4">SAISIR LES PSEUDOS — 4 JOUEURS</p>
         <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#ff5d5d; flex-shrink:0; box-shadow:0 0 8px #ff5d5d;"></span>
@@ -626,8 +635,8 @@
           </div>
         </div>
         <div style="display: flex; gap: 10px; justify-content: center;">
-          <button class="futuristic-btn" onclick="startGameWith4Names()">COMMENCER</button>
-          <button class="futuristic-btn" onclick="backToMenu()">RETOUR</button>
+          <button class="futuristic-btn" onclick="startGameWith4Names()" data-lang="startGame">COMMENCER</button>
+          <button class="futuristic-btn" onclick="backToMenu()" data-lang="back">RETOUR</button>
         </div>
       </div>
     </div>
@@ -636,15 +645,15 @@
   <!-- Écran de classement -->
   <div id="ranking-screen" class="menu-overlay" style="display: none;">
     <div class="menu-card">
-      <h1 class="glow-text">CLASSEMENT</h1>
+      <h1 class="glow-text" data-lang="rankingTitle">CLASSEMENT</h1>
       <div class="menu-section">
-        <p style="color: #888; font-family: Orbitron; margin-bottom: 20px;">TABLEAU DES SCORES</p>
+        <p style="color: #888; font-family: Orbitron; margin-bottom: 20px;" data-lang="scoreBoard">TABLEAU DES SCORES</p>
         <div id="ranking-list" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid #444; max-height: 400px; overflow-y: auto;">
           <!-- Le classement sera généré ici -->
         </div>
         <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
-          <button class="futuristic-btn danger" onclick="clearRanking()">EFFACER</button>
-          <button class="futuristic-btn" onclick="backToMenu()">RETOUR</button>
+          <button class="futuristic-btn danger" onclick="clearRanking()" data-lang="clear">EFFACER</button>
+          <button class="futuristic-btn" onclick="backToMenu()" data-lang="back">RETOUR</button>
         </div>
       </div>
     </div>
@@ -655,9 +664,9 @@
     <div class="menu-card">
       <h1 class="glow-text">VOLT CLASH</h1>
       <div class="menu-section">
-        <p style="color: #888; font-family: Orbitron;">NOMBRE DE JOUEURS</p>
-        <button id="btn-2players" class="futuristic-btn" onclick="showPlayerNamesScreen()">2 JOUEURS</button>
-        <button id="btn-4players" class="futuristic-btn" onclick="show4PlayerNamesScreen()">4 JOUEURS</button>
+        <p style="color: #888; font-family: Orbitron;" data-lang="nbPlayers">NOMBRE DE JOUEURS</p>
+        <button id="btn-2players" class="futuristic-btn" onclick="showPlayerNamesScreen()" data-lang="play2">2 JOUEURS</button>
+        <button id="btn-4players" class="futuristic-btn" onclick="show4PlayerNamesScreen()" data-lang="play4">4 JOUEURS</button>
       </div>
       <div class="menu-section">
         <p style="color: #888; font-family: Orbitron;">MUSIQUE</p>
@@ -669,9 +678,9 @@
         </div>
       </div>
       <div class="menu-section">
-        <button class="futuristic-btn" onclick="showRankingScreen()">🏆 CLASSEMENT</button>
+        <button class="futuristic-btn" onclick="showRankingScreen()">🏆 <span data-lang="ranking">CLASSEMENT</span></button>
       </div>
-      <button class="futuristic-btn primary pulse" onclick="startGame()">LANCER</button>
+      <button class="futuristic-btn primary pulse" onclick="startGame()" data-lang="startGame">COMMENCER</button>
     </div>
   </div>
 
@@ -683,7 +692,7 @@
 <div id="options-modal" class="modal" style="display: none;">
   <div class="modal-content">
     <div class="modal-header">
-      <h2 style="color: #00ffff; font-family: 'Orbitron', sans-serif; margin: 0;">⚙️ OPTIONS</h2>
+      <h2 style="color: #00ffff; font-family: 'Orbitron', sans-serif; margin: 0;" data-lang="optionsTitle">⚙️ OPTIONS</h2>
       <button class="modal-close" onclick="closeOptions()">×</button>
     </div>
     
@@ -714,6 +723,17 @@
         </div>
       </div>
       
+      <!-- Section Langue -->
+      <div class="option-section">
+        <h3 style="color: #9d4edd; font-family: 'Orbitron', sans-serif; margin-bottom: 15px;">🌐 <span data-lang="langLabel">Langue</span></h3>
+        <div style="display:flex; justify-content:center;">
+          <button id="btn-lang" onclick="toggleLanguage()"
+            style="background:rgba(0,255,255,0.15); border:1px solid #0ff; color:#0ff; padding:6px 16px; border-radius:6px; cursor:pointer; font-size:13px;">
+            Langue: Français
+          </button>
+        </div>
+      </div>
+
       <!-- Section Raccourcis -->
       <div class="option-section">
         <h3 style="color: #9d4edd; font-family: 'Orbitron', sans-serif; margin-bottom: 15px;">⌨️ RACCOURCIS CLAVIER</h3>
@@ -769,6 +789,172 @@ let GRID_CELLS = 20;
 let NODES = 21;
 let PLAYER_COUNT = 4;
 let displayW, displayH;
+
+// ============================================================
+// SYSTÈME DE LANGUE FR / EN
+// ============================================================
+let currentLang = localStorage.getItem('voltclash_lang') || 'fr';
+
+const LANG = {
+  fr: {
+    title: "VOLT CLASH",
+    play2: "2 JOUEURS",
+    play4: "4 JOUEURS",
+    ranking: "CLASSEMENT",
+    back: "RETOUR",
+    player: "Joueur",
+    human: "Humain",
+    ai: "IA",
+    startGame: "COMMENCER",
+    enterName: "Pseudo...",
+    reset: "Réinitialiser",
+    bgBlack: "Fond: Noir",
+    bgWhite: "Fond: Blanc",
+    aiNormal: "IA: Normal",
+    aiExpert: "IA: Expert",
+    menu: "Menu",
+    options: "Options",
+    optionsTitle: "⚙️ OPTIONS",
+    musicSection: "🎵 MUSIQUE",
+    soundSection: "🔊 SONS",
+    shortcutsSection: "⌨️ RACCOURCIS",
+    langLabel: "Langue",
+    langValue: "Français",
+    close: "FERMER",
+    rankingTitle: "CLASSEMENT",
+    scoreBoard: "TABLEAU DES SCORES",
+    pts: "pts",
+    wins: "V",
+    games: "P",
+    clear: "EFFACER",
+    noStats: "Aucune statistique enregistrée",
+    victory: "VICTOIRE",
+    winner: "REMPORTE LA PARTIE !",
+    backToMenu: "MENU",
+    turnOf: "Tour de",
+    eliminated: "éliminé par",
+    yourTurn: "À toi de jouer.",
+    aiPlays: "joue…",
+    enterPseudos: "SAISIR LES PSEUDOS",
+    enterPseudos4: "SAISIR LES PSEUDOS — 4 JOUEURS",
+    nbPlayers: "NOMBRE DE JOUEURS",
+    musicLabel: "MUSIQUE",
+    volume: "VOLUME:",
+    shortcutPlace: "Placer croix",
+    shortcutMusic: "Musique ON/OFF",
+    shortcutVolume: "Volume musique",
+    shortcutReset: "Réinitialiser",
+    shortcutMenu: "Menu",
+    shortcutBg: "Toggle fond",
+    shortcutExpert: "Mode expert",
+    shortcutPause: "Pause",
+    confirmClear: "Êtes-vous sûr de vouloir effacer toutes les statistiques ?",
+    elimination: "ÉLIMINATION",
+    playerCount: "JOUEURS",
+  },
+  en: {
+    title: "VOLT CLASH",
+    play2: "2 PLAYERS",
+    play4: "4 PLAYERS",
+    ranking: "RANKING",
+    back: "BACK",
+    player: "Player",
+    human: "Human",
+    ai: "AI",
+    startGame: "START",
+    enterName: "Name...",
+    reset: "Reset",
+    bgBlack: "BG: Black",
+    bgWhite: "BG: White",
+    aiNormal: "AI: Normal",
+    aiExpert: "AI: Expert",
+    menu: "Menu",
+    options: "Options",
+    optionsTitle: "⚙️ OPTIONS",
+    musicSection: "🎵 MUSIC",
+    soundSection: "🔊 SOUNDS",
+    shortcutsSection: "⌨️ SHORTCUTS",
+    langLabel: "Language",
+    langValue: "English",
+    close: "CLOSE",
+    rankingTitle: "RANKING",
+    scoreBoard: "SCOREBOARD",
+    pts: "pts",
+    wins: "W",
+    games: "G",
+    clear: "CLEAR",
+    noStats: "No stats recorded",
+    victory: "VICTORY",
+    winner: "WINS THE GAME!",
+    backToMenu: "MENU",
+    turnOf: "Turn of",
+    eliminated: "eliminated by",
+    yourTurn: "Your turn.",
+    aiPlays: "playing…",
+    enterPseudos: "ENTER NAMES",
+    enterPseudos4: "ENTER NAMES — 4 PLAYERS",
+    nbPlayers: "NUMBER OF PLAYERS",
+    musicLabel: "MUSIC",
+    volume: "VOLUME:",
+    shortcutPlace: "Place cross",
+    shortcutMusic: "Music ON/OFF",
+    shortcutVolume: "Music volume",
+    shortcutReset: "Reset",
+    shortcutMenu: "Menu",
+    shortcutBg: "Toggle BG",
+    shortcutExpert: "Expert mode",
+    shortcutPause: "Pause",
+    confirmClear: "Are you sure you want to clear all stats?",
+    elimination: "ELIMINATION",
+    playerCount: "PLAYERS",
+  }
+};
+
+function t(key) {
+  return LANG[currentLang][key] || LANG['fr'][key] || key;
+}
+
+function toggleLanguage() {
+  currentLang = (currentLang === 'fr') ? 'en' : 'fr';
+  localStorage.setItem('voltclash_lang', currentLang);
+  applyLanguage();
+}
+
+function applyLanguage() {
+  document.querySelectorAll('[data-lang]').forEach(el => {
+    const key = el.getAttribute('data-lang');
+    if (el.tagName === 'INPUT' && el.placeholder !== undefined) {
+      el.placeholder = t(key);
+    } else {
+      el.textContent = t(key);
+    }
+  });
+
+  const langBtn = document.getElementById('btn-lang');
+  if (langBtn) langBtn.textContent = t('langLabel') + ': ' + t('langValue');
+  const langBtnPanel = document.getElementById('btn-lang-panel');
+  if (langBtnPanel) langBtnPanel.textContent = t('langLabel') + ': ' + t('langValue');
+
+  const bgBtn = document.getElementById('togglebg');
+  if (bgBtn) {
+    const isBlack = document.body.style.backgroundColor === 'black' ||
+                     getComputedStyle(document.body).backgroundColor === 'rgb(0, 0, 0)' ||
+                     !document.body.style.backgroundColor;
+    bgBtn.textContent = isBlack ? t('bgBlack') : t('bgWhite');
+  }
+
+  const aiBtn = document.getElementById('toggleExpert');
+  if (aiBtn) {
+    const isExpert = aiBtn.textContent.includes('Expert') || aiBtn.textContent.includes('EXPERT');
+    aiBtn.textContent = isExpert ? t('aiExpert') : t('aiNormal');
+  }
+
+  const resetBtn = document.getElementById('reset');
+  if (resetBtn) resetBtn.textContent = t('reset');
+
+  const menuBtn = document.getElementById('menu');
+  if (menuBtn) menuBtn.textContent = t('menu');
+}
 
 (() => {
   // ----------------------------
@@ -916,19 +1102,19 @@ function opponentTargetPoint(pid, prof) {
     boardBg = (boardBg === "#0b0b0b") ? "#ffffff" : "#0b0b0b";
     updateBgButton();
     const exBtn = document.getElementById('toggleExpert');
-    if (exBtn) exBtn.textContent = expertMode ? 'IA: Expert' : 'IA: Normal';
+    if (exBtn) exBtn.textContent = expertMode ? t('aiExpert') : t('aiNormal');
     requestRedraw();
   }
   function updateBgButton(){
     const btn = document.getElementById("togglebg");
     if (!btn) return;
-    btn.textContent = (boardBg === "#0b0b0b") ? "Fond: Noir" : "Fond: Blanc";
+    btn.textContent = (boardBg === "#0b0b0b") ? t('bgBlack') : t('bgWhite');
   }
   // Toggle Expert AI (Beam Search)
   function toggleExpertMode(){
     expertMode = !expertMode;
     const btn = document.getElementById("toggleExpert");
-    if (btn) btn.textContent = expertMode ? "IA: Expert" : "IA: Normal";
+    if (btn) btn.textContent = expertMode ? t('aiExpert') : t('aiNormal');
     message = expertMode ? "Mode Expert (Beam) activé." : "Mode Normal activé.";
     setBadges();
     requestRedraw();
@@ -1324,7 +1510,7 @@ function opponentTargetPoint(pid, prof) {
     players.sort((a, b) => b.points - a.points || b.wins - a.wins);
 
     if (players.length === 0) {
-      rankingList.innerHTML = '<p style="color: #888; text-align: center;">Aucune statistique enregistrée</p>';
+      rankingList.innerHTML = '<p style="color: #888; text-align: center;">' + t('noStats') + '</p>';
       return;
     }
 
@@ -1336,9 +1522,9 @@ function opponentTargetPoint(pid, prof) {
           <span class="ranking-position">#${index + 1} ${medal}</span>
           <span class="ranking-name">${player.name}</span>
           <div class="ranking-stats">
-            <span style="color: #00ffff; font-weight: bold; font-size: 14px;">${player.points} pts</span>
-            <span class="ranking-wins">V: ${player.wins}</span>
-            <span style="color: #cfcfcf;">P: ${player.games}</span>
+            <span style="color: #00ffff; font-weight: bold; font-size: 14px;">${player.points} ${t('pts')}</span>
+            <span class="ranking-wins">${t('wins')}: ${player.wins}</span>
+            <span style="color: #cfcfcf;">${t('games')}: ${player.games}</span>
           </div>
         </div>
       `;
@@ -1348,7 +1534,7 @@ function opponentTargetPoint(pid, prof) {
   }
   
   function clearRanking() {
-    if (confirm('Êtes-vous sûr de vouloir effacer toutes les statistiques ?')) {
+    if (confirm(t('confirmClear'))) {
       localStorage.removeItem('voltclash_stats');
       displayRanking();
     }
@@ -2023,7 +2209,7 @@ function opponentTargetPoint(pid, prof) {
     // Afficher l'élimination dans le status au lieu du banner
     const statusDiv = document.getElementById('status');
     if (statusDiv) {
-      statusDiv.innerHTML = `<span style="color: ${playerById(eliminatorPid).color}; font-weight: bold;">ÉLIMINATION : ${elimPid} éliminé par ${eliminatorPid} — ${reason}</span>`;
+      statusDiv.innerHTML = `<span style="color: ${playerById(eliminatorPid).color}; font-weight: bold;">${t('elimination')} : ${elimPid} ${t('eliminated')} ${eliminatorPid} — ${reason}</span>`;
       // Effacer après 3 secondes
       setTimeout(() => {
         statusDiv.innerHTML = '';
@@ -2084,7 +2270,7 @@ function opponentTargetPoint(pid, prof) {
 
     // Texte VICTOIRE
     const title = document.createElement('div');
-    title.textContent = 'VICTOIRE';
+    title.textContent = t('victory');
     title.style.cssText = `
       position: relative; z-index: 1;
       font-family: 'Orbitron', sans-serif; font-size: 6rem; font-weight: 900;
@@ -2097,7 +2283,7 @@ function opponentTargetPoint(pid, prof) {
 
     // Pseudo du gagnant
     const nameEl = document.createElement('div');
-    nameEl.textContent = winnerName;
+    nameEl.textContent = winnerName + ' ' + t('winner');
     nameEl.style.cssText = `
       position: relative; z-index: 1;
       font-family: 'Orbitron', sans-serif; font-size: 2rem;
@@ -2108,7 +2294,7 @@ function opponentTargetPoint(pid, prof) {
 
     // Bouton MENU
     const menuBtn = document.createElement('button');
-    menuBtn.textContent = 'MENU';
+    menuBtn.textContent = t('backToMenu');
     menuBtn.className = 'futuristic-btn';
     menuBtn.style.cssText = `
       position: relative; z-index: 1;
@@ -3048,7 +3234,7 @@ function pickAIMove(pid) {
       label.style.color = p.color;
 
       const sel = document.createElement("select");
-      sel.innerHTML = `<option value="HUMAN">Humain</option><option value="AI">IA</option>`;
+      sel.innerHTML = `<option value="HUMAN">${t('human')}</option><option value="AI">${t('ai')}</option>`;
       sel.value = control.get(p.id);
       sel.addEventListener("change", () => {
         control.set(p.id, sel.value);
@@ -3072,11 +3258,11 @@ function pickAIMove(pid) {
     if (gameOver) {
       statusMessage = `<span class="ok">${message}</span>`;
     } else if (control.get(pid) === "AI") {
-      statusMessage = `<span class="warn">IA ${pid} joue… ${message ? "— " + message : ""}</span>`;
+      statusMessage = `<span class="warn">${t('ai')} ${pid} ${t('aiPlays')} ${message ? "— " + message : ""}</span>`;
     } else if (message) {
       statusMessage = `<span class="warn">${message}</span>`;
     } else {
-      statusMessage = `<span class="ok">À toi de jouer.</span>`;
+      statusMessage = `<span class="ok">${t('yourTurn')}</span>`;
     }
     
     // Afficher le statut simple sans bouton options
@@ -4120,7 +4306,10 @@ ctx.restore();
   initializeMenu();
   
   // S'assurer que l'état est correct après le chargement complet
-  window.addEventListener('load', initializeMenu);
+  window.addEventListener('load', () => {
+    initializeMenu();
+    applyLanguage();
+  });
   
   // Empêcher reset() de s'exécuter uniquement au démarrage automatique
   let hasStarted = false;
