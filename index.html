@@ -29,6 +29,7 @@
       
       /* Texte */
       color: #00ffff;
+      text-align: center;
       text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
       
       /* Curseur et transition */
@@ -694,6 +695,56 @@
     </div>
   </div>
 
+  <!-- Écran des règles -->
+  <div id="rules-screen" class="menu-overlay" style="display: none;">
+    <div class="menu-card" style="max-width: 520px; max-height: 80vh; overflow-y: auto;">
+      <h1 class="glow-text" data-lang="rulesTitle">RÈGLES</h1>
+
+      <div style="text-align: left; padding: 0 10px;">
+
+        <h3 style="color: #0ff; margin: 18px 0 8px; font-size: 16px; letter-spacing: 2px;" data-lang="rulesObjective">OBJECTIF</h3>
+        <p style="color: #ccc; font-size: 14px; line-height: 1.6; margin: 0 0 10px;" data-lang="rulesObjectiveText">
+          Détruisez la ou les bases adverses en étendant votre circuit électrique à travers la grille.
+        </p>
+
+        <h3 style="color: #0ff; margin: 18px 0 8px; font-size: 16px; letter-spacing: 2px;" data-lang="rulesHowTo">COMMENT JOUER</h3>
+        <p style="color: #ccc; font-size: 14px; line-height: 1.6; margin: 0 0 6px;" data-lang="rulesHowToText1">
+          Placez jusqu'à 5 croix par tour pour faire progresser votre circuit depuis votre base.
+        </p>
+        <p style="color: #ccc; font-size: 14px; line-height: 1.6; margin: 0 0 6px;" data-lang="rulesHowToText2">
+          Vos croix doivent rester connectées entre elles et à votre base pour être alimentées.
+        </p>
+        <p style="color: #ccc; font-size: 14px; line-height: 1.6; margin: 0 0 10px;" data-lang="rulesHowToText3">
+          Atteignez une base adverse avec votre circuit pour la détruire et éliminer son propriétaire.
+        </p>
+
+        <h3 style="color: #f44; margin: 18px 0 8px; font-size: 16px; letter-spacing: 2px;" data-lang="rulesAttack">ATTAQUE</h3>
+        <p style="color: #ccc; font-size: 14px; line-height: 1.6; margin: 0 0 10px;" data-lang="rulesAttackText">
+          Mangez les croix adverses pour les transformer en murs et déconnecter leur circuit. Un circuit coupé perd toutes les croix non reliées à sa base.
+        </p>
+
+        <h3 style="color: #0f0; margin: 18px 0 8px; font-size: 16px; letter-spacing: 2px;" data-lang="rulesVictory">VICTOIRE</h3>
+        <p style="color: #ccc; font-size: 14px; line-height: 1.6; margin: 0 0 10px;" data-lang="rulesVictoryText">
+          Le dernier joueur en vie remporte la partie !
+        </p>
+
+        <h3 style="color: #ff0; margin: 18px 0 8px; font-size: 16px; letter-spacing: 2px;" data-lang="rulesTips">ASTUCES</h3>
+        <p style="color: #ccc; font-size: 14px; line-height: 1.6; margin: 0 0 4px;" data-lang="rulesTip1">
+          ⚡ Progressez en diagonale : les croix placées en zigzag sont plus difficiles à capturer et offrent moins de prises à l'adversaire pour créer des murs permanents.
+        </p>
+        <p style="color: #ccc; font-size: 14px; line-height: 1.6; margin: 0 0 4px;" data-lang="rulesTip2">
+          🔀 Construisez des circuits parallèles : si l'ennemi coupe une branche, vos croix pourront se reconnecter par un chemin alternatif.
+        </p>
+        <p style="color: #ccc; font-size: 14px; line-height: 1.6; margin: 0 0 10px;" data-lang="rulesTip3">
+          ✂️ Coupez le circuit ennemi au point le plus étroit pour un maximum de dégâts.
+        </p>
+
+      </div>
+
+      <button class="futuristic-btn" onclick="backToMenu()" data-lang="back">RETOUR</button>
+    </div>
+  </div>
+
   <!-- Écran de classement -->
   <div id="ranking-screen" class="menu-overlay" style="display: none;">
     <div class="menu-card">
@@ -731,6 +782,7 @@
       </div>
       <div class="menu-section">
         <button class="futuristic-btn" onclick="showRankingScreen()">🏆 <span data-lang="ranking">CLASSEMENT</span></button>
+        <button class="futuristic-btn" onclick="showRulesScreen()">📖 <span data-lang="rulesTitle">RÈGLES</span></button>
       </div>
       <button class="futuristic-btn primary pulse" onclick="startGame()" data-lang="startGame">COMMENCER</button>
     </div>
@@ -903,6 +955,21 @@ const LANG = {
     confirmClear: "Êtes-vous sûr de vouloir effacer toutes les statistiques ?",
     elimination: "ÉLIMINATION",
     playerCount: "JOUEURS",
+    rulesTitle: "RÈGLES",
+    rulesObjective: "OBJECTIF",
+    rulesObjectiveText: "Détruisez la ou les bases adverses en étendant votre circuit électrique à travers la grille.",
+    rulesHowTo: "COMMENT JOUER",
+    rulesHowToText1: "Placez jusqu'à 5 croix par tour pour faire progresser votre circuit depuis votre base.",
+    rulesHowToText2: "Vos croix doivent rester connectées entre elles et à votre base pour être alimentées.",
+    rulesHowToText3: "Atteignez une base adverse avec votre circuit pour la détruire et éliminer son propriétaire.",
+    rulesAttack: "ATTAQUE",
+    rulesAttackText: "Mangez les croix adverses pour les transformer en murs et déconnecter leur circuit. Un circuit coupé perd toutes les croix non reliées à sa base.",
+    rulesVictory: "VICTOIRE",
+    rulesVictoryText: "Le dernier joueur en vie remporte la partie !",
+    rulesTips: "ASTUCES",
+    rulesTip1: "⚡ Progressez en diagonale : les croix placées en zigzag sont plus difficiles à capturer et offrent moins de prises à l'adversaire pour créer des murs permanents.",
+    rulesTip2: "🔀 Construisez des circuits parallèles : si l'ennemi coupe une branche, vos croix pourront se reconnecter par un chemin alternatif.",
+    rulesTip3: "✂️ Coupez le circuit ennemi au point le plus étroit pour un maximum de dégâts.",
   },
   en: {
     title: "VOLT CLASH",
@@ -959,6 +1026,21 @@ const LANG = {
     confirmClear: "Are you sure you want to clear all stats?",
     elimination: "ELIMINATION",
     playerCount: "PLAYERS",
+    rulesTitle: "RULES",
+    rulesObjective: "OBJECTIVE",
+    rulesObjectiveText: "Destroy enemy base(s) by extending your electric circuit across the grid.",
+    rulesHowTo: "HOW TO PLAY",
+    rulesHowToText1: "Place up to 5 crosses per turn to extend your circuit from your base.",
+    rulesHowToText2: "Your crosses must stay connected to each other and to your base to remain powered.",
+    rulesHowToText3: "Reach an enemy base with your circuit to destroy it and eliminate its owner.",
+    rulesAttack: "ATTACK",
+    rulesAttackText: "Eat enemy crosses to turn them into walls and disconnect their circuit. A severed circuit loses all crosses not linked to its base.",
+    rulesVictory: "VICTORY",
+    rulesVictoryText: "Last player standing wins the game!",
+    rulesTips: "TIPS",
+    rulesTip1: "⚡ Move diagonally: zigzag crosses are harder to capture and give your opponent fewer opportunities to create permanent walls.",
+    rulesTip2: "🔀 Build parallel circuits: if the enemy cuts one branch, your crosses can reconnect through an alternate path.",
+    rulesTip3: "✂️ Cut the enemy circuit at its narrowest point for maximum damage.",
   }
 };
 
@@ -1022,13 +1104,15 @@ function normalizePseudo(name) {
 }
 
 async function saveResultOnline(winnerName, loserNames, playerCount) {
-  if (!supabaseClient) return;
+  console.log('saveResultOnline called:', winnerName, loserNames, playerCount);
+  if (!supabaseClient) { console.log('saveResultOnline: supabaseClient is null, skipping'); return; }
   try {
     const { error } = await supabaseClient.rpc('record_game_result', {
       p_winner_pseudo: normalizePseudo(winnerName),
       p_loser_pseudos: loserNames.map(n => normalizePseudo(n)),
       p_player_count: playerCount
     });
+    console.log('Supabase result:', error ? error.message : 'OK');
     if (error) console.warn('Supabase save error:', error.message);
   } catch (e) {
     console.warn('Supabase offline:', e.message);
@@ -1526,6 +1610,7 @@ function opponentTargetPoint(pid, prof) {
   window.startGameWith4Names = startGameWith4Names;
   window.startGameWithNames = startGameWithNames;
   window.backToMenu = backToMenu;
+  window.showRulesScreen = showRulesScreen;
   window.showRankingScreen = showRankingScreen;
   window.clearRanking = clearRanking;
   
@@ -1707,7 +1792,9 @@ function opponentTargetPoint(pid, prof) {
     namesScreen.style.display = 'none';
     if (namesScreen4) namesScreen4.style.display = 'none';
     rankingScreen.style.display = 'none';
-    
+    const rulesScreen = document.getElementById('rules-screen');
+    if (rulesScreen) rulesScreen.style.display = 'none';
+
     // Afficher le menu principal
     menu.style.display = 'flex';
     menu.style.visibility = 'visible';
@@ -1715,20 +1802,34 @@ function opponentTargetPoint(pid, prof) {
     menu.style.opacity = '1';
   }
   
+  function showRulesScreen() {
+    const menu = document.getElementById('main-menu');
+    const rulesScreen = document.getElementById('rules-screen');
+
+    menu.style.display = 'none';
+    rulesScreen.style.display = 'flex';
+    rulesScreen.style.visibility = 'visible';
+    rulesScreen.style.pointerEvents = 'auto';
+    rulesScreen.style.opacity = '1';
+
+    applyLanguage();
+  }
+
   function showRankingScreen() {
     const menu = document.getElementById('main-menu');
     const rankingScreen = document.getElementById('ranking-screen');
-    
+
     menu.style.display = 'none';
     rankingScreen.style.display = 'flex';
     rankingScreen.style.visibility = 'visible';
     rankingScreen.style.pointerEvents = 'auto';
     rankingScreen.style.opacity = '1';
-    
+
     displayRanking();
   }
   
   function saveResult(winnerName, loserNames, playerCount) {
+    console.log('>>> saveResult:', winnerName, loserNames, playerCount);
     // Ignorer si pas de vrai gagnant humain
     if (winnerName === '__NO_WINNER__') {
       let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
@@ -1775,6 +1876,7 @@ function opponentTargetPoint(pid, prof) {
       }
     }
 
+    console.log('>>> localStorage updated:', JSON.stringify(stats));
     localStorage.setItem('voltclash_stats', JSON.stringify(stats));
 
     // Sauvegarder aussi en ligne
@@ -1782,6 +1884,7 @@ function opponentTargetPoint(pid, prof) {
   }
   
   async function displayRanking() {
+    console.log('displayRanking called');
     const rankingList = document.getElementById('ranking-list');
 
     // Afficher un loader
@@ -1804,6 +1907,7 @@ function opponentTargetPoint(pid, prof) {
       players.sort((a, b) => b.points - a.points || b.wins - a.wins);
     }
 
+    console.log('Ranking data:', players);
     if (players.length === 0) {
       rankingList.innerHTML = '<p style="color: #888; text-align: center;">' + t('noStats') + '</p>';
       return;
@@ -2528,41 +2632,90 @@ function opponentTargetPoint(pid, prof) {
   function showVictoryAnimation(winner, color) {
     const winnerName = getPlayerName(winner);
 
-    // Sauvegarder le résultat — UNIQUEMENT les humains (snapshot au départ)
-    if (PLAYER_COUNT === 2 && playerNames.player1 && playerNames.player2) {
-      // Vérifier que les 2 joueurs étaient HUMAINS au départ
-      const p1 = PLAYERS[0].id;
-      const p2 = PLAYERS[1].id;
-      const bothHuman = window.playerStartedAsHuman &&
-                         window.playerStartedAsHuman[p1] &&
-                         window.playerStartedAsHuman[p2];
-      if (bothHuman) {
-        const loserPid = PLAYERS.find(p => p.id !== winner && PLAYERS.indexOf(p) < 2)?.id;
-        const loserName = loserPid ? getPlayerName(loserPid) : '';
-        if (loserName) saveResult(winnerName, [loserName], 2);
+    // === DEBUG CLASSEMENT ===
+    console.log('=== VICTORY DEBUG ===');
+    console.log('Winner:', winnerName, '(pid:', winner, ')');
+    console.log('PLAYER_COUNT:', PLAYER_COUNT);
+    console.log('playerStartedAsHuman:', window.playerStartedAsHuman);
+    console.log('playerNames:', playerNames);
+
+    // Sauvegarder le résultat — UNIQUEMENT les humains (au moins 1 humain requis)
+    if (PLAYER_COUNT === 2) {
+      const p1id = PLAYERS[0].id;
+      const p2id = PLAYERS[1].id;
+      const p1human = window.playerStartedAsHuman && window.playerStartedAsHuman[p1id];
+      const p2human = window.playerStartedAsHuman && window.playerStartedAsHuman[p2id];
+      const p1name = getPlayerName(p1id);
+      const p2name = getPlayerName(p2id);
+
+      console.log('SAVE 2J: p1=', p1name, 'human=', p1human, 'p2=', p2name, 'human=', p2human, 'winner=', winnerName);
+
+      // Au moins 1 humain requis
+      if (p1human || p2human) {
+        const winnerIsHuman = (winner === p1id && p1human) || (winner === p2id && p2human);
+
+        if (winnerIsHuman) {
+          // Le gagnant est humain : il gagne des points
+          const loserPid = (winner === p1id) ? p2id : p1id;
+          const loserName = getPlayerName(loserPid);
+          const loserIsHuman = (loserPid === p1id) ? p1human : p2human;
+
+          if (loserIsHuman) {
+            // Humain vs Humain : les 2 sont enregistrés
+            saveResult(winnerName, [loserName], 2);
+          } else {
+            // Humain vs IA : seul l'humain gagnant est enregistré
+            saveResult(winnerName, [], 2);
+          }
+          console.log('SAVED: winner=', winnerName, 'points=1');
+        } else {
+          // L'IA a gagné : les humains comptent juste une partie jouée
+          const humanNames = [];
+          if (p1human) humanNames.push(p1name);
+          if (p2human) humanNames.push(p2name);
+          for (const name of humanNames) {
+            let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+            if (!stats[name]) stats[name] = { points: 0, wins: 0, games: 0 };
+            stats[name].games++;
+            localStorage.setItem('voltclash_stats', JSON.stringify(stats));
+          }
+          console.log('IA WON: humans games updated:', humanNames);
+        }
+      } else {
+        console.log('SKIPPED: no humans');
       }
-    } else if (PLAYER_COUNT === 4 && playerNames.player1 && playerNames.player2 && playerNames.player3 && playerNames.player4) {
-      // Collecter uniquement les joueurs qui étaient HUMAINS au départ
+    } else if (PLAYER_COUNT === 4) {
       const humanPlayers = PLAYERS.slice(0, 4).filter(p =>
         window.playerStartedAsHuman && window.playerStartedAsHuman[p.id]
       );
 
-      // Ne sauvegarder que si au moins 2 humains jouaient
-      if (humanPlayers.length >= 2) {
+      console.log('SAVE 4J: humanPlayers=', humanPlayers.map(p => getPlayerName(p.id)), 'winner=', winnerName);
+
+      // Au moins 1 humain requis
+      if (humanPlayers.length >= 1) {
         const winnerIsHuman = window.playerStartedAsHuman && window.playerStartedAsHuman[winner];
+        const humanCount = humanPlayers.length;
+
         if (winnerIsHuman) {
-          // Le gagnant est humain : il gagne des points
+          // Points selon le nombre total de joueurs (pas juste humains)
           const humanLoserNames = humanPlayers
             .filter(p => p.id !== winner)
             .map(p => getPlayerName(p.id));
-          saveResult(winnerName, humanLoserNames, humanPlayers.length);
+          saveResult(winnerName, humanLoserNames, 4);
+          console.log('SAVED: winner=', winnerName, 'points=3, humanLosers=', humanLoserNames);
         } else {
-          // Le gagnant est une IA : les humains perdants comptent juste une partie jouée
-          const allHumanNames = humanPlayers.map(p => getPlayerName(p.id));
-          for (const name of allHumanNames) {
-            saveResult('__NO_WINNER__', [name], humanPlayers.length);
+          // L'IA a gagné : les humains comptent juste une partie jouée
+          for (const p of humanPlayers) {
+            const name = getPlayerName(p.id);
+            let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+            if (!stats[name]) stats[name] = { points: 0, wins: 0, games: 0 };
+            stats[name].games++;
+            localStorage.setItem('voltclash_stats', JSON.stringify(stats));
           }
+          console.log('IA WON 4J: humans games updated');
         }
+      } else {
+        console.log('SKIPPED 4J: no humans');
       }
     }
 
