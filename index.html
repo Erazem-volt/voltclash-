@@ -499,7 +499,8 @@
       box-shadow: none !important;
     }
 </style>
-  
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -956,6 +957,53 @@ function applyLanguage() {
   if (menuBtn) menuBtn.textContent = t('menu');
 }
 
+// ============================================================
+// SUPABASE — CLASSEMENT EN LIGNE
+// ============================================================
+const SUPABASE_URL = 'https://zlkgpqsfjxjesfivndwh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_JDu4-flooLPtFWPCBK9O9g_0JVSYztq';
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+function normalizePseudo(name) {
+  const trimmed = (name || '').trim();
+  if (!trimmed) return '';
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+}
+
+async function saveResultOnline(winnerName, loserNames, playerCount) {
+  if (!supabaseClient) return;
+  try {
+    const { error } = await supabaseClient.rpc('record_game_result', {
+      p_winner_pseudo: normalizePseudo(winnerName),
+      p_loser_pseudos: loserNames.map(n => normalizePseudo(n)),
+      p_player_count: playerCount
+    });
+    if (error) console.warn('Supabase save error:', error.message);
+  } catch (e) {
+    console.warn('Supabase offline:', e.message);
+  }
+}
+
+async function loadOnlineRanking() {
+  if (!supabaseClient) return null;
+  try {
+    const { data, error } = await supabaseClient
+      .from('players')
+      .select('pseudo, points, wins, games')
+      .order('points', { ascending: false })
+      .order('wins', { ascending: false })
+      .limit(50);
+    if (error) {
+      console.warn('Supabase load error:', error.message);
+      return null;
+    }
+    return data;
+  } catch (e) {
+    console.warn('Supabase offline:', e.message);
+    return null;
+  }
+}
+
 (() => {
   // ----------------------------
   // Config
@@ -1365,10 +1413,10 @@ function opponentTargetPoint(pid, prof) {
     names.forEach((n, i) => {
       localStorage.setItem(`p4_name_${i + 1}`, n);
     });
-    playerNames.player1 = names[0];
-    playerNames.player2 = names[1];
-    playerNames.player3 = names[2];
-    playerNames.player4 = names[3];
+    playerNames.player1 = normalizePseudo(names[0]);
+    playerNames.player2 = normalizePseudo(names[1]);
+    playerNames.player3 = normalizePseudo(names[2]);
+    playerNames.player4 = normalizePseudo(names[3]);
 
     // Cacher l'écran de saisie
     const screen4 = document.getElementById('player-names-screen-4');
@@ -1387,11 +1435,11 @@ function opponentTargetPoint(pid, prof) {
     
     if (player1Name) {
       localStorage.setItem('player1_name', player1Name);
-      playerNames.player1 = player1Name;
+      playerNames.player1 = normalizePseudo(player1Name);
     }
     if (player2Name) {
       localStorage.setItem('player2_name', player2Name);
-      playerNames.player2 = player2Name;
+      playerNames.player2 = normalizePseudo(player2Name);
     }
   }
   
@@ -1493,34 +1541,52 @@ function opponentTargetPoint(pid, prof) {
     }
 
     localStorage.setItem('voltclash_stats', JSON.stringify(stats));
+
+    // Sauvegarder aussi en ligne
+    saveResultOnline(winnerName, loserNames, playerCount);
   }
   
-  function displayRanking() {
-    const stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+  async function displayRanking() {
     const rankingList = document.getElementById('ranking-list');
 
-    const players = Object.entries(stats).map(([name, data]) => ({
-      name,
-      points: data.points || 0,
-      wins: data.wins || 0,
-      games: data.games || ((data.wins || 0) + (data.losses || 0)) || 0
-    }));
+    // Afficher un loader
+    rankingList.innerHTML = '<p style="color: #0ff; text-align: center;">⏳ Chargement...</p>';
 
-    // Trier par points (décroissant), puis victoires en cas d'égalité
-    players.sort((a, b) => b.points - a.points || b.wins - a.wins);
+    // Essayer de charger depuis Supabase
+    let players = await loadOnlineRanking();
+    let isOnline = true;
+
+    // Fallback sur localStorage si Supabase indisponible
+    if (!players) {
+      isOnline = false;
+      const stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
+      players = Object.entries(stats).map(([name, data]) => ({
+        pseudo: name,
+        points: data.points || 0,
+        wins: data.wins || 0,
+        games: data.games || ((data.wins || 0) + (data.losses || 0)) || 0
+      }));
+      players.sort((a, b) => b.points - a.points || b.wins - a.wins);
+    }
 
     if (players.length === 0) {
       rankingList.innerHTML = '<p style="color: #888; text-align: center;">' + t('noStats') + '</p>';
       return;
     }
 
-    let html = '';
+    // Indicateur en ligne / hors ligne
+    const badge = isOnline
+      ? '<span style="color:#0f0; font-size:11px;">🌐 EN LIGNE</span>'
+      : '<span style="color:#f80; font-size:11px;">📴 LOCAL</span>';
+
+    let html = '<div style="text-align:center; margin-bottom:10px;">' + badge + '</div>';
+
     players.forEach((player, index) => {
       const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
       html += `
         <div class="ranking-item">
           <span class="ranking-position">#${index + 1} ${medal}</span>
-          <span class="ranking-name">${player.name}</span>
+          <span class="ranking-name">${player.pseudo}</span>
           <div class="ranking-stats">
             <span style="color: #00ffff; font-weight: bold; font-size: 14px;">${player.points} ${t('pts')}</span>
             <span class="ranking-wins">${t('wins')}: ${player.wins}</span>
