@@ -637,13 +637,13 @@
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#ff5d5d; flex-shrink:0; box-shadow:0 0 8px #ff5d5d;"></span>
             <label style="color:#ff5d5d; font-family:Orbitron; font-size:13px; width:80px; flex-shrink:0;">JOUEUR 1</label>
-            <input type="text" id="player1-name" class="player-input" placeholder="Entrez votre pseudo" maxlength="15"
+            <input type="text" id="player1-name" class="player-input" placeholder="Blaze (IA)" maxlength="15"
                    style="border-color:#ff5d5d; box-shadow:0 0 8px rgba(255,93,93,0.4);">
           </div>
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#3ddc84; flex-shrink:0; box-shadow:0 0 8px #3ddc84;"></span>
             <label style="color:#3ddc84; font-family:Orbitron; font-size:13px; width:80px; flex-shrink:0;">JOUEUR 2</label>
-            <input type="text" id="player2-name" class="player-input" placeholder="Entrez votre pseudo" maxlength="15"
+            <input type="text" id="player2-name" class="player-input" placeholder="Viper (IA)" maxlength="15"
                    style="border-color:#3ddc84; box-shadow:0 0 8px rgba(61,220,132,0.4);">
           </div>
         </div>
@@ -665,25 +665,25 @@
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#ff5d5d; flex-shrink:0; box-shadow:0 0 8px #ff5d5d;"></span>
             <label style="color:#ff5d5d; font-family:Orbitron; font-size:13px; width:80px; flex-shrink:0;">JOUEUR 1</label>
-            <input type="text" id="p4-name-1" class="player-input" placeholder="Pseudo joueur 1" maxlength="15"
+            <input type="text" id="p4-name-1" class="player-input" placeholder="Blaze (IA)" maxlength="15"
                    style="border-color:#ff5d5d; box-shadow:0 0 8px rgba(255,93,93,0.4);">
           </div>
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#3ddc84; flex-shrink:0; box-shadow:0 0 8px #3ddc84;"></span>
             <label style="color:#3ddc84; font-family:Orbitron; font-size:13px; width:80px; flex-shrink:0;">JOUEUR 2</label>
-            <input type="text" id="p4-name-2" class="player-input" placeholder="Pseudo joueur 2" maxlength="15"
+            <input type="text" id="p4-name-2" class="player-input" placeholder="Viper (IA)" maxlength="15"
                    style="border-color:#3ddc84; box-shadow:0 0 8px rgba(61,220,132,0.4);">
           </div>
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#ffd84d; flex-shrink:0; box-shadow:0 0 8px #ffd84d;"></span>
             <label style="color:#ffd84d; font-family:Orbitron; font-size:13px; width:80px; flex-shrink:0;">JOUEUR 3</label>
-            <input type="text" id="p4-name-3" class="player-input" placeholder="Pseudo joueur 3" maxlength="15"
+            <input type="text" id="p4-name-3" class="player-input" placeholder="Spark (IA)" maxlength="15"
                    style="border-color:#ffd84d; box-shadow:0 0 8px rgba(255,216,77,0.4);">
           </div>
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:#4da6ff; flex-shrink:0; box-shadow:0 0 8px #4da6ff;"></span>
             <label style="color:#4da6ff; font-family:Orbitron; font-size:13px; width:80px; flex-shrink:0;">JOUEUR 4</label>
-            <input type="text" id="p4-name-4" class="player-input" placeholder="Pseudo joueur 4" maxlength="15"
+            <input type="text" id="p4-name-4" class="player-input" placeholder="Frost (IA)" maxlength="15"
                    style="border-color:#4da6ff; box-shadow:0 0 8px rgba(77,166,255,0.4);">
           </div>
         </div>
@@ -1325,6 +1325,9 @@ function initPseudoAutocomplete() {
     { id:"D", color:"#4da6ff", name:"D (Bleu)"  }, // BL
   ];
 
+  const AI_DEFAULT_NAMES = { A: 'Blaze', B: 'Viper', C: 'Spark', D: 'Frost' };
+  const AI_DEFAULT_NAMES_BY_INDEX = ['Blaze', 'Viper', 'Spark', 'Frost'];
+
   // Par défaut : 1 humain + 3 IA
   const control = new Map([
     ["A", "HUMAN"],
@@ -1505,11 +1508,10 @@ function opponentTargetPoint(pid, prof) {
       cursors.set(p.id, { ...startNodeFor(p.id) });
     }
     
-    // Mettre à jour les contrôles par défaut
+    // Mettre à jour les contrôles dans l'UI si les selects existent
     for (const p of PLAYERS.slice(0, PLAYER_COUNT)) {
       const sel = document.getElementById(`control-${p.id}`);
       if (sel) sel.value = control.get(p.id);
-      control.set("D", "AI");
     }
     
     // Forcer la réinitialisation du canvas
@@ -1614,23 +1616,9 @@ function opponentTargetPoint(pid, prof) {
   window.showRankingScreen = showRankingScreen;
   window.clearRanking = clearRanking;
   
-  // Initialiser les événements sur les inputs
-  document.addEventListener('DOMContentLoaded', function() {
-    const player1Input = document.getElementById('player1-name');
-    const player2Input = document.getElementById('player2-name');
-    
-    if (player1Input) {
-      player1Input.addEventListener('input', function() {
-        console.log('Input Joueur 1:', this.value);
-      });
-    }
-    
-    if (player2Input) {
-      player2Input.addEventListener('input', function() {
-        console.log('Input Joueur 2:', this.value);
-      });
-    }
-  });
+  // Auto-switch Humain/IA quand on tape un pseudo
+  // (les selects control sont dans renderPlayersRow, on stocke le choix dans une map temporaire)
+  // Rien à faire ici côté DOMContentLoaded — les listeners sont ajoutés dans show*NamesScreen
   
   // Variables globales pour les joueurs
   let playerNames = {
@@ -1651,9 +1639,12 @@ function opponentTargetPoint(pid, prof) {
     if (btn2) { btn2.classList.add('btn-active'); btn2.classList.remove('btn-inactive'); }
     if (btn4) { btn4.classList.add('btn-inactive'); btn4.classList.remove('btn-active'); }
 
-    // Charger les derniers pseudos sauvegardés
-    loadSavedNames();
-    
+    // Vider les champs (toujours vides à l'ouverture)
+    const inp1 = document.getElementById('player1-name');
+    const inp2 = document.getElementById('player2-name');
+    inp1.value = '';
+    inp2.value = '';
+
     menu.style.display = 'none';
     namesScreen.style.display = 'flex';
     namesScreen.style.visibility = 'visible';
@@ -1662,14 +1653,6 @@ function opponentTargetPoint(pid, prof) {
 
     // Activer l'autocomplétion
     setTimeout(() => initPseudoAutocomplete(), 100);
-  }
-
-  function loadSavedNames() {
-    const savedPlayer1 = localStorage.getItem('player1_name') || '';
-    const savedPlayer2 = localStorage.getItem('player2_name') || '';
-
-    document.getElementById('player1-name').value = savedPlayer1;
-    document.getElementById('player2-name').value = savedPlayer2;
   }
 
   // --- 4 JOUEURS : afficher l'écran de saisie ---
@@ -1683,11 +1666,10 @@ function opponentTargetPoint(pid, prof) {
     if (btn4) { btn4.classList.add('btn-active'); btn4.classList.remove('btn-inactive'); }
     if (btn2) { btn2.classList.add('btn-inactive'); btn2.classList.remove('btn-active'); }
 
-    // Pré-remplir avec les noms sauvegardés
-    document.getElementById('p4-name-1').value = localStorage.getItem('p4_name_1') || '';
-    document.getElementById('p4-name-2').value = localStorage.getItem('p4_name_2') || '';
-    document.getElementById('p4-name-3').value = localStorage.getItem('p4_name_3') || '';
-    document.getElementById('p4-name-4').value = localStorage.getItem('p4_name_4') || '';
+    // Vider les champs (toujours vides à l'ouverture)
+    for (let i = 1; i <= 4; i++) {
+      document.getElementById('p4-name-' + i).value = '';
+    }
 
     menu.style.display = 'none';
     screen4.style.display = 'flex';
@@ -1701,26 +1683,21 @@ function opponentTargetPoint(pid, prof) {
 
   // --- 4 JOUEURS : lancer la partie ---
   function startGameWith4Names() {
-    const names = [
-      document.getElementById('p4-name-1').value.trim(),
-      document.getElementById('p4-name-2').value.trim(),
-      document.getElementById('p4-name-3').value.trim(),
-      document.getElementById('p4-name-4').value.trim(),
-    ];
+    const pids = ['A', 'B', 'C', 'D'];
+    const keys = ['player1', 'player2', 'player3', 'player4'];
 
-    if (names.some(n => n === '')) {
-      alert('Veuillez entrer un pseudo pour chaque joueur');
-      return;
+    for (let i = 0; i < 4; i++) {
+      const val = document.getElementById('p4-name-' + (i + 1)).value.trim();
+      if (val) {
+        playerNames[keys[i]] = normalizePseudo(val);
+        control.set(pids[i], 'HUMAN');
+      } else {
+        playerNames[keys[i]] = AI_DEFAULT_NAMES_BY_INDEX[i];
+        control.set(pids[i], 'AI');
+      }
     }
 
-    // Sauvegarder dans localStorage
-    names.forEach((n, i) => {
-      localStorage.setItem(`p4_name_${i + 1}`, n);
-    });
-    playerNames.player1 = normalizePseudo(names[0]);
-    playerNames.player2 = normalizePseudo(names[1]);
-    playerNames.player3 = normalizePseudo(names[2]);
-    playerNames.player4 = normalizePseudo(names[3]);
+    console.log('startGameWith4Names:', playerNames, 'controls:', pids.map(p => p + '=' + control.get(p)));
 
     // Cacher l'écran de saisie
     const screen4 = document.getElementById('player-names-screen-4');
@@ -1733,53 +1710,40 @@ function opponentTargetPoint(pid, prof) {
     startGame();
   }
   
-  function saveNames() {
-    const player1Name = document.getElementById('player1-name').value.trim();
-    const player2Name = document.getElementById('player2-name').value.trim();
-    
-    if (player1Name) {
-      localStorage.setItem('player1_name', player1Name);
-      playerNames.player1 = normalizePseudo(player1Name);
-    }
-    if (player2Name) {
-      localStorage.setItem('player2_name', player2Name);
-      playerNames.player2 = normalizePseudo(player2Name);
-    }
-  }
-  
   function startGameWithNames() {
-    console.log('startGameWithNames appelé');
-    
     const player1Name = document.getElementById('player1-name').value.trim();
     const player2Name = document.getElementById('player2-name').value.trim();
-    
-    console.log('Pseudos:', player1Name, player2Name);
-    
-    if (!player1Name || !player2Name) {
-      alert('Veuillez entrer un pseudo pour chaque joueur');
-      return;
+
+    // Assigner noms : si vide → nom IA par défaut
+    if (player1Name) {
+      playerNames.player1 = normalizePseudo(player1Name);
+      control.set('A', 'HUMAN');
+    } else {
+      playerNames.player1 = AI_DEFAULT_NAMES_BY_INDEX[0];
+      control.set('A', 'AI');
     }
-    
-    saveNames();
-    console.log('Noms sauvegardés');
-    
+
+    if (player2Name) {
+      playerNames.player2 = normalizePseudo(player2Name);
+      control.set('B', 'HUMAN');
+    } else {
+      playerNames.player2 = AI_DEFAULT_NAMES_BY_INDEX[1];
+      control.set('B', 'AI');
+    }
+
+    console.log('startGameWithNames:', playerNames.player1, control.get('A'), '|', playerNames.player2, control.get('B'));
+
     // Cacher l'écran de saisie
     const namesScreen = document.getElementById('player-names-screen');
     if (namesScreen) {
-      console.log('Cache l\'écran de saisie');
       namesScreen.style.display = 'none';
       namesScreen.style.visibility = 'hidden';
       namesScreen.style.pointerEvents = 'none';
       namesScreen.style.opacity = '0';
     }
-    
-    console.log('Appel setPlayerCount(2)');
+
     setPlayerCount(2);
-    
-    console.log('Appel startGame()');
     startGame();
-    
-    console.log('startGameWithNames terminé');
   }
   
   function backToMenu() {
