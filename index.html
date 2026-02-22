@@ -1204,7 +1204,7 @@ function setupPseudoAutocomplete(input) {
 
   input.addEventListener('input', async () => {
     const query = input.value.trim();
-    if (query.length < 1) {
+    if (query.length < 2) {
       suggestionsDiv.classList.remove('visible');
       indicator.textContent = '';
       indicator.className = 'pseudo-indicator';
@@ -1238,6 +1238,14 @@ function setupPseudoAutocomplete(input) {
       indicator.textContent = '';
       indicator.className = 'pseudo-indicator';
     }
+  });
+
+  input.addEventListener('blur', function() {
+    setTimeout(() => {
+      suggestionsDiv.classList.remove('visible');
+      indicator.textContent = '';
+      indicator.className = 'pseudo-indicator';
+    }, 200);
   });
 
   suggestionsDiv.addEventListener('click', (e) => {
@@ -4935,7 +4943,7 @@ ctx.restore();
       try {
         console.log("Tentative lecture victory.ogg");
         const audio = new Audio('victory.ogg');
-        audio.volume = 0.5;
+        audio.volume = 0.20;
         audio.addEventListener('error', (e) => {
           console.log("ERREUR fichier victory.ogg:", audio.error);
         });
