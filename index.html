@@ -3553,8 +3553,8 @@ function pickAIMoveBeam(pid) {
 
 // Dispatcher: Normal vs Expert Beam
 function pickAIMove(pid) {
-  if (expertMode) return pickAIMoveBeam(pid);
-  return pickAIMoveNormal(pid);
+  if (expertMode) return pickAIMoveNormal(pid);
+  return pickAIMoveBeam(pid);
 }
 
 
@@ -3682,25 +3682,12 @@ function pickAIMove(pid) {
       dot.style.background = p.color;
 
       const label = document.createElement("span");
-      const st = alive.get(p.id) ? "EN JEU" : "ÉLIMINÉ";
       const pseudo = getPlayerName(p.id);
-      label.textContent = pseudo;
-      label.style.color = p.color;
-
-      const sel = document.createElement("select");
-      sel.innerHTML = `<option value="HUMAN">${t('human')}</option><option value="AI">${t('ai')}</option>`;
-      sel.value = control.get(p.id);
-      sel.addEventListener("change", () => {
-        control.set(p.id, sel.value);
-        stopAI();
-        setBadges();
-        requestRedraw();
-        maybeStartAITurn();
-      });
+      const isAI = control.get(p.id) === "AI";
+      label.innerHTML = `<span style="color:${p.color};">${pseudo}</span>${isAI ? ' <span style="font-size:10px; color:#888; opacity:0.7;">[IA]</span>' : ''}`;
 
       chip.appendChild(dot);
       chip.appendChild(label);
-      chip.appendChild(sel);
       row.appendChild(chip);
     }
   }
