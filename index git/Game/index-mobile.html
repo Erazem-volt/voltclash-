@@ -827,16 +827,16 @@
       
       <!-- Section Raccourcis -->
       <div style="padding: 15px; background: rgba(157, 78, 221, 0.1); border-radius: 8px; border: 1px solid #444;">
-        <div style="color: #9d4edd; font-weight: bold; margin-bottom: 10px; font-family: 'Orbitron'; text-align: center;">⌨️ RACCOURCIS</div>
+        <div style="color: #9d4edd; font-weight: bold; margin-bottom: 10px; font-family: 'Orbitron'; text-align: center;" data-lang="shortcutsSection">⌨️ RACCOURCIS</div>
         <div style="text-align: left; line-height: 1.8; font-size: 11px;">
-          <div><span style="color: #9d4edd; font-weight: bold;">O/L</span> : Haut/Bas</div>
-          <div><span style="color: #9d4edd; font-weight: bold;">K/M</span> : Gauche/Droite</div>
-          <div><span style="color: #9d4edd; font-weight: bold;">Espace</span> : Placer</div>
-          <div><span style="color: #9d4edd; font-weight: bold;">P</span> : Musique</div>
-          <div><span style="color: #9d4edd; font-weight: bold;">↑/↓</span> : Volume</div>
-          <div><span style="color: #9d4edd; font-weight: bold;">R</span> : Reset</div>
-          <div><span style="color: #9d4edd; font-weight: bold;">ESC</span> : Menu</div>
-          <div><span style="color: #9d4edd; font-weight: bold;">T</span> : Pause</div>
+          <div><span style="color: #9d4edd; font-weight: bold;">O/L</span> : <span data-lang="shortcutUpDown">Haut/Bas</span></div>
+          <div><span style="color: #9d4edd; font-weight: bold;">K/M</span> : <span data-lang="shortcutLeftRight">Gauche/Droite</span></div>
+          <div><span style="color: #9d4edd; font-weight: bold;">Espace</span> : <span data-lang="shortcutPlace">Placer croix</span></div>
+          <div><span style="color: #9d4edd; font-weight: bold;">P</span> : <span data-lang="shortcutMusic">Musique ON/OFF</span></div>
+          <div><span style="color: #9d4edd; font-weight: bold;">↑/↓</span> : <span data-lang="shortcutVolume">Volume musique</span></div>
+          <div><span style="color: #9d4edd; font-weight: bold;">R</span> : <span data-lang="shortcutReset">Réinitialiser</span></div>
+          <div><span style="color: #9d4edd; font-weight: bold;">ESC</span> : <span data-lang="shortcutMenu">Menu</span></div>
+          <div><span style="color: #9d4edd; font-weight: bold;">T</span> : <span data-lang="shortcutPause">Pause</span></div>
         </div>
       </div>
 
@@ -996,10 +996,10 @@
         <button id="btn-4players" class="futuristic-btn" onclick="show4PlayerNamesScreen()" data-lang="play4">4 JOUEURS</button>
       </div>
       <div class="menu-section">
-        <p style="color: #888; font-family: Orbitron;">MUSIQUE</p>
-        <button id="btn-music-toggle" class="futuristic-btn" onclick="toggleMusic()">🎵 MUSIQUE ON</button>
+        <p style="color: #888; font-family: Orbitron;" data-lang="musicLabel">MUSIQUE</p>
+        <button id="btn-music-toggle" class="futuristic-btn" onclick="toggleMusic()" data-lang="musicOn">🎵 MUSIQUE ON</button>
         <div style="margin-top: 10px;">
-          <label style="color: #888; font-family: Orbitron; font-size: 12px;">VOLUME:</label>
+          <label style="color: #888; font-family: Orbitron; font-size: 12px;" data-lang="volume">Volume :</label>
           <input type="range" id="music-volume" min="0" max="100" value="30" style="width: 100px; margin-left: 10px;" onchange="updateMusicVolume(this.value)">
           <span id="volume-display" style="color: #00ffff; font-family: Orbitron; font-size: 12px; margin-left: 5px;">30%</span>
         </div>
@@ -1007,6 +1007,9 @@
       <div class="menu-section">
         <button class="futuristic-btn" onclick="showRankingScreen()">🏆 <span data-lang="ranking">CLASSEMENT</span></button>
         <button class="futuristic-btn" onclick="showRulesScreen()">📖 <span data-lang="rulesTitle">RÈGLES</span></button>
+      </div>
+      <div class="menu-section">
+        <button id="btn-lang-menu" class="futuristic-btn" onclick="toggleLanguage()">🌐 <span id="lang-menu-text">FRANÇAIS</span></button>
       </div>
       <button class="futuristic-btn primary pulse" onclick="startGame()" data-lang="startGame">COMMENCER</button>
     </div>
@@ -1151,7 +1154,8 @@ const LANG = {
     soundSection: "🔊 SONS",
     shortcutsSection: "⌨️ RACCOURCIS",
     langLabel: "Langue",
-    langValue: "Français",
+    langValue: "FRANÇAIS",
+    langFlag: "🌐",
     close: "FERMER",
     rankingTitle: "CLASSEMENT",
     scoreBoard: "TABLEAU DES SCORES",
@@ -1171,13 +1175,19 @@ const LANG = {
     enterPseudos4: "SAISIR LES PSEUDOS — 4 JOUEURS",
     nbPlayers: "NOMBRE DE JOUEURS",
     musicLabel: "MUSIQUE",
-    volume: "VOLUME:",
+    musicOn: "🎵 MUSIQUE ON",
+    musicOff: "🎵 MUSIQUE OFF",
+    soundsOn: "🔊 SONS ON",
+    soundsOff: "🔊 SONS OFF",
+    volume: "Volume :",
+    shortcutUpDown: "Haut/Bas",
+    shortcutLeftRight: "Gauche/Droite",
     shortcutPlace: "Placer croix",
     shortcutMusic: "Musique ON/OFF",
     shortcutVolume: "Volume musique",
     shortcutReset: "Réinitialiser",
     shortcutMenu: "Menu",
-    shortcutBg: "Toggle fond",
+    shortcutBg: "Changer le fond",
     shortcutExpert: "Mode expert",
     shortcutPause: "Pause",
     confirmClear: "Êtes-vous sûr de vouloir effacer toutes les statistiques ?",
@@ -1198,6 +1208,15 @@ const LANG = {
     rulesTip1: "⚡ Progressez en diagonale : les croix placées en zigzag sont plus difficiles à capturer et offrent moins de prises à l'adversaire pour créer des murs permanents.",
     rulesTip2: "🔀 Construisez des circuits parallèles : si l'ennemi coupe une branche, vos croix pourront se reconnecter par un chemin alternatif.",
     rulesTip3: "✂️ Coupez le circuit ennemi au point le plus étroit pour un maximum de dégâts.",
+    linePlaced: "coup(s) posé(s).",
+    lineInvalid: "Ligne invalide.",
+    lineNoConnection: "Ligne invalide (pas de connexion possible).",
+    moveForbiddenBase: "Interdit : pas de croix dans ta base.",
+    moveForbiddenConnection: "Coup refusé : doit rester alimenté (connecté à ta base).",
+    circleBlocked: "Rond interdit : adjacence base/pièce + rester alimenté.",
+    actionImpossible: "Action impossible ici.",
+    endTurn: "Fin de tour",
+    movesLeft: "coups restants",
   },
   en: {
     title: "VOLT CLASH",
@@ -1222,7 +1241,8 @@ const LANG = {
     soundSection: "🔊 SOUNDS",
     shortcutsSection: "⌨️ SHORTCUTS",
     langLabel: "Language",
-    langValue: "English",
+    langValue: "ENGLISH",
+    langFlag: "🌐",
     close: "CLOSE",
     rankingTitle: "RANKING",
     scoreBoard: "SCOREBOARD",
@@ -1242,13 +1262,19 @@ const LANG = {
     enterPseudos4: "ENTER NAMES — 4 PLAYERS",
     nbPlayers: "NUMBER OF PLAYERS",
     musicLabel: "MUSIC",
-    volume: "VOLUME:",
+    musicOn: "🎵 MUSIC ON",
+    musicOff: "🎵 MUSIC OFF",
+    soundsOn: "🔊 SOUNDS ON",
+    soundsOff: "🔊 SOUNDS OFF",
+    volume: "Volume:",
+    shortcutUpDown: "Up/Down",
+    shortcutLeftRight: "Left/Right",
     shortcutPlace: "Place cross",
     shortcutMusic: "Music ON/OFF",
     shortcutVolume: "Music volume",
     shortcutReset: "Reset",
     shortcutMenu: "Menu",
-    shortcutBg: "Toggle BG",
+    shortcutBg: "Toggle background",
     shortcutExpert: "Expert mode",
     shortcutPause: "Pause",
     confirmClear: "Are you sure you want to clear all stats?",
@@ -1269,6 +1295,15 @@ const LANG = {
     rulesTip1: "⚡ Move diagonally: zigzag crosses are harder to capture and give your opponent fewer opportunities to create permanent walls.",
     rulesTip2: "🔀 Build parallel circuits: if the enemy cuts one branch, your crosses can reconnect through an alternate path.",
     rulesTip3: "✂️ Cut the enemy circuit at its narrowest point for maximum damage.",
+    linePlaced: "move(s) placed.",
+    lineInvalid: "Invalid line.",
+    lineNoConnection: "Invalid line (no connection possible).",
+    moveForbiddenBase: "Forbidden: no cross in your base.",
+    moveForbiddenConnection: "Move refused: must stay powered (connected to your base).",
+    circleBlocked: "Circle blocked: need adjacent base/piece + stay powered.",
+    actionImpossible: "Impossible action here.",
+    endTurn: "End turn",
+    movesLeft: "moves left",
   }
 };
 
@@ -1283,6 +1318,11 @@ function toggleLanguage() {
 }
 
 function applyLanguage() {
+  // Sauvegarder l'état ON/OFF des boutons avant que data-lang ne les écrase
+  const musicBtn = document.getElementById('btn-music-toggle');
+  const musicIsOn = !musicBtn || !musicBtn.textContent.includes('OFF');
+
+  // Appliquer data-lang à tous les éléments
   document.querySelectorAll('[data-lang]').forEach(el => {
     const key = el.getAttribute('data-lang');
     if (el.tagName === 'INPUT' && el.placeholder !== undefined) {
@@ -1292,16 +1332,22 @@ function applyLanguage() {
     }
   });
 
+  // Bouton langue dans le menu principal
+  const langMenuText = document.getElementById('lang-menu-text');
+  if (langMenuText) langMenuText.textContent = t('langValue');
+
+  // Boutons langue dans le panel options
   const langBtn = document.getElementById('btn-lang');
   if (langBtn) langBtn.textContent = t('langLabel') + ': ' + t('langValue');
   const langBtnPanel = document.getElementById('btn-lang-panel');
   if (langBtnPanel) langBtnPanel.textContent = t('langLabel') + ': ' + t('langValue');
 
+  // Boutons de jeu (in-game)
   const bgBtn = document.getElementById('togglebg');
   if (bgBtn) {
     const isBlack = document.body.style.backgroundColor === 'black' ||
-                     getComputedStyle(document.body).backgroundColor === 'rgb(0, 0, 0)' ||
-                     !document.body.style.backgroundColor;
+                   getComputedStyle(document.body).backgroundColor === 'rgb(0, 0, 0)' ||
+                   !document.body.style.backgroundColor;
     bgBtn.textContent = isBlack ? t('bgBlack') : t('bgWhite');
   }
 
@@ -1316,6 +1362,25 @@ function applyLanguage() {
 
   const menuBtn = document.getElementById('menu');
   if (menuBtn) menuBtn.textContent = t('menu');
+
+  const optionsBtn = document.getElementById('options-btn');
+  if (optionsBtn) optionsBtn.textContent = '⚙️ ' + t('options');
+
+  // Bouton musique du menu principal (restaurer l'état ON/OFF après data-lang)
+  if (musicBtn) musicBtn.textContent = musicIsOn ? t('musicOn') : t('musicOff');
+
+  // Boutons musique/sons du panel options (sans data-lang, vérifier l'état)
+  const panelMusicToggle = document.getElementById('panel-music-toggle');
+  if (panelMusicToggle) {
+    const isOn = !panelMusicToggle.textContent.includes('OFF');
+    panelMusicToggle.textContent = isOn ? t('musicOn') : t('musicOff');
+  }
+
+  const panelSoundsToggle = document.getElementById('panel-sounds-toggle');
+  if (panelSoundsToggle) {
+    const isOn = !panelSoundsToggle.textContent.includes('OFF');
+    panelSoundsToggle.textContent = isOn ? t('soundsOn') : t('soundsOff');
+  }
 }
 
 // ============================================================
@@ -2175,20 +2240,17 @@ function opponentTargetPoint(pid, prof) {
     const panelBtn = document.getElementById('panel-music-toggle');
     
     musicEnabled = !musicEnabled;
-    
-    const text = musicEnabled ? '🎵 MUSIQUE ON' : '🔇 MUSIQUE OFF';
-    const shortText = musicEnabled ? '🎵 ON' : '🔇 OFF';
-    
+
     if (btn) {
-      btn.textContent = text;
+      btn.textContent = musicEnabled ? t('musicOn') : t('musicOff');
       btn.style.opacity = musicEnabled ? '1' : '0.5';
     }
     if (modalBtn) {
-      modalBtn.textContent = text;
+      modalBtn.textContent = musicEnabled ? t('musicOn') : t('musicOff');
       modalBtn.style.opacity = musicEnabled ? '1' : '0.5';
     }
     if (panelBtn) {
-      panelBtn.textContent = shortText;
+      panelBtn.textContent = musicEnabled ? t('musicOn') : t('musicOff');
       panelBtn.style.opacity = musicEnabled ? '1' : '0.5';
     }
     
@@ -2205,16 +2267,13 @@ function opponentTargetPoint(pid, prof) {
     const panelBtn = document.getElementById('panel-sounds-toggle');
     
     soundsEnabled = !soundsEnabled;
-    
-    const text = soundsEnabled ? '🔊 SONS ON' : '🔇 SONS OFF';
-    const shortText = soundsEnabled ? '🔊 ON' : '🔇 OFF';
-    
+
     if (modalBtn) {
-      modalBtn.textContent = text;
+      modalBtn.textContent = soundsEnabled ? t('soundsOn') : t('soundsOff');
       modalBtn.style.opacity = soundsEnabled ? '1' : '0.5';
     }
     if (panelBtn) {
-      panelBtn.textContent = shortText;
+      panelBtn.textContent = soundsEnabled ? t('soundsOn') : t('soundsOff');
       panelBtn.style.opacity = soundsEnabled ? '1' : '0.5';
     }
   }
@@ -3983,8 +4042,8 @@ function pickAIMove(pid) {
     if (!existing) {
       if (!canPlaceCross(pid, cur.ix, cur.iy)) {
         message = isOwnBase(pid, cur.ix, cur.iy)
-          ? "Interdit : pas de croix dans ta base."
-          : "Coup refusé : doit rester alimenté (connecté à ta base).";
+          ? t('moveForbiddenBase')
+          : t('moveForbiddenConnection');
         setBadges();
         requestRedraw();
         return;
@@ -3992,14 +4051,14 @@ function pickAIMove(pid) {
       moveInfo = placeCross(pid, cur.ix, cur.iy);
     } else if (existing.owner !== pid && existing.kind === "X") {
       if (!canCircle(pid, k)) {
-        message = "Rond interdit : adjacency base/pièce + rester alimenté.";
+        message = t('circleBlocked');
         setBadges();
         requestRedraw();
         return;
       }
       moveInfo = placeCircle(pid, k);
     } else {
-      message = "Action impossible ici.";
+      message = t('actionImpossible');
       setBadges();
       requestRedraw();
       return;
@@ -5119,7 +5178,7 @@ function drawGrid() {
     let placed = 0;
     if (!dragOkPath || dragOkPath.length === 0) {
       clearDrag();
-      message = "Ligne invalide (pas de connexion possible).";
+      message = t('lineNoConnection');
       setBadges();
       requestRedraw();
       return;
@@ -5151,9 +5210,7 @@ function drawGrid() {
 
     clearDrag();
 
-    message = placed > 0
-      ? `Ligne validée: ${placed} coup(s) posé(s).`
-      : "Ligne invalide.";
+    message = placed > 0 ? `${placed} ${t('linePlaced')}` : t('lineInvalid');
     setBadges();
     requestRedraw();
 
@@ -5410,7 +5467,7 @@ function drawGrid() {
       let placed = 0;
       if (!dragOkPath || dragOkPath.length === 0) {
         clearDrag();
-        message = "Ligne invalide (pas de connexion possible).";
+        message = t('lineNoConnection');
         setBadges();
         requestRedraw();
         return;
@@ -5437,7 +5494,7 @@ function drawGrid() {
       }
 
       clearDrag();
-      message = placed > 0 ? `Ligne validée: ${placed} coup(s) posé(s).` : "Ligne invalide.";
+      message = placed > 0 ? `${placed} ${t('linePlaced')}` : t('lineInvalid');
       setBadges();
       requestRedraw();
       if (!gameOver && movesLeft <= 0) endTurn(true);
@@ -5489,7 +5546,7 @@ function drawGrid() {
     let placed = 0;
     if (!dragOkPath || dragOkPath.length === 0) {
       clearDrag();
-      message = "Ligne invalide (pas de connexion possible).";
+      message = t('lineNoConnection');
       setBadges();
       requestRedraw();
       return;
@@ -5516,7 +5573,7 @@ function drawGrid() {
     }
 
     clearDrag();
-    message = placed > 0 ? `Ligne validée: ${placed} coup(s) posé(s).` : "Ligne invalide.";
+    message = placed > 0 ? `${placed} ${t('linePlaced')}` : t('lineInvalid');
     setBadges();
     requestRedraw();
     if (!gameOver && movesLeft <= 0) endTurn(true);
