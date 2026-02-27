@@ -1111,9 +1111,13 @@
 <script>
 /**
  * VOLT CLASH - (c) 2026 Erazem-volt
- * Tous droits réservés. 
+ * Tous droits réservés.
  * L'utilisation, la copie ou la revente de ce code sans autorisation est interdite.
  */
+
+// Mode production : désactiver les logs
+const DEBUG_MODE = false;
+const log = DEBUG_MODE ? console.log.bind(console) : () => {};
 
 // Détection mobile
 const IS_MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
@@ -1397,15 +1401,15 @@ function normalizePseudo(name) {
 }
 
 async function saveResultOnline(winnerName, loserNames, playerCount) {
-  console.log('saveResultOnline called:', winnerName, loserNames, playerCount);
-  if (!supabaseClient) { console.log('saveResultOnline: supabaseClient is null, skipping'); return; }
+  log('saveResultOnline called:', winnerName, loserNames, playerCount);
+  if (!supabaseClient) { log('saveResultOnline: supabaseClient is null, skipping'); return; }
   try {
     const { error } = await supabaseClient.rpc('record_game_result', {
       p_winner_pseudo: normalizePseudo(winnerName),
       p_loser_pseudos: loserNames.map(n => normalizePseudo(n)),
       p_player_count: playerCount
     });
-    console.log('Supabase result:', error ? error.message : 'OK');
+    log('Supabase result:', error ? error.message : 'OK');
     if (error) console.warn('Supabase save error:', error.message);
   } catch (e) {
     console.warn('Supabase offline:', e.message);
@@ -1746,6 +1750,7 @@ function opponentTargetPoint(pid, prof) {
   let boardBg = "#0b0b0b"; // fond actuel du plateau
   function toggleBoardBg(){
     boardBg = (boardBg === "#0b0b0b") ? "#ffffff" : "#0b0b0b";
+    gridCache = null; // Invalider le cache grille
     updateBgButton();
     const exBtn = document.getElementById('toggleExpert');
     if (exBtn) exBtn.textContent = expertMode ? t('aiExpert') : t('aiNormal');
@@ -1844,12 +1849,12 @@ function opponentTargetPoint(pid, prof) {
   }
 
   function startGame() {
-    console.log('startGame appelé');
+    log('startGame appelé');
     
     // Cacher le menu
     const menu = document.getElementById('main-menu');
     if (menu) {
-      console.log('Cache le menu principal');
+      log('Cache le menu principal');
       menu.style.display = 'none';
       menu.style.visibility = 'hidden';
       menu.style.pointerEvents = 'none';
@@ -1857,33 +1862,33 @@ function opponentTargetPoint(pid, prof) {
     }
     
     // Afficher les éléments du jeu
-    console.log('Affiche les éléments du jeu');
+    log('Affiche les éléments du jeu');
     const playersRow = document.getElementById('playersRow');
     const gameControls = document.getElementById('gameControls');
     
     if (playersRow) {
       playersRow.style.display = 'flex';
-      console.log('playersRow affiché');
+      log('playersRow affiché');
     } else {
-      console.log('ERREUR: playersRow non trouvé');
+      log('ERREUR: playersRow non trouvé');
     }
     
     if (gameControls) {
       gameControls.style.display = 'block';
-      console.log('gameControls affiché');
+      log('gameControls affiché');
       setTimeout(() => {
-        console.log('[DEBUG] gameControls display:', gameControls.style.display);
-        console.log('[DEBUG] gameControls offsetHeight:', gameControls.offsetHeight);
-        console.log('[DEBUG] gameControls BCR:', JSON.stringify(gameControls.getBoundingClientRect()));
-        console.log('[DEBUG] canvas BCR:', JSON.stringify(canvas.getBoundingClientRect()));
-        console.log('[DEBUG] window.innerHeight:', window.innerHeight);
+        log('[DEBUG] gameControls display:', gameControls.style.display);
+        log('[DEBUG] gameControls offsetHeight:', gameControls.offsetHeight);
+        log('[DEBUG] gameControls BCR:', JSON.stringify(gameControls.getBoundingClientRect()));
+        log('[DEBUG] canvas BCR:', JSON.stringify(canvas.getBoundingClientRect()));
+        log('[DEBUG] window.innerHeight:', window.innerHeight);
       }, 100);
     } else {
-      console.log('ERREUR: gameControls non trouvé');
+      log('ERREUR: gameControls non trouvé');
     }
 
     // Mettre à jour la taille du canvas avant de démarrer
-    console.log('Met à jour la taille du canvas');
+    log('Met à jour la taille du canvas');
     updateCanvasSize();
     
     // La musique est déjà lancée au chargement, pas besoin de la relancer
@@ -1893,7 +1898,7 @@ function opponentTargetPoint(pid, prof) {
     if (sheet) sheet.style.display = 'flex';
 
     // Démarrer le jeu avec la version originale de reset
-    console.log('Démarrage du jeu');
+    log('Démarrage du jeu');
     gameOver = false;
     originalReset();
 
@@ -1905,7 +1910,7 @@ function opponentTargetPoint(pid, prof) {
       window.playerStartedAsHuman[pid] = (control.get(pid) === "HUMAN");
     }
 
-    console.log('startGame terminé');
+    log('startGame terminé');
   }
 
   // Rendre les fonctions accessibles globalement
@@ -2010,7 +2015,7 @@ function opponentTargetPoint(pid, prof) {
       }
     }
 
-    console.log('startGameWith4Names:', playerNames, 'controls:', pids.map(p => p + '=' + control.get(p)));
+    log('startGameWith4Names:', playerNames, 'controls:', pids.map(p => p + '=' + control.get(p)));
 
     // Cacher l'écran de saisie
     const screen4 = document.getElementById('player-names-screen-4');
@@ -2044,7 +2049,7 @@ function opponentTargetPoint(pid, prof) {
       control.set('B', 'AI');
     }
 
-    console.log('startGameWithNames:', playerNames.player1, control.get('A'), '|', playerNames.player2, control.get('B'));
+    log('startGameWithNames:', playerNames.player1, control.get('A'), '|', playerNames.player2, control.get('B'));
 
     // Cacher l'écran de saisie
     const namesScreen = document.getElementById('player-names-screen');
@@ -2112,7 +2117,7 @@ function opponentTargetPoint(pid, prof) {
   }
   
   function saveResult(winnerName, loserNames, playerCount) {
-    console.log('>>> saveResult:', winnerName, loserNames, playerCount);
+    log('>>> saveResult:', winnerName, loserNames, playerCount);
     // Ignorer si pas de vrai gagnant humain
     if (winnerName === '__NO_WINNER__') {
       let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
@@ -2159,7 +2164,7 @@ function opponentTargetPoint(pid, prof) {
       }
     }
 
-    console.log('>>> localStorage updated:', JSON.stringify(stats));
+    log('>>> localStorage updated:', JSON.stringify(stats));
     localStorage.setItem('voltclash_stats', JSON.stringify(stats));
 
     // Sauvegarder aussi en ligne
@@ -2167,7 +2172,7 @@ function opponentTargetPoint(pid, prof) {
   }
   
   async function displayRanking() {
-    console.log('displayRanking called');
+    log('displayRanking called');
     const rankingList = document.getElementById('ranking-list');
 
     // Afficher un loader
@@ -2190,7 +2195,7 @@ function opponentTargetPoint(pid, prof) {
       players.sort((a, b) => b.points - a.points || b.wins - a.wins);
     }
 
-    console.log('Ranking data:', players);
+    log('Ranking data:', players);
     if (players.length === 0) {
       rankingList.innerHTML = '<p style="color: #888; text-align: center;">' + t('noStats') + '</p>';
       return;
@@ -2354,7 +2359,7 @@ function opponentTargetPoint(pid, prof) {
     if (panelDisplay) panelDisplay.textContent = value + '%';
     
     // TODO: Implémenter le contrôle du volume des sons
-    console.log("Volume sons mis à jour:", value + "%");
+    log("Volume sons mis à jour:", value + "%");
   }
   
   // Fonction pour afficher la modale options
@@ -2442,11 +2447,14 @@ function opponentTargetPoint(pid, prof) {
     
     draw(ctx) {
       ctx.save();
-      ctx.globalAlpha = this.opacity;
       ctx.fillStyle = '#ffffff';
-      ctx.shadowBlur = this.size * 2;
-      ctx.shadowColor = '#ffffff';
-      
+      // Lueur simulée (moins coûteux que shadowBlur)
+      ctx.globalAlpha = this.opacity * 0.3;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      // Étoile principale
+      ctx.globalAlpha = this.opacity;
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
       ctx.fill();
@@ -2490,9 +2498,9 @@ function opponentTargetPoint(pid, prof) {
         star.draw(starfieldCtx);
       });
       
-      requestAnimationFrame(animateStarfield);
+      setTimeout(() => requestAnimationFrame(animateStarfield), 66);
     }
-    
+
     // Initialisation immédiate
     resizeStarfield();
     window.addEventListener('resize', resizeStarfield);
@@ -2522,7 +2530,7 @@ function opponentTargetPoint(pid, prof) {
       canvas.style.height = displayH + 'px';
       // canvas.width reset le contexte → pas de ctx.scale() nécessaire
 
-      console.log('[updateCanvasSize] mobile: size=' + size + ' displayW=' + displayW + ' CELL_PX=' + CELL_PX + ' availH=' + availH);
+      log('[updateCanvasSize] mobile: size=' + size + ' displayW=' + displayW + ' CELL_PX=' + CELL_PX + ' availH=' + availH);
     } else {
       CELL_PX = 22;
       MARGIN_PX = 24;
@@ -2536,6 +2544,8 @@ function opponentTargetPoint(pid, prof) {
       canvas.height = Math.round(displayH * dpr);
       ctx.scale(dpr, dpr);
     }
+
+    gridCache = null; // Invalider le cache grille (taille changée)
 
     // Redessiner si le jeu est en cours
     if (!gameOver && marks.size > 0) {
@@ -2731,6 +2741,7 @@ function opponentTargetPoint(pid, prof) {
   let message = "";
   let gameOver = false;
   let gamePaused = false;
+  let wallsDirty = true;
 
   const cursors = new Map(PLAYERS.map(p => [p.id, { ...startNodeFor(p.id) } ]));
 
@@ -2878,8 +2889,9 @@ function opponentTargetPoint(pid, prof) {
       }
     }
 
-    while (q.length) {
-      const cur = q.shift();
+    let qi = 0;
+    while (qi < q.length) {
+      const cur = q[qi++];
       for (const d of dirs8) {
         const nx = cur.ix + d.dx;
         const ny = cur.iy + d.dy;
@@ -2952,14 +2964,14 @@ function opponentTargetPoint(pid, prof) {
     const k = keyOf(ix, iy);
     marks.set(k, { owner: pid, kind:"X" });
     started.set(pid, true);
-    rebuildWallsFromCircles();
+    wallsDirty = true;
     return { ix, iy, key:k, kind:"X" };
   }
 
   function placeCircle(pid, key) {
     marks.set(key, { owner: pid, kind:"O" });
     started.set(pid, true);
-    rebuildWallsFromCircles();
+    wallsDirty = true;
     const {ix, iy} = parseKey(key);
     return { ix, iy, key, kind:"O" };
   }
@@ -2973,7 +2985,7 @@ function opponentTargetPoint(pid, prof) {
         marks.set(k, { owner: winnerPid, kind: m.kind });
       }
     }
-    rebuildWallsFromCircles();
+    wallsDirty = true;
   }
 
   function eliminatePlayer(elimPid, eliminatorPid, reason) {
@@ -3003,11 +3015,11 @@ function opponentTargetPoint(pid, prof) {
     const winnerName = getPlayerName(winner);
 
     // === DEBUG CLASSEMENT ===
-    console.log('=== VICTORY DEBUG ===');
-    console.log('Winner:', winnerName, '(pid:', winner, ')');
-    console.log('PLAYER_COUNT:', PLAYER_COUNT);
-    console.log('playerStartedAsHuman:', window.playerStartedAsHuman);
-    console.log('playerNames:', playerNames);
+    log('=== VICTORY DEBUG ===');
+    log('Winner:', winnerName, '(pid:', winner, ')');
+    log('PLAYER_COUNT:', PLAYER_COUNT);
+    log('playerStartedAsHuman:', window.playerStartedAsHuman);
+    log('playerNames:', playerNames);
 
     // Sauvegarder le résultat — UNIQUEMENT les humains (au moins 1 humain requis)
     if (PLAYER_COUNT === 2) {
@@ -3018,7 +3030,7 @@ function opponentTargetPoint(pid, prof) {
       const p1name = getPlayerName(p1id);
       const p2name = getPlayerName(p2id);
 
-      console.log('SAVE 2J: p1=', p1name, 'human=', p1human, 'p2=', p2name, 'human=', p2human, 'winner=', winnerName);
+      log('SAVE 2J: p1=', p1name, 'human=', p1human, 'p2=', p2name, 'human=', p2human, 'winner=', winnerName);
 
       // Au moins 1 humain requis
       if (p1human || p2human) {
@@ -3037,7 +3049,7 @@ function opponentTargetPoint(pid, prof) {
             // Humain vs IA : seul l'humain gagnant est enregistré
             saveResult(winnerName, [], 2);
           }
-          console.log('SAVED: winner=', winnerName, 'points=1');
+          log('SAVED: winner=', winnerName, 'points=1');
         } else {
           // L'IA a gagné : les humains comptent juste une partie jouée
           const humanNames = [];
@@ -3049,17 +3061,17 @@ function opponentTargetPoint(pid, prof) {
             stats[name].games++;
             localStorage.setItem('voltclash_stats', JSON.stringify(stats));
           }
-          console.log('IA WON: humans games updated:', humanNames);
+          log('IA WON: humans games updated:', humanNames);
         }
       } else {
-        console.log('SKIPPED: no humans');
+        log('SKIPPED: no humans');
       }
     } else if (PLAYER_COUNT === 4) {
       const humanPlayers = PLAYERS.slice(0, 4).filter(p =>
         window.playerStartedAsHuman && window.playerStartedAsHuman[p.id]
       );
 
-      console.log('SAVE 4J: humanPlayers=', humanPlayers.map(p => getPlayerName(p.id)), 'winner=', winnerName);
+      log('SAVE 4J: humanPlayers=', humanPlayers.map(p => getPlayerName(p.id)), 'winner=', winnerName);
 
       // Au moins 1 humain requis
       if (humanPlayers.length >= 1) {
@@ -3072,7 +3084,7 @@ function opponentTargetPoint(pid, prof) {
             .filter(p => p.id !== winner)
             .map(p => getPlayerName(p.id));
           saveResult(winnerName, humanLoserNames, 4);
-          console.log('SAVED: winner=', winnerName, 'points=3, humanLosers=', humanLoserNames);
+          log('SAVED: winner=', winnerName, 'points=3, humanLosers=', humanLoserNames);
         } else {
           // L'IA a gagné : les humains comptent juste une partie jouée
           for (const p of humanPlayers) {
@@ -3082,10 +3094,10 @@ function opponentTargetPoint(pid, prof) {
             stats[name].games++;
             localStorage.setItem('voltclash_stats', JSON.stringify(stats));
           }
-          console.log('IA WON 4J: humans games updated');
+          log('IA WON 4J: humans games updated');
         }
       } else {
-        console.log('SKIPPED 4J: no humans');
+        log('SKIPPED 4J: no humans');
       }
     }
 
@@ -3207,8 +3219,6 @@ function opponentTargetPoint(pid, prof) {
         ctx.globalAlpha = p.opacity;
         ctx.strokeStyle = color;
         ctx.lineWidth = p.width;
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 8;
         ctx.beginPath();
         ctx.moveTo(p.x, p.y);
         ctx.lineTo(p.x, p.y + p.length);
@@ -3685,8 +3695,9 @@ function computePoweredSet_state(st, pid) {
     }
   }
 
-  while (q.length) {
-    const cur = q.shift();
+  let qi = 0;
+  while (qi < q.length) {
+    const cur = q[qi++];
     for (const d of dirs8) {
       const nx = cur.ix + d.dx, ny = cur.iy + d.dy;
       if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
@@ -4144,15 +4155,16 @@ function pickAIMove(pid) {
     rafPending = true;
     requestAnimationFrame((currentTime) => {
       rafPending = false;
-      
-      // Mettre à jour et dessiner les particules avec delta time
-      updateAndDrawParticles(currentTime);
-      
-      // Continuer le dessin
+
+      // Dessiner le jeu
       redraw();
-      
-      // Continuer la boucle de rendu pour maintenir les animations
-      requestRedraw();
+
+      // Particules : continuer la boucle SEULEMENT s'il y en a
+      if (particles.length > 0) {
+        updateAndDrawParticles(currentTime);
+        requestRedraw(); // Boucler tant qu'il y a des particules
+      }
+      // SINON : STOP, pas de rappel → le GPU se repose
     });
   }
 function isInAnyBaseNode(ix, iy) {
@@ -4179,6 +4191,48 @@ function getBaseOwnerAt(ix, iy) {
   }
   return null;
 }
+
+  let gridCache = null;
+
+  function buildGridCache() {
+    const offscreen = document.createElement('canvas');
+    offscreen.width = displayW;
+    offscreen.height = displayH;
+    const octx = offscreen.getContext('2d');
+
+    // Fond
+    if (IS_MOBILE) {
+      octx.fillStyle = 'rgba(11, 11, 11, 0.85)';
+    } else {
+      octx.fillStyle = boardBg;
+    }
+    octx.fillRect(0, 0, displayW, displayH);
+
+    // Lignes de grille
+    const gridLine = (boardBg === "#0b0b0b") ? "#5a5a5a" : "#1f1f1f";
+    octx.strokeStyle = gridLine;
+    octx.lineWidth = 1;
+    for (let i = 0; i <= GRID_CELLS; i++) {
+      const x = MARGIN_PX + i * CELL_PX;
+      octx.beginPath(); octx.moveTo(x, MARGIN_PX); octx.lineTo(x, MARGIN_PX + GRID_CELLS * CELL_PX); octx.stroke();
+      const y = MARGIN_PX + i * CELL_PX;
+      octx.beginPath(); octx.moveTo(MARGIN_PX, y); octx.lineTo(MARGIN_PX + GRID_CELLS * CELL_PX, y); octx.stroke();
+    }
+
+    // Points d'intersection
+    octx.fillStyle = (boardBg === "#0b0b0b") ? "#4a4a4a" : "#2e2e2e";
+    for (let y = 0; y < NODES; y++) {
+      for (let x = 0; x < NODES; x++) {
+        if (isInAnyBaseNode(x, y)) continue;
+        const p = nodeToPx(x, y);
+        octx.beginPath();
+        octx.arc(p.x, p.y, S(1.1), 0, Math.PI * 2);
+        octx.fill();
+      }
+    }
+
+    gridCache = offscreen;
+  }
 
 function drawGridLines() {
   ctx.save();
@@ -4257,7 +4311,8 @@ function drawGrid() {
       return;
     }
     
-    for (const pass of [0, 1]) {
+    const passes = IS_MOBILE ? [1] : [0, 1];
+    for (const pass of passes) {
       ctx.save();
       ctx.strokeStyle = p.color;
       ctx.lineCap = "round";
@@ -4521,8 +4576,9 @@ function drawGrid() {
     }
     
     // 2. Propager le courant à travers les marques connectées
-    while (queue.length > 0) {
-      const currentKey = queue.shift();
+    let qi = 0;
+    while (qi < queue.length) {
+      const currentKey = queue[qi++];
       const currentPos = parseKey(currentKey);
       
       // Explorer les 8 directions
@@ -4577,12 +4633,12 @@ function drawGrid() {
       const currentPowered = updateConnectivity(playerId);
       
       // Vérifier si des marques ont perdu leur connexion
-      console.log(`Comparaison pour joueur ${playerId}: avant=${beforeNodes.size}, après=${currentPowered.size}`);
+      log(`Comparaison pour joueur ${playerId}: avant=${beforeNodes.size}, après=${currentPowered.size}`);
       
       for (const [k, m] of marks.entries()) {
         if (m.owner === playerId && beforeNodes.has(k) && !currentPowered.has(k)) {
           // Cette marque a perdu sa connexion
-          console.log(`Déconnexion détectée pour la marque ${k} du joueur ${playerId}`);
+          log(`Déconnexion détectée pour la marque ${k} du joueur ${playerId}`);
           soundSystem.playCircuitDisconnect();
           break; // Jouer le son une seule fois
         }
@@ -4613,8 +4669,9 @@ function drawGrid() {
     }
     
     // 2. Propager le courant à travers les marques connectées
-    while (queue.length > 0) {
-      const currentKey = queue.shift();
+    let qi = 0;
+    while (qi < queue.length) {
+      const currentKey = queue[qi++];
       const currentPos = parseKey(currentKey);
       
       // Explorer les 8 directions
@@ -4657,14 +4714,14 @@ function drawGrid() {
     for (const [k, m] of marks.entries()) {
       if (m.owner === playerId && previousNodes.has(k) && !currentNodes.has(k)) {
         // Cette marque a perdu sa connexion
-        console.log(`Déconnexion détectée pour la marque ${k} du joueur ${playerId}`);
+        log(`Déconnexion détectée pour la marque ${k} du joueur ${playerId}`);
         disconnectionDetected = true;
         break; // Jouer le son une seule fois par frame
       }
     }
     
     if (disconnectionDetected) {
-      console.log("Appel de playCircuitDisconnect()");
+      log("Appel de playCircuitDisconnect()");
       soundSystem.playCircuitDisconnect();
     }
     
@@ -4694,10 +4751,14 @@ function drawGrid() {
       ctx.translate(-displayW / 2, -displayH / 2);
     }
 
-    // Dessiner la grille (sans le clear, juste les lignes)
-    drawGridLines();
+    // Dessiner la grille depuis le cache offscreen
+    if (!gridCache) buildGridCache();
+    ctx.drawImage(gridCache, 0, 0);
 
-    rebuildWallsFromCircles();
+    if (wallsDirty) {
+      rebuildWallsFromCircles();
+      wallsDirty = false;
+    }
     const powered = new Map();
     let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
 
@@ -4781,9 +4842,6 @@ function drawGrid() {
 
     ctx.restore(); // Fin de la transformation zoom
 
-    // Particules APRÈS le restore (elles s'affichent en coordonnées écran)
-    updateAndDrawParticles();
-
     // Indicateur de zoom (petit texte en bas à droite)
     if (IS_MOBILE && zoomLevel > 1) {
       ctx.save();
@@ -4812,7 +4870,7 @@ function drawGrid() {
     if (k === "p") {
       // Toggle musique avec touche P
       toggleMusic();
-      console.log("Musique:", musicEnabled ? "ON" : "OFF");
+      log("Musique:", musicEnabled ? "ON" : "OFF");
       return;
     }
     
@@ -4825,7 +4883,7 @@ function drawGrid() {
         const newVolume = Math.min(100, currentVolume + 5);
         volumeSlider.value = newVolume;
         updateMusicVolume(newVolume);
-        console.log("Volume:", newVolume + "%");
+        log("Volume:", newVolume + "%");
       }
       return;
     }
@@ -4838,7 +4896,7 @@ function drawGrid() {
         const newVolume = Math.max(0, currentVolume - 5);
         volumeSlider.value = newVolume;
         updateMusicVolume(newVolume);
-        console.log("Volume:", newVolume + "%");
+        log("Volume:", newVolume + "%");
       }
       return;
     }
@@ -5621,6 +5679,8 @@ function drawGrid() {
   // Reset
   // ----------------------------
   function reset() {
+    wallsDirty = true;
+    gridCache = null; // Invalider le cache grille
     gamePaused = false;
     stopAI();
     if (typeof clearDrag === 'function') clearDrag();
@@ -5651,8 +5711,7 @@ function drawGrid() {
       marks.set(keyOf(s.ix, s.iy), { owner: p.id, kind:"X" });
     }
 
-    rebuildWallsFromCircles();
-
+    // wallsDirty = true déjà positionné en début de reset()
     currentIdx = 0;
     movesLeft = MOVES_PER_TURN;
     message = "";
@@ -5724,7 +5783,7 @@ function drawGrid() {
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.initialized = true;
       } catch (e) {
-        console.log("Audio non disponible");
+        log("Audio non disponible");
       }
     }
     
@@ -5732,44 +5791,44 @@ function drawGrid() {
     playExplosion() {
       // Vérifier si les sons sont activés
       if (!soundsEnabled) {
-        console.log("Sons désactivés - explosion ignorée");
+        log("Sons désactivés - explosion ignorée");
         return;
       }
       
       // Utiliser le fichier MP3 d'explosion
-      console.log("Tentative de lecture du MP3 d'explosion: sound explosion.mp3");
+      log("Tentative de lecture du MP3 d'explosion: sound explosion.mp3");
       
       try {
         // Encoder l'URL pour gérer les espaces
         const mp3Path = encodeURIComponent('sound explosion.mp3');
-        console.log("URL encodée:", mp3Path);
+        log("URL encodée:", mp3Path);
         
         const audio = new Audio(mp3Path);
         audio.volume = 0.3; // Volume plus bas pour l'explosion
         
         // Écouter les événements pour le debug
         audio.addEventListener('canplaythrough', () => {
-          console.log("MP3 explosion prêt à jouer");
+          log("MP3 explosion prêt à jouer");
         });
         
         audio.addEventListener('error', (e) => {
-          console.log("ERREUR chargement MP3 explosion:", e);
-          console.log("Fallback vers son synthétique");
+          log("ERREUR chargement MP3 explosion:", e);
+          log("Fallback vers son synthétique");
           this.playExplosionSynthetic();
         });
         
         audio.addEventListener('loadstart', () => {
-          console.log("Début chargement MP3 explosion");
+          log("Début chargement MP3 explosion");
         });
         
         audio.play().then(() => {
-          console.log("MP3 explosion en cours de lecture - SUCCÈS");
+          log("MP3 explosion en cours de lecture - SUCCÈS");
         }).catch(e => {
-          console.log("ERREUR lecture MP3 explosion:", e);
+          log("ERREUR lecture MP3 explosion:", e);
           this.playExplosionSynthetic();
         });
       } catch (e) {
-        console.log("ERREUR création audio MP3 explosion:", e);
+        log("ERREUR création audio MP3 explosion:", e);
         this.playExplosionSynthetic();
       }
     }
@@ -5789,7 +5848,7 @@ function drawGrid() {
       }
 
       try {
-        console.log("Chargement de la musique de fond: theme-volt-clash.ogg");
+        log("Chargement de la musique de fond: theme-volt-clash.ogg");
 
         // Charger le fichier audio
         const response = await fetch('theme-volt-clash.ogg');
@@ -5815,13 +5874,13 @@ function drawGrid() {
         // Fade-in progressif sur 3 secondes avec le volume actuel
         this.musicGainNode.gain.linearRampToValueAtTime(this.musicVolume, this.audioContext.currentTime + 3);
         
-        console.log("Musique de fond démarrée avec fade-in");
+        log("Musique de fond démarrée avec fade-in");
         
         // Sauvegarder pour pouvoir l'arrêter plus tard
         this.musicPlaying = true;
         
       } catch (e) {
-        console.log("ERREUR chargement musique de fond:", e);
+        log("ERREUR chargement musique de fond:", e);
       }
     }
     
@@ -5832,7 +5891,7 @@ function drawGrid() {
       if (this.musicGainNode && this.audioContext) {
         // Appliquer le nouveau volume avec une transition douce
         this.musicGainNode.gain.linearRampToValueAtTime(this.musicVolume, this.audioContext.currentTime + 0.5);
-        console.log("Volume musique mis à jour:", Math.round(this.musicVolume * 100) + "%");
+        log("Volume musique mis à jour:", Math.round(this.musicVolume * 100) + "%");
       }
     }
     
@@ -5850,9 +5909,9 @@ function drawGrid() {
               this.musicSource = null;
               this.musicGainNode = null;
               this.musicPlaying = false;
-              console.log("Musique de fond arrêtée");
+              log("Musique de fond arrêtée");
             } catch (e) {
-              console.log("Musique déjà arrêtée");
+              log("Musique déjà arrêtée");
             }
           }
         }, 1000);
@@ -5867,16 +5926,16 @@ function drawGrid() {
     async playVictoryJingle() {
       if (!soundsEnabled) return;
       try {
-        console.log("Tentative lecture victory.ogg");
+        log("Tentative lecture victory.ogg");
         const audio = new Audio('victory.ogg');
         audio.volume = 0.20;
         audio.addEventListener('error', (e) => {
-          console.log("ERREUR fichier victory.ogg:", audio.error);
+          log("ERREUR fichier victory.ogg:", audio.error);
         });
         await audio.play();
-        console.log("victory.ogg en lecture OK");
+        log("victory.ogg en lecture OK");
       } catch (e) {
-        console.log("ERREUR play victory.ogg:", e);
+        log("ERREUR play victory.ogg:", e);
       }
     }
 
@@ -5898,7 +5957,7 @@ function drawGrid() {
     playExplosionSynthetic() {
       // Vérifier si les sons sont activés
       if (!soundsEnabled) {
-        console.log("Sons désactivés - explosion synthétique ignorée");
+        log("Sons désactivés - explosion synthétique ignorée");
         return;
       }
       
@@ -5927,44 +5986,44 @@ function drawGrid() {
     playCircuitDisconnect() {
       // Vérifier si les sons sont activés
       if (!soundsEnabled) {
-        console.log("Sons désactivés - déconnexion ignorée");
+        log("Sons désactivés - déconnexion ignorée");
         return;
       }
       
       // Utiliser le fichier MP3 personnalisé avec URL encodée
-      console.log("Tentative de lecture du MP3: Power_Down_#4-1769878521457.mp3");
+      log("Tentative de lecture du MP3: Power_Down_#4-1769878521457.mp3");
       
       try {
         // Encoder l'URL pour gérer les caractères spéciaux
         const mp3Path = encodeURIComponent('Power_Down_#4-1769878521457.mp3');
-        console.log("URL encodée:", mp3Path);
+        log("URL encodée:", mp3Path);
         
         const audio = new Audio(mp3Path);
         audio.volume = 0.4; // Volume modéré
         
         // Écouter les événements pour le debug
         audio.addEventListener('canplaythrough', () => {
-          console.log("MP3 prêt à jouer");
+          log("MP3 prêt à jouer");
         });
         
         audio.addEventListener('error', (e) => {
-          console.log("ERREUR chargement MP3:", e);
-          console.log("Fallback vers son synthétique");
+          log("ERREUR chargement MP3:", e);
+          log("Fallback vers son synthétique");
           this.playCircuitDisconnectSynthetic();
         });
         
         audio.addEventListener('loadstart', () => {
-          console.log("Début chargement MP3");
+          log("Début chargement MP3");
         });
         
         audio.play().then(() => {
-          console.log("MP3 en cours de lecture - SUCCÈS");
+          log("MP3 en cours de lecture - SUCCÈS");
         }).catch(e => {
-          console.log("ERREUR lecture MP3:", e);
+          log("ERREUR lecture MP3:", e);
           this.playCircuitDisconnectSynthetic();
         });
       } catch (e) {
-        console.log("ERREUR création audio MP3:", e);
+        log("ERREUR création audio MP3:", e);
         this.playCircuitDisconnectSynthetic();
       }
     }
@@ -5973,7 +6032,7 @@ function drawGrid() {
     playCircuitDisconnectSynthetic() {
       // Vérifier si les sons sont activés
       if (!soundsEnabled) {
-        console.log("Sons désactivés - déconnexion synthétique ignorée");
+        log("Sons désactivés - déconnexion synthétique ignorée");
         return;
       }
       
@@ -6066,17 +6125,20 @@ function drawGrid() {
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
         
-        // Ajouter un effet de lueur plus petit
-        ctx.shadowColor = this.color;
-        ctx.shadowBlur = 5;
+        // Lueur simulée (moins coûteux que shadowBlur)
+        ctx.globalAlpha = Math.max(0, this.life * 0.25);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI * 2);
         ctx.fill();
-        
+        ctx.globalAlpha = this.life;
+
         ctx.restore();
     }
 }
 
   // Fonction pour déclencher une explosion de particules
   function createExplosion(x, y, color, count = 30) {
+      if (IS_MOBILE) count = Math.floor(count * 0.5);
       for (let i = 0; i < count; i++) {
           particles.push(new Particle(x, y, color));
       }
@@ -6113,14 +6175,16 @@ let lastTime = performance.now();
       }
       
       // Limiter le nombre maximum de particules pour éviter l'accumulation
-      if (particles.length > 100) {
-          particles.splice(0, particles.length - 100);
+      const MAX_PARTICLES = IS_MOBILE ? 40 : 100;
+      if (particles.length > MAX_PARTICLES) {
+          particles.splice(0, particles.length - MAX_PARTICLES);
       }
   }
 
   // Fonction pour créer une explosion à des coordonnées de grille
   function createElectricExplosion(gridX, gridY, size = 'medium') {
       if (gameOver) return;
+      if (IS_MOBILE) size = size === 'large' ? 'medium' : 'small';
       const pixelX = MARGIN_PX + gridX * CELL_PX;
       const pixelY = MARGIN_PX + gridY * CELL_PX;
       
