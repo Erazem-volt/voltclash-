@@ -5,777 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Volt Clash — Mobile</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Press+Start+2P&display=swap" rel="stylesheet">
-  <style>
-    /* ================================
-       BOUTONS FUTURISTES - VOLT CLASH
-       ================================ */
-
-    /* Style principal des boutons */
-    .futuristic-btn {
-      font-family: 'Orbitron', monospace;
-      font-weight: 700;
-      font-size: 14px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      
-      /* Fond sombre et bordure */
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-      border: 2px solid #00ffff;
-      border-radius: 8px;
-      
-      /* Dimensions et espacement */
-      padding: 12px 24px;
-      min-width: 120px;
-      
-      /* Texte */
-      color: #00ffff;
-      text-align: center;
-      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-      
-      /* Curseur et transition */
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      
-      /* Position relative pour les pseudo-éléments */
-      position: relative;
-      overflow: hidden;
-      
-      /* Effet de base */
-      box-shadow: 
-        0 0 20px rgba(0, 255, 255, 0.3),
-        inset 0 0 20px rgba(0, 255, 255, 0.1);
-    }
-
-    /* Effet de survol (hover) */
-    .futuristic-btn:disabled {
-      opacity: 0.5 !important;
-      cursor: not-allowed !important;
-      pointer-events: none !important;
-      transform: none !important;
-      box-shadow: 
-        0 0 10px rgba(0, 255, 255, 0.1),
-        inset 0 0 10px rgba(0, 255, 255, 0.05) !important;
-    }
-    
-    .futuristic-btn:disabled:hover {
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%) !important;
-    }
-    
-    .futuristic-btn:hover {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      border-color: #00ffff;
-      color: #ffffff;
-      
-      /* Lueur accentuée au survol */
-      box-shadow: 
-        0 0 30px rgba(0, 255, 255, 0.6),
-        0 0 60px rgba(0, 255, 255, 0.4),
-        inset 0 0 30px rgba(0, 255, 255, 0.2);
-      
-      transform: translateY(-2px);
-    }
-
-    /* Effet de clic (active) */
-    .futuristic-btn:active {
-      transform: translateY(0) scale(0.98);
-      box-shadow: 
-        0 0 15px rgba(0, 255, 255, 0.4),
-        inset 0 0 20px rgba(0, 255, 255, 0.3);
-    }
-
-    /* Variante pour bouton principal */
-    .futuristic-btn.primary {
-      background: linear-gradient(135deg, #00ffff 0%, #0088cc 100%);
-      color: #0a0a0a;
-      border-color: #00ffff;
-      
-      box-shadow: 
-        0 0 25px rgba(0, 255, 255, 0.5),
-        inset 0 0 15px rgba(255, 255, 255, 0.2);
-    }
-
-    .futuristic-btn.primary:hover {
-      background: linear-gradient(135deg, #00ffff 0%, #00aaff 100%);
-      box-shadow: 
-        0 0 40px rgba(0, 255, 255, 0.8),
-        0 0 80px rgba(0, 255, 255, 0.4),
-        inset 0 0 25px rgba(255, 255, 255, 0.3);
-    }
-
-    /* Variante pour bouton danger */
-    .futuristic-btn.danger {
-      background: linear-gradient(135deg, #0a0a0a 0%, #2e0a0a 100%);
-      border-color: #ff0040;
-      color: #ff0040;
-      
-      box-shadow: 
-        0 0 20px rgba(255, 0, 64, 0.3),
-        inset 0 0 20px rgba(255, 0, 64, 0.1);
-    }
-
-    .futuristic-btn.danger:hover {
-      background: linear-gradient(135deg, #2e0a0a 0%, #3e0a0a 100%);
-      box-shadow: 
-        0 0 30px rgba(255, 0, 64, 0.6),
-        0 0 60px rgba(255, 0, 64, 0.4),
-        inset 0 0 30px rgba(255, 0, 64, 0.2);
-    }
-
-    /* Animation de pulsation subtile */
-    @keyframes pulse {
-      0%, 100% {
-        box-shadow: 
-          0 0 20px rgba(0, 255, 255, 0.3),
-          inset 0 0 20px rgba(0, 255, 255, 0.1);
-      }
-      50% {
-        box-shadow: 
-          0 0 25px rgba(0, 255, 255, 0.4),
-          inset 0 0 25px rgba(0, 255, 255, 0.15);
-      }
-    }
-
-    /* Effet de pulsation pour les boutons importants */
-    .futuristic-btn.pulse {
-      animation: pulse 2s infinite;
-    }
-
-    /* Style par défaut pour tous les boutons */
-    button {
-      font-family: 'Orbitron', monospace;
-      font-weight: 700;
-      font-size: 14px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* S'assurer que les boutons sans classe ont un style de base */
-    button:not(.futuristic-btn) {
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-      border: 2px solid #00ffff;
-      border-radius: 8px;
-      padding: 12px 24px;
-      min-width: 120px;
-      color: #00ffff;
-      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-      box-shadow: 
-        0 0 20px rgba(0, 255, 255, 0.3),
-        inset 0 0 20px rgba(0, 255, 255, 0.1);
-    }
-
-    button:not(.futuristic-btn):hover {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      border-color: #00ffff;
-      color: #ffffff;
-      box-shadow: 
-        0 0 30px rgba(0, 255, 255, 0.6),
-        0 0 60px rgba(0, 255, 255, 0.4),
-        inset 0 0 30px rgba(0, 255, 255, 0.2);
-      transform: translateY(-2px);
-    }
-
-    button:not(.futuristic-btn):active {
-      transform: translateY(0) scale(0.98);
-      box-shadow: 
-        0 0 15px rgba(0, 255, 255, 0.4),
-        inset 0 0 20px rgba(0, 255, 255, 0.3);
-    }
-    body { 
-      margin:0; 
-      background:#111; 
-      color:#eee; 
-      font-family:system-ui, Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center; /* Centrer horizontalement */
-      min-height: 100vh;
-    }
-    .wrap { 
-      max-width: 1450px; 
-      margin: 0 auto; 
-      padding: 16px; 
-      width: 100%;
-      text-align: center; /* Centrer le contenu */
-    }
-    .top { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    .panel { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .badge { padding:6px 10px; border:1px solid #333; border-radius:999px; background:#151515; font-size:14px; }
-    .note { color:#cfcfcf; font-size:14px; line-height:1.45; margin:10px 0 12px 0; }
-    
-    /* MODIFICATION ICI : On fixe la taille de la sheet pour qu'elle reste toujours grande */
-    .sheet { 
-      background:#0b0b0b; 
-      border:1px solid #333; 
-      border-radius: 10px; 
-      padding: 12px; 
-      position: relative; 
-      display: flex; /* Utiliser flex pour centrer le canvas */
-      justify-content: center;
-      align-items: center;
-      margin: 0 auto; /* Centrer la sheet */
-      
-      /* Fixer la taille basée sur la grille 30x30 : 24*2 + 30*22 = 708px */
-      width: 708px;
-      height: 708px;
-    }
-
-    canvas { 
-      width: auto; 
-      max-width: 100%; 
-      height: auto; 
-      display: block; 
-      background:#0b0b0b; 
-      border-radius:8px; 
-      margin: 0 auto; /* Centrer horizontalement */
-    }
-    .help { 
-  margin-top:10px; 
-  color:#cfcfcf; 
-  font-size:13px; 
-  line-height:1.55; 
-}
-
-/* Styles pour la modale Options */
-.modal {
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(5px);
-}
-
-.modal-content {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  margin: 5% auto;
-  padding: 0;
-  border: 2px solid #444;
-  border-radius: 15px;
-  width: 90%;
-  max-width: 600px;
-  box-shadow: 0 0 30px rgba(157, 78, 221, 0.3);
-  animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 25px;
-  border-bottom: 1px solid #444;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 13px 13px 0 0;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  color: #ff6b6b;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.modal-close:hover {
-  color: #ff9999;
-}
-
-.modal-body {
-  padding: 25px;
-}
-
-.option-section {
-  margin-bottom: 30px;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-  border: 1px solid #333;
-}
-
-.option-section:last-child {
-  margin-bottom: 0;
-}
-
-.shortcuts-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.shortcut-item {
-  color: #cfcfcf;
-  font-size: 13px;
-  padding: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 5px;
-  border: 1px solid #333;
-}
-
-.key {
-  color: #9d4edd;
-  font-weight: bold;
-  background: rgba(157, 78, 221, 0.2);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-}
-
-/* Styles pour les inputs des joueurs */
-.player-input {
-  width: 100%;
-  padding: 10px;
-  background: rgba(0, 0, 0, 0.7);
-  border: 2px solid #444;
-  border-radius: 8px;
-  color: #00ffff;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 14px;
-  text-align: center;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 10;
-}
-
-.player-input:focus {
-  outline: none;
-  border-color: #9d4edd;
-  box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
-}
-
-.player-input::placeholder {
-  color: #666;
-  font-style: italic;
-}
-
-/* Styles pour le classement */
-.ranking-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  margin-bottom: 8px;
-  background: rgba(157, 78, 221, 0.1);
-  border: 1px solid #444;
-  border-radius: 8px;
-  color: #cfcfcf;
-  font-family: 'Orbitron', sans-serif;
-}
-
-.ranking-item:first-child {
-  background: rgba(255, 215, 0, 0.2);
-  border-color: #ffd700;
-}
-
-.ranking-item:nth-child(2) {
-  background: rgba(192, 192, 192, 0.2);
-  border-color: #c0c0c0;
-}
-
-.ranking-item:nth-child(3) {
-  background: rgba(205, 127, 50, 0.2);
-  border-color: #cd7f32;
-}
-
-.ranking-position {
-  font-weight: bold;
-  color: #9d4edd;
-  min-width: 30px;
-}
-
-.ranking-name {
-  flex: 1;
-  text-align: left;
-  margin: 0 15px;
-}
-
-.ranking-stats {
-  display: flex;
-  gap: 15px;
-  font-size: 12px;
-}
-
-.ranking-wins {
-  color: #9dffb6;
-  font-weight: bold;
-}
-
-.ranking-losses {
-  color: #ffcf7a;
-}
-
-.ranking-ratio {
-  color: #00ffff;
-  font-size: 11px;
-}
-    .warn { color:#ffcf7a; }
-    .ok { color:#9dffb6; }
-    code { background:#1b1b1b; padding:2px 6px; border-radius:6px; border:1px solid #2b2b2b; }
-
-    .players { 
-      display:flex; 
-      gap:10px; 
-      flex-wrap:wrap; 
-      align-items:center; 
-      justify-content: center; /* Centrer horizontalement */
-      margin: 10px 0;
-    }
-    .pchip { padding:6px 10px; border-radius:999px; border:1px solid #333; background:#151515; font-size:13px; display:flex; align-items:center; gap:8px; }
-    .dot { width:10px; height:10px; border-radius:999px; display:inline-block; }
-    select { background:#151515; color:#eee; border:1px solid #333; border-radius:8px; padding:4px 8px; }
-
-    /* --- TON NOUVEAU CODE CSS POUR LE MENU --- */
-    .menu-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.1);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      z-index: 100;
-    }
-    .menu-card {
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 15px;
-      padding: 40px;
-      backdrop-filter: blur(3px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .glow-text {
-      font-family: 'Orbitron', sans-serif;
-      color: #00f2ff;
-      text-shadow: 0 0 20px #00f2ff;
-      font-size: 3.5rem;
-      margin-bottom: 30px;
-    }
-
-    .game-title-main {
-      font-family: 'Orbitron', sans-serif;
-      color: #00f2ff;
-      text-shadow: 0 0 20px #00f2ff;
-      font-size: 2.5rem;
-      margin: 15px 0;
-      text-align: center;
-    }
-
-    .menu-section { margin: 15px; text-align: center; }
-    .menu-section h3 { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #888; margin-bottom: 10px; }
-
-    /* Bouton de sélection actif */
-    .btn-active {
-      border-color: #00ffff !important;
-      color: #ffffff !important;
-      box-shadow:
-        0 0 25px rgba(0, 255, 255, 0.9),
-        0 0 50px rgba(0, 255, 255, 0.5),
-        inset 0 0 20px rgba(0, 255, 255, 0.3) !important;
-      opacity: 1 !important;
-      filter: none !important;
-    }
-
-    /* Bouton de sélection inactif */
-    .btn-inactive {
-      opacity: 0.55 !important;
-      filter: brightness(0.7) !important;
-      box-shadow: none !important;
-    }
-
-    /* Autocomplétion pseudo */
-    .pseudo-wrapper {
-      position: relative;
-      width: 100%;
-    }
-    .pseudo-suggestions {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: rgba(0, 0, 0, 0.95);
-      border: 1px solid #0ff;
-      border-top: none;
-      border-radius: 0 0 8px 8px;
-      max-height: 150px;
-      overflow-y: auto;
-      z-index: 200;
-      display: none;
-    }
-    .pseudo-suggestions.visible {
-      display: block;
-    }
-    .pseudo-suggestion-item {
-      padding: 8px 12px;
-      color: #ccc;
-      cursor: pointer;
-      font-size: 14px;
-      border-bottom: 1px solid rgba(0, 255, 255, 0.1);
-    }
-    .pseudo-suggestion-item:hover,
-    .pseudo-suggestion-item.selected {
-      background: rgba(0, 255, 255, 0.15);
-      color: #0ff;
-    }
-    .pseudo-suggestion-item .suggestion-stats {
-      font-size: 11px;
-      color: #888;
-      margin-left: 8px;
-    }
-    .pseudo-indicator {
-      font-size: 11px;
-      margin-top: 3px;
-      height: 16px;
-    }
-    .pseudo-indicator.exists {
-      color: #0f0;
-    }
-    .pseudo-indicator.new-player {
-      color: #f80;
-    }
-
-    /* ================================
-       MOBILE — PORTRAIT LAYOUT
-       ================================ */
-    html.mobile-mode, html.mobile-mode body {
-      touch-action: manipulation;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      user-select: none;
-      overflow: hidden;
-      position: fixed;
-      width: 100%;
-      height: 100%;
-    }
-
-    @media (max-width: 768px) {
-      html, body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        height: 100vh;
-        height: 100dvh;
-      }
-
-      /* ===== WRAPPER FLEX VERTICAL ===== */
-      #game-wrapper,
-      body > div[style*="z-index: 1"] {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        width: 100% !important;
-        height: 100dvh !important;
-        overflow: hidden;
-      }
-
-      /* ===== ORDRE : badges → canvas → boutons ===== */
-      #playersRow  { order: 1; }
-      .sheet       { order: 2; }
-      #gameControls { order: 3; }
-      #status, .help { order: 4; }
-
-      /* Menus : hors du flux (position fixed) */
-      .menu-overlay { order: 99; }
-
-      /* ===== BADGES JOUEURS EN HAUT ===== */
-      #playersRow {
-        flex-shrink: 0;
-        display: flex !important;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 8px;
-        min-height: 40px;
-        max-height: 46px;
-        font-size: 13px !important;
-        overflow: hidden;
-        width: 100%;
-      }
-
-      .pchip {
-        padding: 4px 10px !important;
-        font-size: 12px !important;
-        min-width: auto !important;
-        gap: 4px !important;
-      }
-
-      .pchip .dot {
-        width: 12px !important;
-        height: 12px !important;
-      }
-
-      /* ===== CANVAS AU CENTRE (flottant dans l'espace) ===== */
-      .sheet {
-        flex-shrink: 1;
-        flex-grow: 1;
-        padding: 0 !important;
-        margin: 0 auto !important;
-        display: flex !important;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-        max-height: calc(100dvh - 90px);
-        width: 100% !important;
-        height: auto !important;
-        max-width: 100vw !important;
-        background: transparent !important;
-        border: none !important;
-        border-radius: 0 !important;
-      }
-
-      canvas#c {
-        display: block;
-        background: transparent !important;
-        border-radius: 0 !important;
-      }
-
-      /* ===== TITRE EN JEU - CACHER SUR MOBILE ===== */
-      .game-title-main {
-        display: none !important;
-      }
-
-      /* ===== BOUTONS DE CONTRÔLE EN BAS ===== */
-      #gameControls {
-        flex-shrink: 0;
-        width: 100%;
-        max-height: 44px;
-        overflow: visible;
-        z-index: 10;
-        margin-bottom: 2px;
-      }
-
-      #gameControls .panel {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 4px;
-        padding: 2px 5px;
-      }
-
-      #gameControls button {
-        padding: 4px 8px !important;
-        font-size: 8px !important;
-        min-height: 28px;
-        min-width: 42px;
-        touch-action: manipulation;
-        border-radius: 4px;
-      }
-
-      /* ===== STATUT (texte sous les boutons) ===== */
-      #status, .help {
-        flex-shrink: 0;
-        font-size: 11px !important;
-        padding: 4px 8px !important;
-        text-align: center;
-        min-height: 20px;
-        max-height: 26px;
-        overflow: hidden;
-        color: #aaa;
-      }
-
-      /* ===== MENUS PLEIN ÉCRAN OPAQUE ===== */
-      .menu-overlay {
-        position: fixed !important;
-        top: 0; left: 0;
-        width: 100vw !important;
-        height: 100vh !important;
-        height: 100dvh !important;
-        z-index: 100;
-        background: rgba(0, 0, 0, 0.98) !important;
-        align-items: center !important;
-        justify-content: center !important;
-      }
-
-      .menu-card {
-        width: 92vw !important;
-        max-width: 92vw !important;
-        max-height: 88vh !important;
-        overflow-y: auto !important;
-        padding: 15px !important;
-        background: rgba(0, 0, 0, 0.95) !important;
-      }
-
-      .glow-text {
-        font-size: 22px !important;
-      }
-
-      /* ===== BOUTONS MENU TACTILES ===== */
-      .futuristic-btn {
-        padding: 10px 18px !important;
-        font-size: 12px !important;
-        min-height: 44px;
-        touch-action: manipulation;
-      }
-
-      /* ===== INPUTS PSEUDO (16px = pas de zoom iOS) ===== */
-      input[type="text"].player-input {
-        font-size: 16px !important;
-        padding: 10px !important;
-        min-height: 44px;
-      }
-
-      input[type="text"] {
-        font-size: 16px !important;
-      }
-
-      select {
-        font-size: 14px !important;
-        min-height: 44px;
-        padding: 8px !important;
-      }
-
-      /* ===== OPTIONS PANEL ===== */
-      #options-panel {
-        width: 85vw !important;
-        right: auto !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        max-height: 80vh !important;
-        overflow-y: auto !important;
-      }
-
-      /* ===== CLASSEMENT ===== */
-      .ranking-item {
-        padding: 6px 8px !important;
-        font-size: 12px !important;
-      }
-
-      /* ===== AUTOCOMPLÉTION ===== */
-      .pseudo-suggestions {
-        font-size: 13px !important;
-      }
-
-      /* ===== MASQUER RACCOURCIS CLAVIER ===== */
-      .shortcuts-grid,
-      [data-lang="shortcutsSection"] {
-        display: none !important;
-      }
-
-      span[style*="Menu: ESC"] {
-        display: none !important;
-      }
-    }
-</style>
+  <link rel="stylesheet" href="css/style.css">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/lang.js"></script>
+<script src="js/sound.js"></script>
 <!-- Favicon Volt Clash -->
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
@@ -1114,15 +348,60 @@
 
 <script>
 /**
- * VOLT CLASH - (c) 2026 Erazem-volt
- * Tous droits réservés.
- * L'utilisation, la copie ou la revente de ce code sans autorisation est interdite.
+ * ═══════════════════════════════════════════════════════════
+ *  VOLT CLASH — (c) 2026 Erazem-volt
+ *  Tous droits réservés.
+ *  L'utilisation, la copie ou la revente de ce code sans
+ *  autorisation est interdite.
+ * ═══════════════════════════════════════════════════════════
+ *
+ *  Structure du fichier (Ctrl+F sur le nom pour naviguer) :
+ *
+ *   1.  CONFIG & DETECTION
+ *   2.  LANGUE / TRADUCTION (FR / EN)
+ *   3.  SUPABASE / CLASSEMENT EN LIGNE
+ *   4.  PSEUDO / AUTOCOMPLETE
+ *   5.  IIFE — DÉMARRAGE & CONSTANTES JEU
+ *   6.  CONSTANTES VISUELLES
+ *   7.  SCALE & UTILITAIRES
+ *   8.  PROFILS IA
+ *   9.  UTILITAIRES GÉOMÉTRIE
+ *  10.  ÉTAT DU JEU
+ *  11.  MURS / RÉSEAU ÉLECTRIQUE
+ *  12.  CALCUL DU RÉSEAU ALIMENTÉ
+ *  13.  RÈGLES — LÉGALITÉ DES COUPS
+ *  14.  PLACEMENT DES PIÈCES
+ *  15.  ÉLIMINATION & ANIMATION VICTOIRE
+ *  16.  IA — COUPS NORMAUX
+ *  17.  IA — COPIES D'ÉTAT (BEAM SEARCH)
+ *  18.  IA — BEAM SEARCH
+ *  19.  VALIDATION DES COUPS HUMAIN
+ *  20.  UI — BADGES & STATUS
+ *  21.  BOUCLE DE RENDU (RAF)
+ *  22.  CACHE GRILLE OFFSCREEN
+ *  23.  DESSIN — GRILLE
+ *  24.  DESSIN — BASES & PIÈCES
+ *  25.  DESSIN — CURSEURS
+ *  26.  RENDU PRINCIPAL
+ *  27.  CLAVIER & BOUTONS
+ *  28.  DRAG & SLIDE (DIAGONALES)
+ *  29.  ÉVÉNEMENTS SOURIS
+ *  30.  ÉVÉNEMENTS TOUCH (MOBILE)
+ *  31.  RESET & INITIALISATION
+ *  32.  SYSTÈME AUDIO
+ *  33.  PARTICULES & EFFETS VISUELS
+ *  34.  VÉRIFICATION VICTOIRE
+ *
+ * ═══════════════════════════════════════════════════════════
  */
 
 // Mode production : désactiver les logs
 const DEBUG_MODE = false;
 const log = DEBUG_MODE ? console.log.bind(console) : () => {};
 
+// ╔══════════════════════════════════════════════════════════╗
+// ║  1. CONFIG & DETECTION                                  ║
+// ╚══════════════════════════════════════════════════════════╝
 // Détection mobile
 const IS_MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 if (IS_MOBILE) document.documentElement.classList.add('mobile-mode');
@@ -1133,267 +412,8 @@ let NODES = 21;
 let PLAYER_COUNT = 4;
 let displayW, displayH;
 
-// ============================================================
-// SYSTÈME DE LANGUE FR / EN
-// ============================================================
-let currentLang = localStorage.getItem('voltclash_lang') || 'fr';
-
-const LANG = {
-  fr: {
-    title: "VOLT CLASH",
-    play2: "2 JOUEURS",
-    play4: "4 JOUEURS",
-    ranking: "CLASSEMENT",
-    back: "RETOUR",
-    player: "Joueur",
-    human: "Humain",
-    ai: "IA",
-    startGame: "COMMENCER",
-    enterName: "Pseudo...",
-    reset: "Réinitialiser",
-    bgBlack: "Fond: Noir",
-    bgWhite: "Fond: Blanc",
-    aiNormal: "IA: Normal",
-    aiExpert: "IA: Expert",
-    menu: "Menu",
-    options: "Options",
-    optionsTitle: "⚙️ OPTIONS",
-    musicSection: "🎵 MUSIQUE",
-    soundSection: "🔊 SONS",
-    shortcutsSection: "⌨️ RACCOURCIS",
-    langLabel: "Langue",
-    langValue: "FRANÇAIS",
-    langFlag: "🌐",
-    close: "FERMER",
-    rankingTitle: "CLASSEMENT",
-    scoreBoard: "TABLEAU DES SCORES",
-    pts: "pts",
-    wins: "V",
-    games: "P",
-    clear: "EFFACER",
-    noStats: "Aucune statistique enregistrée",
-    victory: "VICTOIRE",
-    winner: "REMPORTE LA PARTIE !",
-    backToMenu: "MENU",
-    turnOf: "Tour de",
-    eliminated: "éliminé par",
-    yourTurn: "À toi de jouer.",
-    aiPlays: "joue…",
-    enterPseudos: "SAISIR LES PSEUDOS",
-    enterPseudos4: "SAISIR LES PSEUDOS — 4 JOUEURS",
-    nbPlayers: "NOMBRE DE JOUEURS",
-    musicLabel: "MUSIQUE",
-    musicOn: "🎵 MUSIQUE ON",
-    musicOff: "🎵 MUSIQUE OFF",
-    soundsOn: "🔊 SONS ON",
-    soundsOff: "🔊 SONS OFF",
-    volume: "Volume :",
-    shortcutUpDown: "Haut/Bas",
-    shortcutLeftRight: "Gauche/Droite",
-    shortcutPlace: "Placer croix",
-    shortcutMusic: "Musique ON/OFF",
-    shortcutVolume: "Volume musique",
-    shortcutReset: "Réinitialiser",
-    shortcutMenu: "Menu",
-    shortcutBg: "Changer le fond",
-    shortcutExpert: "Mode expert",
-    shortcutPause: "Pause",
-    confirmClear: "Êtes-vous sûr de vouloir effacer toutes les statistiques ?",
-    elimination: "ÉLIMINATION",
-    playerCount: "JOUEURS",
-    rulesTitle: "RÈGLES",
-    rulesObjective: "OBJECTIF",
-    rulesObjectiveText: "Détruisez la ou les bases adverses en étendant votre circuit électrique à travers la grille.",
-    rulesHowTo: "COMMENT JOUER",
-    rulesHowToText1: "Placez jusqu'à 5 croix par tour pour faire progresser votre circuit depuis votre base.",
-    rulesHowToText2: "Vos croix doivent rester connectées entre elles et à votre base pour être alimentées.",
-    rulesHowToText3: "Atteignez une base adverse avec votre circuit pour la détruire et éliminer son propriétaire.",
-    rulesAttack: "ATTAQUE",
-    rulesAttackText: "Mangez les croix adverses pour les transformer en murs et déconnecter leur circuit. Un circuit coupé perd toutes les croix non reliées à sa base.",
-    rulesVictory: "VICTOIRE",
-    rulesVictoryText: "Le dernier joueur en vie remporte la partie !",
-    rulesTips: "ASTUCES",
-    rulesTip1: "⚡ Progressez en diagonale : les croix placées en zigzag sont plus difficiles à capturer et offrent moins de prises à l'adversaire pour créer des murs permanents.",
-    rulesTip2: "🔀 Construisez des circuits parallèles : si l'ennemi coupe une branche, vos croix pourront se reconnecter par un chemin alternatif.",
-    rulesTip3: "✂️ Coupez le circuit ennemi au point le plus étroit pour un maximum de dégâts.",
-    linePlaced: "coup(s) posé(s).",
-    lineInvalid: "Ligne invalide.",
-    lineNoConnection: "Ligne invalide (pas de connexion possible).",
-    moveForbiddenBase: "Interdit : pas de croix dans ta base.",
-    moveForbiddenConnection: "Coup refusé : doit rester alimenté (connecté à ta base).",
-    circleBlocked: "Rond interdit : adjacence base/pièce + rester alimenté.",
-    actionImpossible: "Action impossible ici.",
-    endTurn: "Fin de tour",
-    movesLeft: "coups restants",
-  },
-  en: {
-    title: "VOLT CLASH",
-    play2: "2 PLAYERS",
-    play4: "4 PLAYERS",
-    ranking: "RANKING",
-    back: "BACK",
-    player: "Player",
-    human: "Human",
-    ai: "AI",
-    startGame: "START",
-    enterName: "Name...",
-    reset: "Reset",
-    bgBlack: "BG: Black",
-    bgWhite: "BG: White",
-    aiNormal: "AI: Normal",
-    aiExpert: "AI: Expert",
-    menu: "Menu",
-    options: "Options",
-    optionsTitle: "⚙️ OPTIONS",
-    musicSection: "🎵 MUSIC",
-    soundSection: "🔊 SOUNDS",
-    shortcutsSection: "⌨️ SHORTCUTS",
-    langLabel: "Language",
-    langValue: "ENGLISH",
-    langFlag: "🌐",
-    close: "CLOSE",
-    rankingTitle: "RANKING",
-    scoreBoard: "SCOREBOARD",
-    pts: "pts",
-    wins: "W",
-    games: "G",
-    clear: "CLEAR",
-    noStats: "No stats recorded",
-    victory: "VICTORY",
-    winner: "WINS THE GAME!",
-    backToMenu: "MENU",
-    turnOf: "Turn of",
-    eliminated: "eliminated by",
-    yourTurn: "Your turn.",
-    aiPlays: "playing…",
-    enterPseudos: "ENTER NAMES",
-    enterPseudos4: "ENTER NAMES — 4 PLAYERS",
-    nbPlayers: "NUMBER OF PLAYERS",
-    musicLabel: "MUSIC",
-    musicOn: "🎵 MUSIC ON",
-    musicOff: "🎵 MUSIC OFF",
-    soundsOn: "🔊 SOUNDS ON",
-    soundsOff: "🔊 SOUNDS OFF",
-    volume: "Volume:",
-    shortcutUpDown: "Up/Down",
-    shortcutLeftRight: "Left/Right",
-    shortcutPlace: "Place cross",
-    shortcutMusic: "Music ON/OFF",
-    shortcutVolume: "Music volume",
-    shortcutReset: "Reset",
-    shortcutMenu: "Menu",
-    shortcutBg: "Toggle background",
-    shortcutExpert: "Expert mode",
-    shortcutPause: "Pause",
-    confirmClear: "Are you sure you want to clear all stats?",
-    elimination: "ELIMINATION",
-    playerCount: "PLAYERS",
-    rulesTitle: "RULES",
-    rulesObjective: "OBJECTIVE",
-    rulesObjectiveText: "Destroy enemy base(s) by extending your electric circuit across the grid.",
-    rulesHowTo: "HOW TO PLAY",
-    rulesHowToText1: "Place up to 5 crosses per turn to extend your circuit from your base.",
-    rulesHowToText2: "Your crosses must stay connected to each other and to your base to remain powered.",
-    rulesHowToText3: "Reach an enemy base with your circuit to destroy it and eliminate its owner.",
-    rulesAttack: "ATTACK",
-    rulesAttackText: "Eat enemy crosses to turn them into walls and disconnect their circuit. A severed circuit loses all crosses not linked to its base.",
-    rulesVictory: "VICTORY",
-    rulesVictoryText: "Last player standing wins the game!",
-    rulesTips: "TIPS",
-    rulesTip1: "⚡ Move diagonally: zigzag crosses are harder to capture and give your opponent fewer opportunities to create permanent walls.",
-    rulesTip2: "🔀 Build parallel circuits: if the enemy cuts one branch, your crosses can reconnect through an alternate path.",
-    rulesTip3: "✂️ Cut the enemy circuit at its narrowest point for maximum damage.",
-    linePlaced: "move(s) placed.",
-    lineInvalid: "Invalid line.",
-    lineNoConnection: "Invalid line (no connection possible).",
-    moveForbiddenBase: "Forbidden: no cross in your base.",
-    moveForbiddenConnection: "Move refused: must stay powered (connected to your base).",
-    circleBlocked: "Circle blocked: need adjacent base/piece + stay powered.",
-    actionImpossible: "Impossible action here.",
-    endTurn: "End turn",
-    movesLeft: "moves left",
-  }
-};
-
-function t(key) {
-  return LANG[currentLang][key] || LANG['fr'][key] || key;
-}
-
-function toggleLanguage() {
-  currentLang = (currentLang === 'fr') ? 'en' : 'fr';
-  localStorage.setItem('voltclash_lang', currentLang);
-  applyLanguage();
-}
-
-function applyLanguage() {
-  // Sauvegarder l'état ON/OFF des boutons avant que data-lang ne les écrase
-  const musicBtn = document.getElementById('btn-music-toggle');
-  const musicIsOn = !musicBtn || !musicBtn.textContent.includes('OFF');
-
-  // Appliquer data-lang à tous les éléments
-  document.querySelectorAll('[data-lang]').forEach(el => {
-    const key = el.getAttribute('data-lang');
-    if (el.tagName === 'INPUT' && el.placeholder !== undefined) {
-      el.placeholder = t(key);
-    } else {
-      el.textContent = t(key);
-    }
-  });
-
-  // Bouton langue dans le menu principal
-  const langMenuText = document.getElementById('lang-menu-text');
-  if (langMenuText) langMenuText.textContent = t('langValue');
-
-  // Boutons langue dans le panel options
-  const langBtn = document.getElementById('btn-lang');
-  if (langBtn) langBtn.textContent = t('langLabel') + ': ' + t('langValue');
-  const langBtnPanel = document.getElementById('btn-lang-panel');
-  if (langBtnPanel) langBtnPanel.textContent = t('langLabel') + ': ' + t('langValue');
-
-  // Boutons de jeu (in-game)
-  const bgBtn = document.getElementById('togglebg');
-  if (bgBtn) {
-    const isBlack = document.body.style.backgroundColor === 'black' ||
-                   getComputedStyle(document.body).backgroundColor === 'rgb(0, 0, 0)' ||
-                   !document.body.style.backgroundColor;
-    bgBtn.textContent = isBlack ? t('bgBlack') : t('bgWhite');
-  }
-
-  const aiBtn = document.getElementById('toggleExpert');
-  if (aiBtn) {
-    const isExpert = aiBtn.textContent.includes('Expert') || aiBtn.textContent.includes('EXPERT');
-    aiBtn.textContent = isExpert ? t('aiExpert') : t('aiNormal');
-  }
-
-  const resetBtn = document.getElementById('reset');
-  if (resetBtn) resetBtn.textContent = t('reset');
-
-  const menuBtn = document.getElementById('menu');
-  if (menuBtn) menuBtn.textContent = t('menu');
-
-  const optionsBtn = document.getElementById('options-btn');
-  if (optionsBtn) optionsBtn.textContent = '⚙️ ' + t('options');
-
-  // Bouton musique du menu principal (restaurer l'état ON/OFF après data-lang)
-  if (musicBtn) musicBtn.textContent = musicIsOn ? t('musicOn') : t('musicOff');
-
-  // Boutons musique/sons du panel options (sans data-lang, vérifier l'état)
-  const panelMusicToggle = document.getElementById('panel-music-toggle');
-  if (panelMusicToggle) {
-    const isOn = !panelMusicToggle.textContent.includes('OFF');
-    panelMusicToggle.textContent = isOn ? t('musicOn') : t('musicOff');
-  }
-
-  const panelSoundsToggle = document.getElementById('panel-sounds-toggle');
-  if (panelSoundsToggle) {
-    const isOn = !panelSoundsToggle.textContent.includes('OFF');
-    panelSoundsToggle.textContent = isOn ? t('soundsOn') : t('soundsOff');
-  }
-}
-
-// ============================================================
-// SUPABASE — CLASSEMENT EN LIGNE
-// ============================================================
+// ║  3. SUPABASE / CLASSEMENT EN LIGNE                      ║
+// ╚══════════════════════════════════════════════════════════╝
 const SUPABASE_URL = 'https://zlkgpqsfjxjesfivndwh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_JDu4-flooLPtFWPCBK9O9g_0JVSYztq';
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
@@ -1486,6 +506,9 @@ function filterPseudos(allPseudos, query) {
     .slice(0, 8);
 }
 
+// ╔══════════════════════════════════════════════════════════╗
+// ║  4. PSEUDO / AUTOCOMPLETE                               ║
+// ╚══════════════════════════════════════════════════════════╝
 function setupPseudoAutocomplete(input) {
   const wrapper = document.createElement('div');
   wrapper.className = 'pseudo-wrapper';
@@ -1602,6 +625,14 @@ function initPseudoAutocomplete() {
   });
 }
 
+// Variables audio : globales car utilisées par sound.js (externe)
+let musicEnabled = true;
+let soundsEnabled = true;
+let gameOptionsVisible = false;
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  5. IIFE — DÉMARRAGE & CONSTANTES JEU                   ║
+// ╚══════════════════════════════════════════════════════════╝
 (() => {
   // ----------------------------
   // Config
@@ -1613,12 +644,18 @@ function initPseudoAutocomplete() {
   let CELL_PX = 22;
   let MARGIN_PX = 24;
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  6. CONSTANTES VISUELLES                                ║
+  // ╚══════════════════════════════════════════════════════════╝
   // Halo plus intense
   const HALO_WIDE = 11;
   const HALO_THIN = 3.4;
   const HALO_ALPHA_WIDE = 0.22;
   const HALO_ALPHA_THIN = 0.38;
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  7. SCALE & UTILITAIRES                                 ║
+  // ╚══════════════════════════════════════════════════════════╝
   // Ratio pour adapter les tailles des éléments au CELL_PX actuel
   // Sur desktop CELL_PX = 22, donc les tailles de référence sont calibrées pour 22
   const REF_CELL = 22; // Taille de référence (desktop)
@@ -1665,6 +702,9 @@ const AI_BEAM = {
   tieNoise: 0.02      // brise les égalités
 };
 // ----------------------------
+// ╔══════════════════════════════════════════════════════════╗
+// ║  8. PROFILS IA                                          ║
+// ╚══════════════════════════════════════════════════════════╝
 // IA profiles (styles différents)
 // ----------------------------
 // Chaque IA reçoit un profil distinct au reset, pour éviter les schémas identiques en début de partie.
@@ -2237,11 +1277,6 @@ function opponentTargetPoint(pid, prof) {
     }
   }
   
-  // Variable globale pour l'état de la musique
-  let musicEnabled = true;
-  let soundsEnabled = true;
-  let gameOptionsVisible = false;
-  
   // Fonction pour basculer la musique
   function toggleMusic() {
     const btn = document.getElementById('btn-music-toggle');
@@ -2361,8 +1396,6 @@ function opponentTargetPoint(pid, prof) {
     
     if (modalDisplay) modalDisplay.textContent = value + '%';
     if (panelDisplay) panelDisplay.textContent = value + '%';
-    
-    // TODO: Implémenter le contrôle du volume des sons
     log("Volume sons mis à jour:", value + "%");
   }
   
@@ -2696,6 +1729,9 @@ function opponentTargetPoint(pid, prof) {
     requestRedraw();
   }
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  9. UTILITAIRES GÉOMÉTRIE                               ║
+  // ╚══════════════════════════════════════════════════════════╝
   function nodeToPx(ix, iy) { return { x: MARGIN_PX + ix * CELL_PX, y: MARGIN_PX + iy * CELL_PX }; }
   function keyOf(ix, iy) { return `${ix},${iy}`; }
   function parseKey(k) { const [ix,iy] = k.split(",").map(Number); return {ix,iy}; }
@@ -2731,15 +1767,20 @@ function opponentTargetPoint(pid, prof) {
     {dx: 1, dy: 0}, {dx:-1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy:-1},
   ];
 
-  // ----------------------------
-  // State
-  // ----------------------------
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  10. ÉTAT DU JEU                                        ║
+  // ╚══════════════════════════════════════════════════════════╝
+
+  // --- Plateau ---
   const marks = new Map(); // nodeKey -> { owner, kind:"X"|"O" }
   const walls = new Map(); // edgeKey -> owner (derived from O-O)
 
+  // --- Joueurs ---
   const alive = new Map(PLAYERS.map(p => [p.id, true]));
   const started = new Map(PLAYERS.map(p => [p.id, false]));
+  const cursors = new Map(PLAYERS.map(p => [p.id, { ...startNodeFor(p.id) } ]));
 
+  // --- Tour en cours ---
   let currentIdx = 0;
   let movesLeft = MOVES_PER_TURN;
   let message = "";
@@ -2747,19 +1788,30 @@ function opponentTargetPoint(pid, prof) {
   let gamePaused = false;
   let wallsDirty = true;
 
-  const cursors = new Map(PLAYERS.map(p => [p.id, { ...startNodeFor(p.id) } ]));
+  // --- IA scheduler ---
+  let aiTimer = null;
+
+  // --- Drag / Slide ---
+  let dragPlacing = false;
+  let dragMoved = false;
+  let dragStart = null;      // {ix,iy}
+  let dragPath = [];         // [{ix,iy,k}]
+  let dragOkPath = [];       // sous-ensemble posable (simulation virtuelle)
+  let lastDragUpdate = 0;    // timestamp du dernier calcul de drag
+  const DRAG_THROTTLE = 30;  // ms minimum entre 2 calculs
+
+  // --- Touch ---
+  let lastTouchEnd = 0;
+  let hasStarted = false;
 
   function playerById(pid){ return PLAYERS.find(p => p.id === pid); }
-  function currentPlayerId(){ 
+  function currentPlayerId(){
     // Ne considérer que les joueurs actifs selon PLAYER_COUNT
     let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
-    return activePlayers[currentIdx].id; 
+    return activePlayers[currentIdx].id;
   }
   function currentPlayer(){ return playerById(currentPlayerId()); }
   function activeCursor(){ return cursors.get(currentPlayerId()); }
-
-  // IA scheduler (anti-blocage)
-  let aiTimer = null;
   function stopAI() {
     if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; }
   }
@@ -2791,6 +1843,9 @@ function opponentTargetPoint(pid, prof) {
     return (k1 < k2) ? `${k1}|${k2}` : `${k2}|${k1}`;
   }
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  11. MURS / RÉSEAU ÉLECTRIQUE                           ║
+  // ╚══════════════════════════════════════════════════════════╝
   function rebuildWallsFromCircles() {
     // Sauvegarder les anciens murs pour comparaison
     const oldWalls = new Map(walls);
@@ -2879,6 +1934,9 @@ function opponentTargetPoint(pid, prof) {
     return inBase(ix, iy, baseRectFor(pid));
   }
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  12. CALCUL DU RÉSEAU ALIMENTÉ                          ║
+  // ╚══════════════════════════════════════════════════════════╝
   function computePoweredSet(pid) {
     const powered = new Set();
     const q = [];
@@ -2926,9 +1984,9 @@ function opponentTargetPoint(pid, prof) {
     return false;
   }
 
-  // ----------------------------
-  // Move legality
-  // ----------------------------
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  13. RÈGLES — LÉGALITÉ DES COUPS                        ║
+  // ╚══════════════════════════════════════════════════════════╝
   function canPlaceCross(pid, ix, iy) {
     if (gameOver || !alive.get(pid)) return false;
     const k = keyOf(ix, iy);
@@ -2964,6 +2022,9 @@ function opponentTargetPoint(pid, prof) {
     return ok;
   }
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  14. PLACEMENT DES PIÈCES                               ║
+  // ╚══════════════════════════════════════════════════════════╝
   function placeCross(pid, ix, iy) {
     const k = keyOf(ix, iy);
     marks.set(k, { owner: pid, kind:"X" });
@@ -2992,6 +2053,9 @@ function opponentTargetPoint(pid, prof) {
     wallsDirty = true;
   }
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  15. ÉLIMINATION & ANIMATION VICTOIRE                   ║
+  // ╚══════════════════════════════════════════════════════════╝
   function eliminatePlayer(elimPid, eliminatorPid, reason) {
     if (!alive.get(elimPid)) return false;
     alive.set(elimPid, false);                // base disappears (not alive => not drawn, not conductive)
@@ -3018,7 +2082,6 @@ function opponentTargetPoint(pid, prof) {
   function showVictoryAnimation(winner, color) {
     const winnerName = getPlayerName(winner);
 
-    // === DEBUG CLASSEMENT ===
     log('=== VICTORY DEBUG ===');
     log('Winner:', winnerName, '(pid:', winner, ')');
     log('PLAYER_COUNT:', PLAYER_COUNT);
@@ -3592,6 +2655,25 @@ function opponentTargetPoint(pid, prof) {
   }
 
 
+// Expose globals pour ai-state.js (fermeture IIFE → window)
+window.parseKey = parseKey;
+window.keyOf = keyOf;
+window.edgeKey = edgeKey;
+window.neigh4 = neigh4;
+window.dirs8 = dirs8;
+window.PLAYERS = PLAYERS;
+window.inBase = inBase;
+window.baseRectFor = baseRectFor;
+window.isOwnBase = isOwnBase;
+window.opponentTargetPoint = opponentTargetPoint;
+window.baseCenter = baseCenter;
+window.dist2 = dist2;
+window.AI_BEAM = AI_BEAM;
+window.SHIELD_RADIUS2 = SHIELD_RADIUS2;
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  16. IA — COUPS NORMAUX                                 ║
+// ╚══════════════════════════════════════════════════════════╝
 function pickAIMoveNormal(pid) {
   const { circles, crosses } = generateAICandidates(pid);
 
@@ -3651,277 +2733,9 @@ function cloneSimpleMap(src){
   return m;
 }
 
-function rebuildWallsFromCircles_state(st) {
-  st.walls.clear();
-  for (const [k, m] of st.marks.entries()) {
-    if (m.kind !== "O") continue;
-    const a = parseKey(k);
-    for (const d of neigh4) {
-      const b = { ix: a.ix + d.dx, iy: a.iy + d.dy };
-      if (b.ix < 0 || b.iy < 0 || b.ix >= NODES || b.iy >= NODES) continue;
-      const mb = st.marks.get(keyOf(b.ix, b.iy));
-      if (mb && mb.kind === "O" && mb.owner === m.owner) {
-        const ek = edgeKey(a, b);
-        st.walls.set(ek, m.owner);
-      }
-    }
-  }
-}
-
-function isBlockedByEnemyWall_state(st, from, to, pid, dx, dy) {
-  const isOrth = (Math.abs(dx) + Math.abs(dy)) === 1;
-  if (!isOrth) return false;
-  const ek = edgeKey(from, to);
-  const owner = st.walls.get(ek);
-  if (!owner) return false;
-  return owner !== pid;
-}
-
-function conductiveForPlayer_state(st, ix, iy, pid) {
-  const k = keyOf(ix, iy);
-  const m = st.marks.get(k);
-  if (m && m.owner === pid) return true;
-  if (!st.alive.get(pid)) return false;
-  return inBase(ix, iy, baseRectFor(pid));
-}
-
-function computePoweredSet_state(st, pid) {
-  const powered = new Set();
-  const q = [];
-  if (!st.alive.get(pid)) return powered;
-
-  const base = baseRectFor(pid);
-  for (let y = base.iy; y <= base.iy + base.cells; y++) {
-    for (let x = base.ix; x <= base.ix + base.cells; x++) {
-      const k = keyOf(x, y);
-      powered.add(k);
-      q.push({ix:x, iy:y});
-    }
-  }
-
-  let qi = 0;
-  while (qi < q.length) {
-    const cur = q[qi++];
-    for (const d of dirs8) {
-      const nx = cur.ix + d.dx, ny = cur.iy + d.dy;
-      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
-      if (!conductiveForPlayer_state(st, nx, ny, pid)) continue;
-      if (isBlockedByEnemyWall_state(st, cur, {ix:nx, iy:ny}, pid, d.dx, d.dy)) continue;
-      const nk = keyOf(nx, ny);
-      if (powered.has(nk)) continue;
-      powered.add(nk);
-      q.push({ix:nx, iy:ny});
-    }
-  }
-  return powered;
-}
-
-function hasAdjacentFriendlyOrBase_state(st, pid, ix, iy) {
-  if (!st.alive.get(pid)) return false;
-  const base = baseRectFor(pid);
-  for (const d of dirs8) {
-    const nx = ix + d.dx, ny = iy + d.dy;
-    if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
-    if (inBase(nx, ny, base)) return true;
-    const m = st.marks.get(keyOf(nx, ny));
-    if (m && m.owner === pid) return true;
-  }
-  return false;
-}
-
-function canPlaceCross_state(st, pid, ix, iy) {
-  if (st.gameOver || !st.alive.get(pid)) return false;
-  const k = keyOf(ix, iy);
-  if (st.marks.has(k)) return false;
-  if (isOwnBase(pid, ix, iy)) return false;
-
-  // test connectivité
-  st.marks.set(k, { owner: pid, kind:"X" });
-  rebuildWallsFromCircles_state(st);
-  const powered = computePoweredSet_state(st, pid);
-  const ok = powered.has(k);
-  st.marks.delete(k);
-  rebuildWallsFromCircles_state(st);
-  return ok;
-}
-
-function canCircle_state(st, pid, key) {
-  if (st.gameOver || !st.alive.get(pid)) return false;
-  const t = st.marks.get(key);
-  if (!t || t.owner === pid || t.kind !== "X") return false;
-  const {ix, iy} = parseKey(key);
-  if (!hasAdjacentFriendlyOrBase_state(st, pid, ix, iy)) return false;
-
-  st.marks.set(key, { owner: pid, kind:"O" });
-  rebuildWallsFromCircles_state(st);
-  const powered = computePoweredSet_state(st, pid);
-  const ok = powered.has(key);
-  st.marks.set(key, t);
-  rebuildWallsFromCircles_state(st);
-  return ok;
-}
-
-function baseOwnerAt_state(st, ix, iy) {
-  for (const p of PLAYERS) {
-    if (!st.alive.get(p.id)) continue;
-    if (inBase(ix, iy, baseRectFor(p.id))) return p.id;
-  }
-  return null;
-}
-
-function applyMove_state(st, pid, mv) {
-  if (mv.type === "CROSS") {
-    const k = keyOf(mv.ix, mv.iy);
-    st.marks.set(k, { owner: pid, kind:"X" });
-    st.started.set(pid, true);
-    // capture base
-    const owner = baseOwnerAt_state(st, mv.ix, mv.iy);
-    if (owner && owner !== pid) {
-      st.alive.set(owner, false);
-      // si 1 seul survivant => gameOver
-      const aliveIds = PLAYERS.filter(p => st.alive.get(p.id)).map(p=>p.id);
-      if (aliveIds.length <= 1) st.gameOver = true;
-    }
-  } else {
-    st.marks.set(mv.key, { owner: pid, kind:"O" });
-    st.started.set(pid, true);
-  }
-  rebuildWallsFromCircles_state(st);
-}
-
-function generateAICandidates_state(st, pid) {
-  const powered = computePoweredSet_state(st, pid);
-  const circles = [];
-  for (const [k, m] of st.marks.entries()) {
-    if (!st.alive.get(m.owner)) continue;
-    if (m.kind === "X" && m.owner !== pid) {
-      if (canCircle_state(st, pid, k)) circles.push({ type:"CIRCLE", key:k });
-    }
-  }
-  const crosses = [];
-  const seen = new Set();
-  for (const pk of powered) {
-    const a = parseKey(pk);
-    for (const d of dirs8) {
-      const nx = a.ix + d.dx, ny = a.iy + d.dy;
-      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
-      const kk = keyOf(nx, ny);
-      if (seen.has(kk)) continue;
-      seen.add(kk);
-      if (st.marks.has(kk)) continue;
-      if (!canPlaceCross_state(st, pid, nx, ny)) continue;
-      crosses.push({ type:"CROSS", ix:nx, iy:ny });
-    }
-  }
-  return { circles, crosses };
-}
-
-function countNeighborFriendly8_state(st, pid, ix, iy) {
-  let c = 0;
-  for (const d of dirs8) {
-    const nx = ix + d.dx, ny = iy + d.dy;
-    if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
-    const m = st.marks.get(keyOf(nx, ny));
-    if (m && m.owner === pid) c++;
-  }
-  return c;
-}
-
-function networkShapeBonus_state(st, pid, ix, iy) {
-  const n8 = countNeighborFriendly8_state(st, pid, ix, iy);
-  if (n8 === 1) return 15000;
-  if (n8 === 2) return 8000;
-  if (n8 === 3) return -12000;
-  if (n8 >= 4) return -25000;
-  return 0;
-}
-
-function clusterDensityPenalty_state(st, pid, ix, iy) {
-  let count = 0;
-  for (let dy = -2; dy <= 2; dy++) {
-    for (let dx = -2; dx <= 2; dx++) {
-      if (dx === 0 && dy === 0) continue;
-      const nx = ix + dx, ny = iy + dy;
-      if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
-      const m = st.marks.get(keyOf(nx, ny));
-      if (m && m.owner === pid) count++;
-    }
-  }
-  if (count <= 2) return 5000;
-  if (count <= 4) return 0;
-  return -(count - 4) * 6000;
-}
-
-function zigzagBonus_state(st, pid, ix, iy) {
-  let hasDiag = false, hasOrth = false;
-  for (const d of dirs8) {
-    const nx = ix + d.dx, ny = iy + d.dy;
-    if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
-    const m = st.marks.get(keyOf(nx, ny));
-    if (m && m.owner === pid) {
-      if (Math.abs(d.dx) + Math.abs(d.dy) === 2) hasDiag = true;
-      else hasOrth = true;
-    }
-  }
-  if (hasDiag && !hasOrth) return 10000;
-  if (hasDiag && hasOrth) return 3000;
-  if (hasOrth && !hasDiag) return -5000;
-  return 0;
-}
-
-function circuitCutValue_state(st, pid, targetKey) {
-  const target = st.marks.get(targetKey);
-  if (!target) return 0;
-  const enemyPid = target.owner;
-  if (!st.alive.get(enemyPid)) return 0;
-
-  const {ix, iy} = parseKey(targetKey);
-  let enemyNeighbors = 0;
-  for (const d of dirs8) {
-    const nx = ix + d.dx, ny = iy + d.dy;
-    if (nx < 0 || ny < 0 || nx >= NODES || ny >= NODES) continue;
-    const m = st.marks.get(keyOf(nx, ny));
-    if (m && m.owner === enemyPid) enemyNeighbors++;
-  }
-  return enemyNeighbors;
-}
-
-function evalMove_state(st, pid, mv, prof) {
-  if (mv.type === "CROSS") {
-    const owner = baseOwnerAt_state(st, mv.ix, mv.iy);
-    if (owner && owner !== pid) return 1_000_000_000;
-  }
-
-  const tgt = opponentTargetPoint(pid, prof);
-  const pos = (mv.type === "CROSS") ? {ix: mv.ix, iy: mv.iy} : parseKey(mv.key);
-  const d = Math.max(Math.abs(pos.ix - tgt.ix), Math.abs(pos.iy - tgt.iy));
-  let sAttack = 120_000 - d * 2400;
-
-  if (mv.type === "CIRCLE") {
-    const d2 = dist2(pos, tgt);
-    sAttack += 25_000 - d2 * 35;
-
-    // BONUS : si ce vol coupe le circuit ennemi
-    const cutCount = circuitCutValue_state(st, pid, mv.key);
-    if (cutCount >= 5) sAttack += 250_000;
-    else if (cutCount >= 3) sAttack += 180_000;
-    else if (cutCount >= 1) sAttack += 100_000;
-    else sAttack -= 20_000;
-  } else {
-    sAttack += networkShapeBonus_state(st, pid, mv.ix, mv.iy);
-    sAttack += clusterDensityPenalty_state(st, pid, mv.ix, mv.iy);
-    sAttack += zigzagBonus_state(st, pid, mv.ix, mv.iy);
-  }
-
-  const myC = baseCenter(pid);
-  const nearBase = dist2(pos, myC);
-  let sDefense = 0;
-  if (nearBase <= SHIELD_RADIUS2 && mv.type === "CROSS") sDefense -= 18_000;
-
-  const noise = (Math.random() - 0.5) * (AI_BEAM.tieNoise * 100_000);
-  return AI_BEAM.wAttack * sAttack + AI_BEAM.wDefense * sDefense + noise;
-}
-
+// ╔══════════════════════════════════════════════════════════╗
+// ║  18. IA — BEAM SEARCH                                   ║
+// ╚══════════════════════════════════════════════════════════╝
 function pickAIMoveBeam(pid) {
   const prof = aiProfile.get(pid) || AI_PROFILE_DEFS.BALANCED;
   const depth = Math.max(1, Math.min(AI_BEAM.depth, movesLeft));
@@ -4036,9 +2850,9 @@ function pickAIMove(pid) {
     scheduleAITick(90);
   }
 
-  // ----------------------------
-  // Human move
-  // ----------------------------
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  19. VALIDATION DES COUPS HUMAIN                        ║
+  // ╚══════════════════════════════════════════════════════════╝
   function validateMoveHuman() {
     if (gameOver) return;
     if (gamePaused) return;
@@ -4090,9 +2904,9 @@ function pickAIMove(pid) {
     if (movesLeft <= 0) endTurn(true);
   }
 
-  // ----------------------------
-  // UI
-  // ----------------------------
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  20. UI — BADGES & STATUS                               ║
+  // ╚══════════════════════════════════════════════════════════╝
   function setBadges() {
     renderPlayersRow();
     renderStatus();
@@ -4150,9 +2964,9 @@ function pickAIMove(pid) {
     `;
   }
 
-  // ----------------------------
-  // Drawing
-  // ----------------------------
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  21. BOUCLE DE RENDU (RAF)                              ║
+  // ╚══════════════════════════════════════════════════════════╝
   let rafPending = false;
   function requestRedraw() {
     if (rafPending) return;
@@ -4196,6 +3010,9 @@ function getBaseOwnerAt(ix, iy) {
   return null;
 }
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  22. CACHE GRILLE OFFSCREEN                             ║
+  // ╚══════════════════════════════════════════════════════════╝
   let gridCache = null;
 
   function buildGridCache() {
@@ -4238,6 +3055,9 @@ function getBaseOwnerAt(ix, iy) {
     gridCache = offscreen;
   }
 
+// ╔══════════════════════════════════════════════════════════╗
+// ║  23. DESSIN — GRILLE                                    ║
+// ╚══════════════════════════════════════════════════════════╝
 function drawGridLines() {
   ctx.save();
   const gridLine = (boardBg === "#0b0b0b") ? "#5a5a5a" : "#1f1f1f";
@@ -4276,6 +3096,9 @@ function drawGrid() {
   ctx.restore();
 }
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  24. DESSIN — BASES & PIÈCES                            ║
+  // ╚══════════════════════════════════════════════════════════╝
   function drawBase(pid) {
     if (!alive.get(pid)) return;
     const p = playerById(pid);
@@ -4472,6 +3295,9 @@ function drawGrid() {
     ctx.restore();
   }
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  25. DESSIN — CURSEURS                                  ║
+  // ╚══════════════════════════════════════════════════════════╝
   function drawCursor(pid, active=false) {
     const p = playerById(pid);
     const cur = cursors.get(pid);
@@ -4734,6 +3560,9 @@ function drawGrid() {
     return poweredNodes;
   }
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  26. RENDU PRINCIPAL                                    ║
+  // ╚══════════════════════════════════════════════════════════╝
   function redraw() {
     // Effacer tout le canvas AVANT la transformation
     ctx.save();
@@ -4863,10 +3692,11 @@ function drawGrid() {
     }
   }
 
-  // ----------------------------
-  // Inputs / Buttons
-  // ----------------------------
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  27. CLAVIER & BOUTONS                                  ║
+  // ╚══════════════════════════════════════════════════════════╝
   function onKey(e) {
+    if (!e.key) return;
     const k = e.key.toLowerCase();
     if (k === " ") e.preventDefault();
     
@@ -4934,8 +3764,6 @@ function drawGrid() {
       // Cacher les éléments du jeu
       document.getElementById('playersRow').style.display = 'none';
       document.getElementById('gameControls').style.display = 'none';
-      const sheetEsc = document.querySelector('.sheet');
-      // if (sheetEsc) sheetEsc.style.display = 'none';
 
       // Réinitialiser le jeu
       gameOver = false;
@@ -4960,8 +3788,6 @@ function drawGrid() {
     // Cacher les éléments du jeu
     document.getElementById('playersRow').style.display = 'none';
     document.getElementById('gameControls').style.display = 'none';
-    const sheetMenu = document.querySelector('.sheet');
-    // if (sheetMenu) sheetMenu.style.display = 'none';
 
     gameOver = true;
     stopAI();
@@ -4969,21 +3795,9 @@ function drawGrid() {
     requestRedraw();
   });
   window.addEventListener("keydown", onKey);
-  // ----------------------------
-  // Mouse controls
-  //  - Survol : déplace le curseur
-  //  - Clic gauche : pose 1 coup (comme Espace)
-  //  - Clic gauche maintenu + déplacement : trace un CHEMIN EN DIAGONALES (peut changer de direction diagonale = angles), et on valide tout au relâchement
-  //  - Clic droit : fin de tour
-  // ----------------------------
-  let dragPlacing = false;
-  let dragMoved = false;
-  let dragStart = null;      // {ix,iy}
-  let dragPath = [];         // [{ix,iy,k}]
-  let dragOkPath = [];       // sous-ensemble posable (simulation virtuelle)
-  let lastDragUpdate = 0;         // timestamp du dernier calcul de drag
-  const DRAG_THROTTLE = 30;       // ms minimum entre 2 calculs
-
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  28. DRAG & SLIDE (DIAGONALES)                          ║
+  // ╚══════════════════════════════════════════════════════════╝
   function clearDrag() {
     dragPlacing = false;
     dragMoved = false;
@@ -5159,6 +3973,9 @@ function drawGrid() {
 
   canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  29. ÉVÉNEMENTS SOURIS                                  ║
+  // ╚══════════════════════════════════════════════════════════╝
   canvas.addEventListener("mousemove", (e) => {
     if (gameOver) return;
     const pid = currentPlayerId();
@@ -5218,26 +4035,11 @@ function drawGrid() {
     }
   });
 
-  // Relâchement : si drag => on valide la "ligne" (CROIX uniquement) au relâchement
-  window.addEventListener("mouseup", (e) => {
-    if (e.button !== 0) return;
-    if (!dragPlacing) return;
-
-    const pid = currentPlayerId();
-    if (gameOver || control.get(pid) === "AI" || !alive.get(pid)) { clearDrag(); return; }
-
-    // si pas bougé => comportement original (un seul coup au clic)
-    if (!dragMoved) {
-      clearDrag();
-      validateMoveHuman();
-      return;
-    }
-
-    // sinon, on "valide" la ligne diagonale au relâchement :
-    // on pose les croix RÉELLEMENT en se basant sur la simulation virtuelle (dragOkPath)
+  // Validation commune du drag (mouseup / touchend)
+  function finalizeDrag(pid) {
     dragPlacing = false;
-
     let placed = 0;
+
     if (!dragOkPath || dragOkPath.length === 0) {
       clearDrag();
       message = t('lineNoConnection');
@@ -5266,18 +4068,34 @@ function drawGrid() {
       movesLeft--;
       afterMove(pid, moveInfo);
       placed++;
-
       if (gameOver) break;
     }
 
     clearDrag();
-
     message = placed > 0 ? `${placed} ${t('linePlaced')}` : t('lineInvalid');
     setBadges();
     requestRedraw();
-
-    // Consistance avec les autres coups : si plus de coups, fin de tour auto
     if (!gameOver && movesLeft <= 0) endTurn(true);
+  }
+
+  // Relâchement : si drag => on valide la "ligne" (CROIX uniquement) au relâchement
+  window.addEventListener("mouseup", (e) => {
+    if (e.button !== 0) return;
+    if (!dragPlacing) return;
+
+    const pid = currentPlayerId();
+    if (gameOver || control.get(pid) === "AI" || !alive.get(pid)) { clearDrag(); return; }
+
+    // si pas bougé => comportement original (un seul coup au clic)
+    if (!dragMoved) {
+      clearDrag();
+      validateMoveHuman();
+      return;
+    }
+
+    // sinon, on "valide" la ligne diagonale au relâchement :
+    // on pose les croix RÉELLEMENT en se basant sur la simulation virtuelle (dragOkPath)
+    finalizeDrag(pid);
   });
 
 
@@ -5293,10 +4111,9 @@ function drawGrid() {
     };
   }
 
-  // ----------------------------
-  // Touch events (mobile) — ZOOM + PAN + TAP
-  // ----------------------------
-
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  30. ÉVÉNEMENTS TOUCH (MOBILE)                          ║
+  // ╚══════════════════════════════════════════════════════════╝
   canvas.addEventListener('touchstart', function(e) {
     e.preventDefault();
 
@@ -5525,41 +4342,7 @@ function drawGrid() {
         return;
       }
 
-      dragPlacing = false;
-      let placed = 0;
-      if (!dragOkPath || dragOkPath.length === 0) {
-        clearDrag();
-        message = t('lineNoConnection');
-        setBadges();
-        requestRedraw();
-        return;
-      }
-
-      for (const node of dragOkPath) {
-        if (gameOver) break;
-        if (movesLeft <= 0) break;
-        let moveInfo = null;
-        const existing = marks.get(node.k);
-        if (node.action === "circle") {
-          if (!existing || existing.owner === pid || existing.kind !== "X") break;
-          if (!canCircle(pid, node.k)) break;
-          moveInfo = placeCircle(pid, node.k);
-        } else {
-          if (existing) break;
-          if (!canPlaceCross(pid, node.ix, node.iy)) break;
-          moveInfo = placeCross(pid, node.ix, node.iy);
-        }
-        movesLeft--;
-        afterMove(pid, moveInfo);
-        placed++;
-        if (gameOver) break;
-      }
-
-      clearDrag();
-      message = placed > 0 ? `${placed} ${t('linePlaced')}` : t('lineInvalid');
-      setBadges();
-      requestRedraw();
-      if (!gameOver && movesLeft <= 0) endTurn(true);
+      finalizeDrag(pid);
       return;
     }
 
@@ -5604,41 +4387,7 @@ function drawGrid() {
       return;
     }
 
-    dragPlacing = false;
-    let placed = 0;
-    if (!dragOkPath || dragOkPath.length === 0) {
-      clearDrag();
-      message = t('lineNoConnection');
-      setBadges();
-      requestRedraw();
-      return;
-    }
-
-    for (const node of dragOkPath) {
-      if (gameOver) break;
-      if (movesLeft <= 0) break;
-      let moveInfo = null;
-      const existing = marks.get(node.k);
-      if (node.action === "circle") {
-        if (!existing || existing.owner === pid || existing.kind !== "X") break;
-        if (!canCircle(pid, node.k)) break;
-        moveInfo = placeCircle(pid, node.k);
-      } else {
-        if (existing) break;
-        if (!canPlaceCross(pid, node.ix, node.iy)) break;
-        moveInfo = placeCross(pid, node.ix, node.iy);
-      }
-      movesLeft--;
-      afterMove(pid, moveInfo);
-      placed++;
-      if (gameOver) break;
-    }
-
-    clearDrag();
-    message = placed > 0 ? `${placed} ${t('linePlaced')}` : t('lineInvalid');
-    setBadges();
-    requestRedraw();
-    if (!gameOver && movesLeft <= 0) endTurn(true);
+    finalizeDrag(pid);
   }, { passive: false });
 
   // ----------------------------
@@ -5656,7 +4405,6 @@ function drawGrid() {
     e.preventDefault();
   }, { passive: false });
 
-  let lastTouchEnd = 0;
   document.addEventListener('touchend', function(e) {
     const now = Date.now();
     if (now - lastTouchEnd <= 300) {
@@ -5679,9 +4427,9 @@ function drawGrid() {
     });
   }
 
-  // ----------------------------
-  // Reset
-  // ----------------------------
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  31. RESET & INITIALISATION                             ║
+  // ╚══════════════════════════════════════════════════════════╝
   function reset() {
     wallsDirty = true;
     gridCache = null; // Invalider le cache grille
@@ -5755,7 +4503,6 @@ function drawGrid() {
   });
   
   // Empêcher reset() de s'exécuter uniquement au démarrage automatique
-  let hasStarted = false;
   const originalReset = reset;
   reset = function() {
     if (!hasStarted) {
@@ -5768,303 +4515,6 @@ function drawGrid() {
   };
 
   // ================================
-  // SYSTÈME AUDIO
-  // ================================
-  
-  class SoundSystem {
-    constructor() {
-      this.initialized = false;
-      this.audioContext = null;
-      this.musicSource = null;
-      this.musicGainNode = null;
-      this.musicPlaying = false;
-      this.musicVolume = 0.3; // Volume par défaut
-    }
-    
-    init() {
-      if (this.initialized) return;
-      try {
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        this.initialized = true;
-      } catch (e) {
-        log("Audio non disponible");
-      }
-    }
-    
-    // Créer un son d'explosion
-    playExplosion() {
-      // Vérifier si les sons sont activés
-      if (!soundsEnabled) {
-        log("Sons désactivés - explosion ignorée");
-        return;
-      }
-      
-      // Utiliser le fichier MP3 d'explosion
-      log("Tentative de lecture du MP3 d'explosion: sound explosion.mp3");
-      
-      try {
-        // Encoder l'URL pour gérer les espaces
-        const mp3Path = encodeURIComponent('sound explosion.mp3');
-        log("URL encodée:", mp3Path);
-        
-        const audio = new Audio(mp3Path);
-        audio.volume = 0.3; // Volume plus bas pour l'explosion
-        
-        // Écouter les événements pour le debug
-        audio.addEventListener('canplaythrough', () => {
-          log("MP3 explosion prêt à jouer");
-        });
-        
-        audio.addEventListener('error', (e) => {
-          log("ERREUR chargement MP3 explosion:", e);
-          log("Fallback vers son synthétique");
-          this.playExplosionSynthetic();
-        });
-        
-        audio.addEventListener('loadstart', () => {
-          log("Début chargement MP3 explosion");
-        });
-        
-        audio.play().then(() => {
-          log("MP3 explosion en cours de lecture - SUCCÈS");
-        }).catch(e => {
-          log("ERREUR lecture MP3 explosion:", e);
-          this.playExplosionSynthetic();
-        });
-      } catch (e) {
-        log("ERREUR création audio MP3 explosion:", e);
-        this.playExplosionSynthetic();
-      }
-    }
-    
-    // Musique de fond avec Web Audio API
-    async playBackgroundMusic() {
-      if (!musicEnabled) return;
-      if (!this.initialized) this.init();
-      if (!this.audioContext) return;
-
-      // Arrêter immédiatement toute source existante avant d'en créer une nouvelle
-      if (this.musicSource) {
-        try { this.musicSource.stop(); } catch(e) {}
-        this.musicSource = null;
-        this.musicGainNode = null;
-        this.musicPlaying = false;
-      }
-
-      try {
-        log("Chargement de la musique de fond: theme-volt-clash.ogg");
-
-        // Charger le fichier audio
-        const response = await fetch('theme-volt-clash.ogg');
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-        
-        // Créer la source audio
-        this.musicSource = this.audioContext.createBufferSource();
-        this.musicSource.buffer = audioBuffer;
-        this.musicSource.loop = true; // Boucle infinie
-        
-        // Créer un gain node pour le contrôle du volume et fade-in
-        this.musicGainNode = this.audioContext.createGain();
-        this.musicGainNode.gain.setValueAtTime(0, this.audioContext.currentTime); // Commence à 0
-        
-        // Connecter les noeuds
-        this.musicSource.connect(this.musicGainNode);
-        this.musicGainNode.connect(this.audioContext.destination);
-        
-        // Démarrer la musique
-        this.musicSource.start(0);
-        
-        // Fade-in progressif sur 3 secondes avec le volume actuel
-        this.musicGainNode.gain.linearRampToValueAtTime(this.musicVolume, this.audioContext.currentTime + 3);
-        
-        log("Musique de fond démarrée avec fade-in");
-        
-        // Sauvegarder pour pouvoir l'arrêter plus tard
-        this.musicPlaying = true;
-        
-      } catch (e) {
-        log("ERREUR chargement musique de fond:", e);
-      }
-    }
-    
-    // Mettre à jour le volume de la musique
-    updateVolume(newVolume) {
-      this.musicVolume = newVolume / 100; // Convertir le pourcentage en 0-1
-      
-      if (this.musicGainNode && this.audioContext) {
-        // Appliquer le nouveau volume avec une transition douce
-        this.musicGainNode.gain.linearRampToValueAtTime(this.musicVolume, this.audioContext.currentTime + 0.5);
-        log("Volume musique mis à jour:", Math.round(this.musicVolume * 100) + "%");
-      }
-    }
-    
-    // Arrêter la musique de fond
-    stopBackgroundMusic() {
-      if (this.musicSource && this.musicGainNode && this.audioContext) {
-        // Fade-out progressif
-        this.musicGainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 1);
-        
-        // Arrêter après le fade-out
-        setTimeout(() => {
-          if (this.musicSource) {
-            try {
-              this.musicSource.stop();
-              this.musicSource = null;
-              this.musicGainNode = null;
-              this.musicPlaying = false;
-              log("Musique de fond arrêtée");
-            } catch (e) {
-              log("Musique déjà arrêtée");
-            }
-          }
-        }, 1000);
-      }
-    }
-    
-    // Vérifier si la musique joue
-    isMusicPlaying() {
-      return this.musicPlaying || false;
-    }
-    
-    async playVictoryJingle() {
-      if (!soundsEnabled) return;
-      try {
-        log("Tentative lecture victory.ogg");
-        const audio = new Audio('victory.ogg');
-        audio.volume = 0.20;
-        audio.addEventListener('error', (e) => {
-          log("ERREUR fichier victory.ogg:", audio.error);
-        });
-        await audio.play();
-        log("victory.ogg en lecture OK");
-      } catch (e) {
-        log("ERREUR play victory.ogg:", e);
-      }
-    }
-
-    restartBackgroundMusic() {
-      if (!musicEnabled) return;
-      // Arrêt immédiat puis relance après un court délai
-      if (this.musicSource) {
-        try { this.musicSource.stop(); } catch(e) {}
-        this.musicSource = null;
-        this.musicGainNode = null;
-        this.musicPlaying = false;
-      }
-      setTimeout(() => {
-        if (musicEnabled) this.playBackgroundMusic();
-      }, 500);
-    }
-
-    // Son synthétique de secours pour explosion
-    playExplosionSynthetic() {
-      // Vérifier si les sons sont activés
-      if (!soundsEnabled) {
-        log("Sons désactivés - explosion synthétique ignorée");
-        return;
-      }
-      
-      if (!this.initialized) this.init();
-      if (!this.audioContext) return;
-      
-      const oscillator = this.audioContext.createOscillator();
-      const gainNode = this.audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(this.audioContext.destination);
-      
-      // Son d'explosion : bruit blanc filtré
-      oscillator.type = 'sawtooth';
-      oscillator.frequency.setValueAtTime(100, this.audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(20, this.audioContext.currentTime + 0.2);
-      
-      gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
-      
-      oscillator.start(this.audioContext.currentTime);
-      oscillator.stop(this.audioContext.currentTime + 0.3);
-    }
-    
-    // Créer un son de déconnexion de circuit
-    playCircuitDisconnect() {
-      // Vérifier si les sons sont activés
-      if (!soundsEnabled) {
-        log("Sons désactivés - déconnexion ignorée");
-        return;
-      }
-      
-      // Utiliser le fichier MP3 personnalisé avec URL encodée
-      log("Tentative de lecture du MP3: Power_Down_#4-1769878521457.mp3");
-      
-      try {
-        // Encoder l'URL pour gérer les caractères spéciaux
-        const mp3Path = encodeURIComponent('Power_Down_#4-1769878521457.mp3');
-        log("URL encodée:", mp3Path);
-        
-        const audio = new Audio(mp3Path);
-        audio.volume = 0.4; // Volume modéré
-        
-        // Écouter les événements pour le debug
-        audio.addEventListener('canplaythrough', () => {
-          log("MP3 prêt à jouer");
-        });
-        
-        audio.addEventListener('error', (e) => {
-          log("ERREUR chargement MP3:", e);
-          log("Fallback vers son synthétique");
-          this.playCircuitDisconnectSynthetic();
-        });
-        
-        audio.addEventListener('loadstart', () => {
-          log("Début chargement MP3");
-        });
-        
-        audio.play().then(() => {
-          log("MP3 en cours de lecture - SUCCÈS");
-        }).catch(e => {
-          log("ERREUR lecture MP3:", e);
-          this.playCircuitDisconnectSynthetic();
-        });
-      } catch (e) {
-        log("ERREUR création audio MP3:", e);
-        this.playCircuitDisconnectSynthetic();
-      }
-    }
-    
-    // Son synthétique de secours
-    playCircuitDisconnectSynthetic() {
-      // Vérifier si les sons sont activés
-      if (!soundsEnabled) {
-        log("Sons désactivés - déconnexion synthétique ignorée");
-        return;
-      }
-      
-      if (!this.initialized) this.init();
-      if (!this.audioContext) return;
-      
-      const oscillator = this.audioContext.createOscillator();
-      const gainNode = this.audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(this.audioContext.destination);
-      
-      // Son de déconnexion : baisse de fréquence
-      oscillator.type = 'square';
-      oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(100, this.audioContext.currentTime + 0.15);
-      
-      gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.15);
-      
-      oscillator.start(this.audioContext.currentTime);
-      oscillator.stop(this.audioContext.currentTime + 0.15);
-    }
-  }
-  
-  const soundSystem = new SoundSystem();
-
-  // ================================
   // SYSTÈME DE PARTICULES SIMPLE ET EFFICACE
   // ================================
   
@@ -6074,6 +4524,9 @@ function drawGrid() {
 // Vider les particules existantes au chargement
   particles.length = 0;
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  33. PARTICULES & EFFETS VISUELS                        ║
+  // ╚══════════════════════════════════════════════════════════╝
   // Classe pour définir une particule individuelle
   class Particle {
     constructor(x, y, color) {
@@ -6229,6 +4682,9 @@ let lastTime = performance.now();
       return result;
   };
 
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  34. VÉRIFICATION VICTOIRE                              ║
+  // ╚══════════════════════════════════════════════════════════╝
   // Modifier la fonction de victoire pour inclure une explosion sur la dernière base
   function checkVictory() {
     let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
@@ -6275,6 +4731,7 @@ let lastTime = performance.now();
 
 })();
 </script>
+<script src="js/ai-state.js"></script>
 </div>
 </body>
 </html>

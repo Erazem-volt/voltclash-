@@ -1,0 +1,767 @@
+    /* ================================
+       BOUTONS FUTURISTES - VOLT CLASH
+       ================================ */
+
+    /* Style principal des boutons */
+    .futuristic-btn {
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+
+      /* Fond sombre et bordure */
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+      border: 2px solid #00ffff;
+      border-radius: 8px;
+
+      /* Dimensions et espacement */
+      padding: 12px 24px;
+      min-width: 120px;
+
+      /* Texte */
+      color: #00ffff;
+      text-align: center;
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+
+      /* Curseur et transition */
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      /* Position relative pour les pseudo-éléments */
+      position: relative;
+      overflow: hidden;
+
+      /* Effet de base */
+      box-shadow:
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 20px rgba(0, 255, 255, 0.1);
+    }
+
+    /* Effet de survol (hover) */
+    .futuristic-btn:disabled {
+      opacity: 0.5 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      transform: none !important;
+      box-shadow:
+        0 0 10px rgba(0, 255, 255, 0.1),
+        inset 0 0 10px rgba(0, 255, 255, 0.05) !important;
+    }
+
+    .futuristic-btn:disabled:hover {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%) !important;
+    }
+
+    .futuristic-btn:hover {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-color: #00ffff;
+      color: #ffffff;
+
+      /* Lueur accentuée au survol */
+      box-shadow:
+        0 0 30px rgba(0, 255, 255, 0.6),
+        0 0 60px rgba(0, 255, 255, 0.4),
+        inset 0 0 30px rgba(0, 255, 255, 0.2);
+
+      transform: translateY(-2px);
+    }
+
+    /* Effet de clic (active) */
+    .futuristic-btn:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow:
+        0 0 15px rgba(0, 255, 255, 0.4),
+        inset 0 0 20px rgba(0, 255, 255, 0.3);
+    }
+
+    /* Variante pour bouton principal */
+    .futuristic-btn.primary {
+      background: linear-gradient(135deg, #00ffff 0%, #0088cc 100%);
+      color: #0a0a0a;
+      border-color: #00ffff;
+
+      box-shadow:
+        0 0 25px rgba(0, 255, 255, 0.5),
+        inset 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+
+    .futuristic-btn.primary:hover {
+      background: linear-gradient(135deg, #00ffff 0%, #00aaff 100%);
+      box-shadow:
+        0 0 40px rgba(0, 255, 255, 0.8),
+        0 0 80px rgba(0, 255, 255, 0.4),
+        inset 0 0 25px rgba(255, 255, 255, 0.3);
+    }
+
+    /* Variante pour bouton danger */
+    .futuristic-btn.danger {
+      background: linear-gradient(135deg, #0a0a0a 0%, #2e0a0a 100%);
+      border-color: #ff0040;
+      color: #ff0040;
+
+      box-shadow:
+        0 0 20px rgba(255, 0, 64, 0.3),
+        inset 0 0 20px rgba(255, 0, 64, 0.1);
+    }
+
+    .futuristic-btn.danger:hover {
+      background: linear-gradient(135deg, #2e0a0a 0%, #3e0a0a 100%);
+      box-shadow:
+        0 0 30px rgba(255, 0, 64, 0.6),
+        0 0 60px rgba(255, 0, 64, 0.4),
+        inset 0 0 30px rgba(255, 0, 64, 0.2);
+    }
+
+    /* Animation de pulsation subtile */
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow:
+          0 0 20px rgba(0, 255, 255, 0.3),
+          inset 0 0 20px rgba(0, 255, 255, 0.1);
+      }
+      50% {
+        box-shadow:
+          0 0 25px rgba(0, 255, 255, 0.4),
+          inset 0 0 25px rgba(0, 255, 255, 0.15);
+      }
+    }
+
+    /* Effet de pulsation pour les boutons importants */
+    .futuristic-btn.pulse {
+      animation: pulse 2s infinite;
+    }
+
+    /* Style par défaut pour tous les boutons */
+    button {
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* S'assurer que les boutons sans classe ont un style de base */
+    button:not(.futuristic-btn) {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+      border: 2px solid #00ffff;
+      border-radius: 8px;
+      padding: 12px 24px;
+      min-width: 120px;
+      color: #00ffff;
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+      box-shadow:
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 20px rgba(0, 255, 255, 0.1);
+    }
+
+    button:not(.futuristic-btn):hover {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-color: #00ffff;
+      color: #ffffff;
+      box-shadow:
+        0 0 30px rgba(0, 255, 255, 0.6),
+        0 0 60px rgba(0, 255, 255, 0.4),
+        inset 0 0 30px rgba(0, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    button:not(.futuristic-btn):active {
+      transform: translateY(0) scale(0.98);
+      box-shadow:
+        0 0 15px rgba(0, 255, 255, 0.4),
+        inset 0 0 20px rgba(0, 255, 255, 0.3);
+    }
+    body {
+      margin:0;
+      background:#111;
+      color:#eee;
+      font-family:system-ui, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Centrer horizontalement */
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 1450px;
+      margin: 0 auto;
+      padding: 16px;
+      width: 100%;
+      text-align: center; /* Centrer le contenu */
+    }
+    .top { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .panel { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .badge { padding:6px 10px; border:1px solid #333; border-radius:999px; background:#151515; font-size:14px; }
+    .note { color:#cfcfcf; font-size:14px; line-height:1.45; margin:10px 0 12px 0; }
+
+    /* MODIFICATION ICI : On fixe la taille de la sheet pour qu'elle reste toujours grande */
+    .sheet {
+      background:#0b0b0b;
+      border:1px solid #333;
+      border-radius: 10px;
+      padding: 12px;
+      position: relative;
+      display: flex; /* Utiliser flex pour centrer le canvas */
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto; /* Centrer la sheet */
+
+      /* Fixer la taille basée sur la grille 30x30 : 24*2 + 30*22 = 708px */
+      width: 708px;
+      height: 708px;
+    }
+
+    canvas {
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      background:#0b0b0b;
+      border-radius:8px;
+      margin: 0 auto; /* Centrer horizontalement */
+    }
+    .help {
+  margin-top:10px;
+  color:#cfcfcf;
+  font-size:13px;
+  line-height:1.55;
+}
+
+/* Styles pour la modale Options */
+.modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  margin: 5% auto;
+  padding: 0;
+  border: 2px solid #444;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 0 30px rgba(157, 78, 221, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid #444;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 13px 13px 0 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.modal-close:hover {
+  color: #ff9999;
+}
+
+.modal-body {
+  padding: 25px;
+}
+
+.option-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 1px solid #333;
+}
+
+.option-section:last-child {
+  margin-bottom: 0;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.shortcut-item {
+  color: #cfcfcf;
+  font-size: 13px;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 5px;
+  border: 1px solid #333;
+}
+
+.key {
+  color: #9d4edd;
+  font-weight: bold;
+  background: rgba(157, 78, 221, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Styles pour les inputs des joueurs */
+.player-input {
+  width: 100%;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #444;
+  border-radius: 8px;
+  color: #00ffff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 10;
+}
+
+.player-input:focus {
+  outline: none;
+  border-color: #9d4edd;
+  box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
+}
+
+.player-input::placeholder {
+  color: #666;
+  font-style: italic;
+}
+
+/* Styles pour le classement */
+.ranking-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: rgba(157, 78, 221, 0.1);
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: #cfcfcf;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.ranking-item:first-child {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #ffd700;
+}
+
+.ranking-item:nth-child(2) {
+  background: rgba(192, 192, 192, 0.2);
+  border-color: #c0c0c0;
+}
+
+.ranking-item:nth-child(3) {
+  background: rgba(205, 127, 50, 0.2);
+  border-color: #cd7f32;
+}
+
+.ranking-position {
+  font-weight: bold;
+  color: #9d4edd;
+  min-width: 30px;
+}
+
+.ranking-name {
+  flex: 1;
+  text-align: left;
+  margin: 0 15px;
+}
+
+.ranking-stats {
+  display: flex;
+  gap: 15px;
+  font-size: 12px;
+}
+
+.ranking-wins {
+  color: #9dffb6;
+  font-weight: bold;
+}
+
+.ranking-losses {
+  color: #ffcf7a;
+}
+
+.ranking-ratio {
+  color: #00ffff;
+  font-size: 11px;
+}
+    .warn { color:#ffcf7a; }
+    .ok { color:#9dffb6; }
+    code { background:#1b1b1b; padding:2px 6px; border-radius:6px; border:1px solid #2b2b2b; }
+
+    .players {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content: center; /* Centrer horizontalement */
+      margin: 10px 0;
+    }
+    .pchip { padding:6px 10px; border-radius:999px; border:1px solid #333; background:#151515; font-size:13px; display:flex; align-items:center; gap:8px; }
+    .dot { width:10px; height:10px; border-radius:999px; display:inline-block; }
+    select { background:#151515; color:#eee; border:1px solid #333; border-radius:8px; padding:4px 8px; }
+
+    /* --- TON NOUVEAU CODE CSS POUR LE MENU --- */
+    .menu-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.1);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 100;
+    }
+    .menu-card {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 15px;
+      padding: 40px;
+      backdrop-filter: blur(3px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .glow-text {
+      font-family: 'Orbitron', sans-serif;
+      color: #00f2ff;
+      text-shadow: 0 0 20px #00f2ff;
+      font-size: 3.5rem;
+      margin-bottom: 30px;
+    }
+
+    .game-title-main {
+      font-family: 'Orbitron', sans-serif;
+      color: #00f2ff;
+      text-shadow: 0 0 20px #00f2ff;
+      font-size: 2.5rem;
+      margin: 15px 0;
+      text-align: center;
+    }
+
+    .menu-section { margin: 15px; text-align: center; }
+    .menu-section h3 { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #888; margin-bottom: 10px; }
+
+    /* Bouton de sélection actif */
+    .btn-active {
+      border-color: #00ffff !important;
+      color: #ffffff !important;
+      box-shadow:
+        0 0 25px rgba(0, 255, 255, 0.9),
+        0 0 50px rgba(0, 255, 255, 0.5),
+        inset 0 0 20px rgba(0, 255, 255, 0.3) !important;
+      opacity: 1 !important;
+      filter: none !important;
+    }
+
+    /* Bouton de sélection inactif */
+    .btn-inactive {
+      opacity: 0.55 !important;
+      filter: brightness(0.7) !important;
+      box-shadow: none !important;
+    }
+
+    /* Autocomplétion pseudo */
+    .pseudo-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .pseudo-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.95);
+      border: 1px solid #0ff;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 150px;
+      overflow-y: auto;
+      z-index: 200;
+      display: none;
+    }
+    .pseudo-suggestions.visible {
+      display: block;
+    }
+    .pseudo-suggestion-item {
+      padding: 8px 12px;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    }
+    .pseudo-suggestion-item:hover,
+    .pseudo-suggestion-item.selected {
+      background: rgba(0, 255, 255, 0.15);
+      color: #0ff;
+    }
+    .pseudo-suggestion-item .suggestion-stats {
+      font-size: 11px;
+      color: #888;
+      margin-left: 8px;
+    }
+    .pseudo-indicator {
+      font-size: 11px;
+      margin-top: 3px;
+      height: 16px;
+    }
+    .pseudo-indicator.exists {
+      color: #0f0;
+    }
+    .pseudo-indicator.new-player {
+      color: #f80;
+    }
+
+    /* ================================
+       MOBILE — PORTRAIT LAYOUT
+       ================================ */
+    html.mobile-mode, html.mobile-mode body {
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+
+    @media (max-width: 768px) {
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100vh;
+        height: 100dvh;
+      }
+
+      /* ===== WRAPPER FLEX VERTICAL ===== */
+      #game-wrapper,
+      body > div[style*="z-index: 1"] {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        width: 100% !important;
+        height: 100dvh !important;
+        overflow: hidden;
+      }
+
+      /* ===== ORDRE : badges → canvas → boutons ===== */
+      #playersRow  { order: 1; }
+      .sheet       { order: 2; }
+      #gameControls { order: 3; }
+      #status, .help { order: 4; }
+
+      /* Menus : hors du flux (position fixed) */
+      .menu-overlay { order: 99; }
+
+      /* ===== BADGES JOUEURS EN HAUT ===== */
+      #playersRow {
+        flex-shrink: 0;
+        display: flex !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px;
+        min-height: 40px;
+        max-height: 46px;
+        font-size: 13px !important;
+        overflow: hidden;
+        width: 100%;
+      }
+
+      .pchip {
+        padding: 4px 10px !important;
+        font-size: 12px !important;
+        min-width: auto !important;
+        gap: 4px !important;
+      }
+
+      .pchip .dot {
+        width: 12px !important;
+        height: 12px !important;
+      }
+
+      /* ===== CANVAS AU CENTRE (flottant dans l'espace) ===== */
+      .sheet {
+        flex-shrink: 1;
+        flex-grow: 1;
+        padding: 0 !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        max-height: calc(100dvh - 90px);
+        width: 100% !important;
+        height: auto !important;
+        max-width: 100vw !important;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+      }
+
+      canvas#c {
+        display: block;
+        background: transparent !important;
+        border-radius: 0 !important;
+      }
+
+      /* ===== TITRE EN JEU - CACHER SUR MOBILE ===== */
+      .game-title-main {
+        display: none !important;
+      }
+
+      /* ===== BOUTONS DE CONTRÔLE EN BAS ===== */
+      #gameControls {
+        flex-shrink: 0;
+        width: 100%;
+        max-height: 44px;
+        overflow: visible;
+        z-index: 10;
+        margin-bottom: 2px;
+      }
+
+      #gameControls .panel {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+        padding: 2px 5px;
+      }
+
+      #gameControls button {
+        padding: 4px 8px !important;
+        font-size: 8px !important;
+        min-height: 28px;
+        min-width: 42px;
+        touch-action: manipulation;
+        border-radius: 4px;
+      }
+
+      /* ===== STATUT (texte sous les boutons) ===== */
+      #status, .help {
+        flex-shrink: 0;
+        font-size: 11px !important;
+        padding: 4px 8px !important;
+        text-align: center;
+        min-height: 20px;
+        max-height: 26px;
+        overflow: hidden;
+        color: #aaa;
+      }
+
+      /* ===== MENUS PLEIN ÉCRAN OPAQUE ===== */
+      .menu-overlay {
+        position: fixed !important;
+        top: 0; left: 0;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.98) !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      .menu-card {
+        width: 92vw !important;
+        max-width: 92vw !important;
+        max-height: 88vh !important;
+        overflow-y: auto !important;
+        padding: 15px !important;
+        background: rgba(0, 0, 0, 0.95) !important;
+      }
+
+      .glow-text {
+        font-size: 22px !important;
+      }
+
+      /* ===== BOUTONS MENU TACTILES ===== */
+      .futuristic-btn {
+        padding: 10px 18px !important;
+        font-size: 12px !important;
+        min-height: 44px;
+        touch-action: manipulation;
+      }
+
+      /* ===== INPUTS PSEUDO (16px = pas de zoom iOS) ===== */
+      input[type="text"].player-input {
+        font-size: 16px !important;
+        padding: 10px !important;
+        min-height: 44px;
+      }
+
+      input[type="text"] {
+        font-size: 16px !important;
+      }
+
+      select {
+        font-size: 14px !important;
+        min-height: 44px;
+        padding: 8px !important;
+      }
+
+      /* ===== OPTIONS PANEL ===== */
+      #options-panel {
+        width: 85vw !important;
+        right: auto !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        max-height: 80vh !important;
+        overflow-y: auto !important;
+      }
+
+      /* ===== CLASSEMENT ===== */
+      .ranking-item {
+        padding: 6px 8px !important;
+        font-size: 12px !important;
+      }
+
+      /* ===== AUTOCOMPLÉTION ===== */
+      .pseudo-suggestions {
+        font-size: 13px !important;
+      }
+
+      /* ===== MASQUER RACCOURCIS CLAVIER ===== */
+      .shortcuts-grid,
+      [data-lang="shortcutsSection"] {
+        display: none !important;
+      }
+
+      span[style*="Menu: ESC"] {
+        display: none !important;
+      }
+    }
