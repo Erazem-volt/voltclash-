@@ -426,10 +426,13 @@ function normalizePseudo(name) {
 async function saveResultOnline(winnerName, loserNames, playerCount) {
   log('saveResultOnline called:', winnerName, loserNames, playerCount);
   if (!supabaseClient) { log('saveResultOnline: supabaseClient is null, skipping'); return; }
+  const normalizedWinner = normalizePseudo(winnerName);
+  if (!normalizedWinner) { log('saveResultOnline: empty winner, skipping'); return; }
+  const normalizedLosers = loserNames.map(n => normalizePseudo(n)).filter(n => n !== '');
   try {
     const { error } = await supabaseClient.rpc('record_game_result', {
-      p_winner_pseudo: normalizePseudo(winnerName),
-      p_loser_pseudos: loserNames.map(n => normalizePseudo(n)),
+      p_winner_pseudo: normalizedWinner,
+      p_loser_pseudos: normalizedLosers,
       p_player_count: playerCount
     });
     log('Supabase result:', error ? error.message : 'OK');
