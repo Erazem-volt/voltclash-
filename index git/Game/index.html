@@ -223,7 +223,6 @@
           <!-- Le classement sera généré ici -->
         </div>
         <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
-          <button class="futuristic-btn danger" onclick="clearRanking()" data-lang="clear">EFFACER</button>
           <button class="futuristic-btn" onclick="backToMenu()" data-lang="back">RETOUR</button>
         </div>
       </div>
@@ -238,12 +237,22 @@
   <div id="online-screen" class="menu-overlay" style="display: none;">
     <div class="menu-card">
       <h1 class="glow-text">🌐 <span data-lang="playOnline">JOUER EN LIGNE</span></h1>
-      <div class="menu-section">
+
+      <div class="menu-section" style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
         <button class="futuristic-btn" onclick="showCreateGameScreen()" data-lang="onlineCreate">CRÉER UNE PARTIE</button>
         <button class="futuristic-btn" onclick="showJoinGameScreen()" data-lang="onlineJoin">REJOINDRE</button>
         <button class="futuristic-btn" onclick="showMatchmakingScreen()" data-lang="onlineMatchmaking">MATCHMAKING</button>
       </div>
-      <div class="menu-section">
+
+      <div class="menu-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #333; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+        <p style="color: #888; font-family: Orbitron; font-size: 11px;" data-lang="rejoinTitle">TU AS UNE PARTIE EN COURS ?</p>
+        <input type="text" id="rejoin-pseudo" class="player-input" placeholder="Pseudo..." maxlength="15"
+               style="border-color:#ffd84d; box-shadow:0 0 8px rgba(255,216,77,0.3); font-size:14px; padding:10px 14px; text-align:center; width: 220px;">
+        <button class="futuristic-btn" onclick="rejoinPendingGame()" style="border-color: #ffd84d; color: #ffd84d;" data-lang="rejoinBtn">🔄 REPRENDRE</button>
+        <p id="rejoin-error" style="color: #ff5d5d; font-size: 11px; display: none;"></p>
+      </div>
+
+      <div class="menu-section" style="margin-top: 15px;">
         <button class="futuristic-btn" onclick="backToMenu()" data-lang="back">RETOUR</button>
       </div>
     </div>
@@ -360,7 +369,6 @@
       <div class="menu-section">
         <button id="btn-lang-menu" class="futuristic-btn" onclick="toggleLanguage()">🌐 <span id="lang-menu-text">FRANÇAIS</span></button>
       </div>
-      <button class="futuristic-btn primary pulse" onclick="startGame()" data-lang="startGame">COMMENCER</button>
     </div>
   </div>
 
@@ -1814,6 +1822,61 @@ function opponentTargetPoint(pid, prof) {
     } catch (e) { log('startMatchmaking exception:', e.message); document.getElementById('matchmaking-searching').style.display = 'none'; }
   }
 
+  // --- Reprendre une partie en attente ---
+  async function rejoinPendingGame() {
+    if (!supabaseClient) return;
+    const pseudo = document.getElementById('rejoin-pseudo').value.trim();
+    const errEl = document.getElementById('rejoin-error');
+    errEl.style.display = 'none';
+
+    if (!pseudo) {
+      errEl.textContent = 'Entre ton pseudo';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    try {
+      const { data, error } = await supabaseClient.rpc('find_my_pending_game', {
+        p_pseudo: pseudo
+      });
+
+      if (error) {
+        errEl.textContent = error.message;
+        errEl.style.display = 'block';
+        return;
+      }
+
+      if (!data) {
+        errEl.textContent = 'Aucune partie en attente trouvée pour ce pseudo';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      // Restaurer l'état de la partie
+      onlineGameId = data.game_id; window.onlineGameId = onlineGameId;
+      onlineGameCode = data.code; window.onlineGameCode = onlineGameCode;
+      onlineMySlot = data.slot; window.onlineMySlot = onlineMySlot;
+      onlineMyPseudo = pseudo; window.onlineMyPseudo = onlineMyPseudo;
+      onlineMaxPlayers = data.max_players; window.onlineMaxPlayers = onlineMaxPlayers;
+      onlineIsHost = (data.host_pseudo === pseudo); window.onlineIsHost = onlineIsHost;
+      onlinePlayers = data.players || []; window.onlinePlayers = onlinePlayers;
+
+      // Afficher le lobby
+      document.getElementById('lobby-code').textContent = onlineGameCode;
+      updateLobbyDisplay();
+      showLobby();
+      startLobbyPolling();
+
+      // Se connecter au channel Realtime
+      await connectToGameChannel();
+
+      log('Rejoin: reconnected to game', onlineGameCode, 'as', pseudo, 'slot', data.slot);
+    } catch (e) {
+      errEl.textContent = e.message;
+      errEl.style.display = 'block';
+    }
+  }
+
   // --- Exposer au HTML (onclick dans IIFE) ---
   window.showOnlineScreen = showOnlineScreen;
   window.showCreateGameScreen = showCreateGameScreen;
@@ -1828,6 +1891,7 @@ function opponentTargetPoint(pid, prof) {
   window.startOnlineGame = startOnlineGame;
   window.leaveOnlineGame = leaveOnlineGame;
   window.startMatchmaking = startMatchmaking;
+  window.rejoinPendingGame = rejoinPendingGame;
   window.broadcastMove = broadcastMove;
   window.broadcastSlide = broadcastSlide;
   window.broadcastEndTurn = broadcastEndTurn;
