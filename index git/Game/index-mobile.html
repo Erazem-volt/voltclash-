@@ -33,6 +33,13 @@
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<style>
+  .futuristic-btn.selected {
+    border-color: #0ff !important;
+    background: rgba(0,255,255,0.15) !important;
+    box-shadow: 0 0 10px rgba(0,255,255,0.3);
+  }
+</style>
 </head>
 <body>
 
@@ -223,6 +230,110 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- ÉCRANS MULTIJOUEUR EN LIGNE                    -->
+  <!-- ══════════════════════════════════════════════ -->
+
+  <!-- Écran choix mode en ligne -->
+  <div id="online-screen" class="menu-overlay" style="display: none;">
+    <div class="menu-card">
+      <h1 class="glow-text">🌐 <span data-lang="playOnline">JOUER EN LIGNE</span></h1>
+      <div class="menu-section">
+        <button class="futuristic-btn" onclick="showCreateGameScreen()" data-lang="onlineCreate">CRÉER UNE PARTIE</button>
+        <button class="futuristic-btn" onclick="showJoinGameScreen()" data-lang="onlineJoin">REJOINDRE</button>
+        <button class="futuristic-btn" onclick="showMatchmakingScreen()" data-lang="onlineMatchmaking">MATCHMAKING</button>
+      </div>
+      <div class="menu-section">
+        <button class="futuristic-btn" onclick="backToMenu()" data-lang="back">RETOUR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Écran créer une partie -->
+  <div id="create-game-screen" class="menu-overlay" style="display: none;">
+    <div class="menu-card">
+      <h1 class="glow-text" data-lang="onlineCreate">CRÉER UNE PARTIE</h1>
+      <div class="menu-section">
+        <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 15px;" data-lang="onlineYourPseudo">TON PSEUDO</p>
+        <input type="text" id="create-pseudo" class="player-input" placeholder="Pseudo..." maxlength="15"
+               style="border-color:#0ff; box-shadow:0 0 8px rgba(0,255,255,0.4); font-size:15px; padding:12px 16px; text-align:center; margin-bottom: 20px;">
+        <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 10px;" data-lang="onlinePlayerCount">NOMBRE DE JOUEURS</p>
+        <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 20px;">
+          <button id="create-2p" class="futuristic-btn small selected" onclick="selectOnlinePlayerCount(2)">2J</button>
+          <button id="create-4p" class="futuristic-btn small" onclick="selectOnlinePlayerCount(4)">4J</button>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button class="futuristic-btn primary" onclick="createOnlineGame()" data-lang="onlineCreateBtn">CRÉER</button>
+          <button class="futuristic-btn" onclick="showOnlineScreen()" data-lang="back">RETOUR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Écran rejoindre une partie -->
+  <div id="join-game-screen" class="menu-overlay" style="display: none;">
+    <div class="menu-card">
+      <h1 class="glow-text" data-lang="onlineJoin">REJOINDRE</h1>
+      <div class="menu-section">
+        <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 15px;" data-lang="onlineYourPseudo">TON PSEUDO</p>
+        <input type="text" id="join-pseudo" class="player-input" placeholder="Pseudo..." maxlength="15"
+               style="border-color:#0ff; box-shadow:0 0 8px rgba(0,255,255,0.4); font-size:15px; padding:12px 16px; text-align:center; margin-bottom: 20px;">
+        <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 10px;" data-lang="onlineEnterCode">CODE DE LA PARTIE</p>
+        <input type="text" id="join-code" class="player-input" placeholder="EX: VOLT3X" maxlength="6"
+               style="border-color:#ff0; box-shadow:0 0 8px rgba(255,255,0,0.3); font-size:22px; padding:14px 16px; text-align:center; letter-spacing:6px; text-transform:uppercase; margin-bottom: 20px; font-weight:bold;">
+        <p id="join-error" style="color: #f44; font-family: Orbitron; font-size: 11px; margin-bottom: 10px; display: none;"></p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button class="futuristic-btn primary" onclick="joinOnlineGame()" data-lang="onlineJoinBtn">REJOINDRE</button>
+          <button class="futuristic-btn" onclick="showOnlineScreen()" data-lang="back">RETOUR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Salle d'attente (lobby) -->
+  <div id="lobby-screen" class="menu-overlay" style="display: none;">
+    <div class="menu-card">
+      <h1 class="glow-text" data-lang="onlineLobby">SALLE D'ATTENTE</h1>
+      <div class="menu-section">
+        <div style="margin-bottom: 20px;">
+          <p style="color: #888; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;" data-lang="onlineShareCode">PARTAGE CE CODE</p>
+          <div id="lobby-code" style="font-family: 'Press Start 2P', monospace; font-size: 28px; color: #0ff; letter-spacing: 8px; text-shadow: 0 0 15px rgba(0,255,255,0.6); cursor: pointer; padding: 10px;" onclick="copyLobbyCode()" title="Cliquer pour copier">------</div>
+          <p id="lobby-copied" style="color: #0f0; font-family: Orbitron; font-size: 10px; margin-top: 4px; opacity: 0; transition: opacity 0.3s;" data-lang="onlineCopied">Copié !</p>
+        </div>
+        <div id="lobby-players" style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: 1px solid #444; margin-bottom: 20px; min-height: 80px;"></div>
+        <p id="lobby-status" style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 15px;" data-lang="onlineWaiting">En attente de joueurs...</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button id="lobby-start-btn" class="futuristic-btn primary" onclick="startOnlineGame()" style="display: none;" data-lang="startGame">COMMENCER</button>
+          <button class="futuristic-btn danger" onclick="leaveOnlineGame()" data-lang="onlineLeave">QUITTER</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Écran matchmaking -->
+  <div id="matchmaking-screen" class="menu-overlay" style="display: none;">
+    <div class="menu-card">
+      <h1 class="glow-text" data-lang="onlineMatchmaking">MATCHMAKING</h1>
+      <div class="menu-section">
+        <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 15px;" data-lang="onlineYourPseudo">TON PSEUDO</p>
+        <input type="text" id="matchmaking-pseudo" class="player-input" placeholder="Pseudo..." maxlength="15"
+               style="border-color:#0ff; box-shadow:0 0 8px rgba(0,255,255,0.4); font-size:15px; padding:12px 16px; text-align:center; margin-bottom: 20px;">
+        <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 10px;" data-lang="onlinePlayerCount">NOMBRE DE JOUEURS</p>
+        <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 20px;">
+          <button id="mm-2p" class="futuristic-btn small selected" onclick="selectMatchmakingCount(2)">2J</button>
+          <button id="mm-4p" class="futuristic-btn small" onclick="selectMatchmakingCount(4)">4J</button>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button class="futuristic-btn primary" onclick="startMatchmaking()" data-lang="onlineSearch">RECHERCHER</button>
+          <button class="futuristic-btn" onclick="showOnlineScreen()" data-lang="back">RETOUR</button>
+        </div>
+        <div id="matchmaking-searching" style="display: none; margin-top: 20px; text-align: center;">
+          <p style="color: #0ff; font-family: Orbitron; font-size: 13px; animation: pulse 1.5s ease-in-out infinite;" data-lang="onlineSearching">⏳ Recherche en cours...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Menu principal -->
   <div id="main-menu" class="menu-overlay">
     <div class="menu-card">
@@ -231,6 +342,7 @@
         <p style="color: #888; font-family: Orbitron;" data-lang="nbPlayers">NOMBRE DE JOUEURS</p>
         <button id="btn-2players" class="futuristic-btn" onclick="showPlayerNamesScreen()" data-lang="play2">2 JOUEURS</button>
         <button id="btn-4players" class="futuristic-btn" onclick="show4PlayerNamesScreen()" data-lang="play4">4 JOUEURS</button>
+        <button id="btn-online" class="futuristic-btn primary" onclick="showOnlineScreen()" style="margin-top: 10px;">🌐 <span data-lang="playOnline">JOUER EN LIGNE</span></button>
       </div>
       <div class="menu-section">
         <p style="color: #888; font-family: Orbitron;" data-lang="musicLabel">MUSIQUE</p>
@@ -433,7 +545,8 @@ async function saveResultOnline(winnerName, loserNames, playerCount) {
     const { error } = await supabaseClient.rpc('record_game_result', {
       p_winner_pseudo: normalizedWinner,
       p_loser_pseudos: normalizedLosers,
-      p_player_count: playerCount
+      p_player_count: playerCount,
+      p_is_online: isOnlineGame || false
     });
     log('Supabase result:', error ? error.message : 'OK');
     if (error) console.warn('Supabase save error:', error.message);
@@ -1122,6 +1235,25 @@ function opponentTargetPoint(pid, prof) {
     rankingScreen.style.display = 'none';
     const rulesScreen = document.getElementById('rules-screen');
     if (rulesScreen) rulesScreen.style.display = 'none';
+    const onlineScreen = document.getElementById('online-screen');
+    if (onlineScreen) onlineScreen.style.display = 'none';
+    const createGameScreen = document.getElementById('create-game-screen');
+    if (createGameScreen) createGameScreen.style.display = 'none';
+    const joinGameScreen = document.getElementById('join-game-screen');
+    if (joinGameScreen) joinGameScreen.style.display = 'none';
+    const lobbyScreen = document.getElementById('lobby-screen');
+    if (lobbyScreen) lobbyScreen.style.display = 'none';
+    const matchmakingScreen = document.getElementById('matchmaking-screen');
+    if (matchmakingScreen) matchmakingScreen.style.display = 'none';
+    // Arrêter le polling lobby si actif
+    stopLobbyPolling();
+    // Nettoyer la connexion online si active
+    if (isOnlineGame) {
+      broadcastPlayerLeft();
+      disconnectGameChannel();
+      isOnlineGame = false;
+      window.isOnlineGame = false;
+    }
 
     // Cacher les éléments du jeu
     const sheet = document.querySelector('.sheet');
@@ -1148,6 +1280,570 @@ function opponentTargetPoint(pid, prof) {
 
     applyLanguage();
   }
+
+  // ╔══════════════════════════════════════════════════════════╗
+  // ║  MULTIJOUEUR EN LIGNE — Navigation & RPC Supabase       ║
+  // ╚══════════════════════════════════════════════════════════╝
+
+  // --- Variables d'état en ligne ---
+  let isOnlineGame = false;
+  let onlineGameId = null;
+  let onlineGameCode = null;
+  let onlineMySlot = null;
+  let onlineMyPseudo = null;
+  let onlineMaxPlayers = 2;
+  let onlineIsHost = false;
+  let onlinePlayers = [];
+  let onlineChannel = null;
+  let onlinePollingTimer = null;
+  let selectedOnlinePlayerCount = 2;
+  let selectedMatchmakingCount = 2;
+
+  // --- Utilitaire : afficher un seul écran ---
+  function showScreen(id) {
+    const screens = [
+      'main-menu', 'player-names-screen', 'player-names-screen-4',
+      'ranking-screen', 'rules-screen',
+      'online-screen', 'create-game-screen', 'join-game-screen',
+      'lobby-screen', 'matchmaking-screen'
+    ];
+    screens.forEach(s => {
+      const el = document.getElementById(s);
+      if (el) el.style.display = 'none';
+    });
+    const target = document.getElementById(id);
+    if (target) {
+      target.style.display = 'flex';
+      target.style.visibility = 'visible';
+      target.style.pointerEvents = 'auto';
+      target.style.opacity = '1';
+    }
+  }
+
+  // --- Navigation ---
+  function showOnlineScreen()       { showScreen('online-screen'); applyLanguage(); }
+  function showCreateGameScreen()   { showScreen('create-game-screen'); applyLanguage(); }
+  function showJoinGameScreen()     { showScreen('join-game-screen'); document.getElementById('join-error').style.display = 'none'; applyLanguage(); }
+  function showMatchmakingScreen()  { showScreen('matchmaking-screen'); applyLanguage(); }
+  function showLobby()              { showScreen('lobby-screen'); applyLanguage(); }
+
+  // --- Sélection nombre de joueurs ---
+  function selectOnlinePlayerCount(n) {
+    selectedOnlinePlayerCount = n;
+    document.getElementById('create-2p').classList.toggle('selected', n === 2);
+    document.getElementById('create-4p').classList.toggle('selected', n === 4);
+  }
+
+  function selectMatchmakingCount(n) {
+    selectedMatchmakingCount = n;
+    document.getElementById('mm-2p').classList.toggle('selected', n === 2);
+    document.getElementById('mm-4p').classList.toggle('selected', n === 4);
+  }
+
+  // --- Polling du lobby ---
+  function startLobbyPolling() {
+    stopLobbyPolling();
+    onlinePollingTimer = setInterval(refreshLobbyPlayers, 3000);
+  }
+
+  function stopLobbyPolling() {
+    if (onlinePollingTimer) { clearInterval(onlinePollingTimer); onlinePollingTimer = null; }
+  }
+
+  async function refreshLobbyPlayers() {
+    if (!supabaseClient || !onlineGameId) return;
+    try {
+      // Charger les joueurs de la partie
+      const { data: players, error: playersError } = await supabaseClient
+        .from('online_game_players')
+        .select('pseudo, slot')
+        .eq('game_id', onlineGameId)
+        .order('slot');
+
+      if (playersError) { log('refreshLobbyPlayers error:', playersError.message); return; }
+      if (players) {
+        onlinePlayers = players; window.onlinePlayers = onlinePlayers;
+        updateLobbyDisplay();
+      }
+
+      // Vérifier si la partie a été lancée (pour les non-hosts)
+      if (!onlineIsHost) {
+        const { data: game, error: gameError } = await supabaseClient
+          .from('online_games')
+          .select('status')
+          .eq('id', onlineGameId)
+          .single();
+
+        if (!gameError && game && game.status === 'playing') {
+          stopLobbyPolling();
+          document.getElementById('lobby-status').textContent = t('onlineGameStarting');
+          log('Game started by host! (Phase 3 will handle game launch)');
+        }
+      }
+    } catch (e) { log('refreshLobbyPlayers exception:', e.message); }
+  }
+
+  // --- Afficher les joueurs dans le lobby ---
+  function updateLobbyDisplay() {
+    const container = document.getElementById('lobby-players');
+    const colors = ['#ff5d5d', '#3ddc84', '#ffd84d', '#4da6ff'];
+    container.innerHTML = '';
+    for (let i = 0; i < onlineMaxPlayers; i++) {
+      const p = onlinePlayers[i];
+      const div = document.createElement('div');
+      div.style.cssText = `display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #222;`;
+      const dot = document.createElement('span');
+      dot.style.cssText = `width:10px;height:10px;border-radius:50%;background:${colors[i]};box-shadow:0 0 6px ${colors[i]};flex-shrink:0;`;
+      const name = document.createElement('span');
+      name.style.cssText = `font-family:Orbitron;font-size:13px;color:${p ? '#fff' : '#444'};`;
+      name.textContent = p ? p.pseudo : '— ' + t('onlineWaitingSlot') + ' —';
+      div.appendChild(dot);
+      div.appendChild(name);
+      container.appendChild(div);
+    }
+    const ready = onlinePlayers.length >= onlineMaxPlayers;
+    const startBtn = document.getElementById('lobby-start-btn');
+    if (startBtn) startBtn.style.display = (ready && onlineIsHost) ? 'block' : 'none';
+    const statusEl = document.getElementById('lobby-status');
+    if (statusEl) statusEl.textContent = ready ? t('onlineReady') : t('onlineWaiting');
+  }
+
+  // --- Créer une partie ---
+  async function createOnlineGame() {
+    if (!supabaseClient) { log('createOnlineGame: no supabaseClient'); return; }
+    const pseudo = document.getElementById('create-pseudo').value.trim();
+    if (!pseudo) { alert(t('onlinePseudoRequired')); return; }
+    try {
+      const { data, error } = await supabaseClient.rpc('create_online_game', {
+        p_pseudo: pseudo,
+        p_max_players: selectedOnlinePlayerCount
+      });
+      if (error) { log('createOnlineGame error:', error.message); return; }
+      onlineGameId = data.game_id; window.onlineGameId = onlineGameId;
+      onlineGameCode = data.code; window.onlineGameCode = onlineGameCode;
+      onlineMySlot = data.slot || 1; window.onlineMySlot = onlineMySlot;
+      onlineMyPseudo = pseudo; window.onlineMyPseudo = onlineMyPseudo;
+      onlineMaxPlayers = selectedOnlinePlayerCount; window.onlineMaxPlayers = onlineMaxPlayers;
+      onlineIsHost = true; window.onlineIsHost = onlineIsHost;
+      onlinePlayers = [{ pseudo, slot: 1 }]; window.onlinePlayers = onlinePlayers;
+      document.getElementById('lobby-code').textContent = onlineGameCode;
+      updateLobbyDisplay();
+      showLobby();
+      startLobbyPolling();
+      // Se connecter au channel Realtime
+      await connectToGameChannel();
+    } catch (e) { log('createOnlineGame exception:', e.message); }
+  }
+
+  // --- Rejoindre une partie ---
+  async function joinOnlineGame() {
+    if (!supabaseClient) { log('joinOnlineGame: no supabaseClient'); return; }
+    const pseudo = document.getElementById('join-pseudo').value.trim();
+    const code = document.getElementById('join-code').value.trim().toUpperCase();
+    const errEl = document.getElementById('join-error');
+    errEl.style.display = 'none';
+    if (!pseudo) { errEl.textContent = t('onlinePseudoRequired'); errEl.style.display = 'block'; return; }
+    if (!code || code.length < 4) { errEl.textContent = t('onlineCodeRequired'); errEl.style.display = 'block'; return; }
+    try {
+      const { data, error } = await supabaseClient.rpc('join_online_game', {
+        p_pseudo: pseudo,
+        p_code: code
+      });
+      if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+      onlineGameId = data.game_id; window.onlineGameId = onlineGameId;
+      onlineGameCode = code; window.onlineGameCode = onlineGameCode;
+      onlineMySlot = data.slot; window.onlineMySlot = onlineMySlot;
+      onlineMyPseudo = pseudo; window.onlineMyPseudo = onlineMyPseudo;
+      onlineMaxPlayers = data.max_players || 2; window.onlineMaxPlayers = onlineMaxPlayers;
+      onlineIsHost = false; window.onlineIsHost = onlineIsHost;
+      await refreshLobbyPlayers();
+      document.getElementById('lobby-code').textContent = onlineGameCode;
+      updateLobbyDisplay();
+      showLobby();
+      startLobbyPolling();
+      // Se connecter au channel Realtime pour recevoir game_start
+      await connectToGameChannel();
+    } catch (e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+  }
+
+  // --- Copier le code du lobby ---
+  function copyLobbyCode() {
+    const code = document.getElementById('lobby-code').textContent;
+    navigator.clipboard?.writeText(code).then(() => {
+      const copied = document.getElementById('lobby-copied');
+      copied.style.opacity = '1';
+      setTimeout(() => { copied.style.opacity = '0'; }, 1500);
+    });
+  }
+
+  // --- Démarrer la partie en ligne ---
+  async function startOnlineGame() {
+    console.log('STEP 1: start');
+    if (!onlineIsHost || !onlineGameCode) { console.log('STEP 1b: NOT host or no code'); return; }
+    console.log('STEP 2: host OK, code=', onlineGameCode);
+
+    try {
+      const { data, error } = await supabaseClient.rpc('start_online_game', {
+        p_code: onlineGameCode,
+        p_host_pseudo: onlineMyPseudo
+      });
+      console.log('STEP 3: RPC done, data=', data, 'error=', error);
+
+      if (error) { alert('Erreur : ' + error.message); return; }
+
+      stopLobbyPolling();
+      console.log('STEP 4: polling stopped');
+
+      // Ne recréer le channel QUE s'il n'existe pas déjà
+      if (!window.__onlineChannel) {
+        await connectToGameChannel();
+      }
+      console.log('STEP 5: channel connected, window.__onlineChannel=', window.__onlineChannel);
+
+      const ch = window.__onlineChannel;
+      console.log('STEP 6: ch=', ch);
+
+      if (!ch) { console.error('STEP 6b: channel is null!'); alert('Erreur : channel non connecté'); return; }
+
+      ch.send({
+        type: 'broadcast',
+        event: 'game_start',
+        payload: { players: onlinePlayers, player_count: onlinePlayers.length }
+      });
+      console.log('STEP 7: broadcast sent');
+
+      launchOnlineGame(onlinePlayers);
+      console.log('STEP 8: game launched');
+
+    } catch (e) { console.error('startOnlineGame CATCH:', e); alert('Erreur : ' + e.message); }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // SUPABASE REALTIME — CHANNEL DE JEU
+  // ═══════════════════════════════════════════════════
+
+  function connectToGameChannel() {
+    return new Promise((resolve) => {
+      // GUARD : ne pas recréer si déjà connecté
+      if (window.__onlineChannel && window.__channelReady) {
+        log('connectToGameChannel: already connected, skipping');
+        resolve();
+        return;
+      }
+
+      if (window.__onlineChannel) {
+        supabaseClient.removeChannel(window.__onlineChannel);
+        window.__onlineChannel = null;
+        window.__channelReady = false;
+      }
+
+      const ch = supabaseClient.channel('game:' + (onlineGameCode || window.onlineGameCode), {
+        config: { broadcast: { self: false } }
+      });
+      window.__onlineChannel = ch;
+
+      ch.on('broadcast', { event: 'game_start' }, (payload) => {
+        log('Received game_start:', payload);
+        const data = payload.payload;
+        stopLobbyPolling();
+        launchOnlineGame(data.players);
+      });
+
+      ch.on('broadcast', { event: 'move' }, (payload) => {
+        log('Received move:', payload);
+        const data = payload.payload;
+        applyRemoteMove(data.slot, data.action, data.ix, data.iy, data.key);
+      });
+
+      ch.on('broadcast', { event: 'slide' }, (payload) => {
+        log('Received slide:', payload);
+        const data = payload.payload;
+        applyRemoteSlide(data.slot, data.moves);
+      });
+
+      ch.on('broadcast', { event: 'end_turn' }, (payload) => {
+        log('📩 [MULTI] Received end_turn from:', payload.payload && payload.payload.slot);
+        endTurn(true, true);  // silent=true, isRemote=true
+      });
+
+      ch.on('broadcast', { event: 'player_left' }, (payload) => {
+        log('Received player_left:', payload);
+        const data = payload.payload;
+        handlePlayerLeft(data.slot);
+      });
+
+      ch.subscribe((status) => {
+        log('Channel status:', status);
+        if (status === 'SUBSCRIBED') {
+          window.__channelReady = true;
+          resolve();
+        }
+      });
+    });
+  }
+
+  function disconnectGameChannel() {
+    if (window.__onlineChannel) {
+      supabaseClient.removeChannel(window.__onlineChannel);
+      window.__onlineChannel = null;
+      window.__channelReady = false;
+    }
+  }
+
+  function attachGameListeners() {
+    const ch = window.__onlineChannel;
+    if (!ch) { log('attachGameListeners: no channel'); return; }
+
+    log('attachGameListeners: attaching listeners to', ch.topic);
+
+    ch.on('broadcast', { event: 'move' }, (payload) => {
+      log('Received move:', payload);
+      const data = payload.payload;
+      applyRemoteMove(data.slot, data.action, data.ix, data.iy, data.key);
+    });
+
+    ch.on('broadcast', { event: 'slide' }, (payload) => {
+      log('Received slide:', payload);
+      const data = payload.payload;
+      applyRemoteSlide(data.slot, data.moves);
+    });
+
+    ch.on('broadcast', { event: 'end_turn' }, (payload) => {
+      log('📩 [MULTI] Received end_turn');
+      endTurn(true, true);
+    });
+
+    ch.on('broadcast', { event: 'player_left' }, (payload) => {
+      log('Received player_left:', payload);
+      const data = payload.payload;
+      handlePlayerLeft(data.slot);
+    });
+  }
+  window.attachGameListeners = attachGameListeners;
+
+  // ── Lancer la partie online ──
+
+  function launchOnlineGame(players) {
+    isOnlineGame = true;
+    window.isOnlineGame = true;
+
+    const count = players.length;
+    window.setPlayerCount(count);
+
+    const slotToPlayer = { A: 'player1', B: 'player2', C: 'player3', D: 'player4' };
+
+    for (let i = 0; i < count; i++) {
+      const p = players[i];
+      const slot = p.slot;
+      const playerKey = slotToPlayer[slot];
+
+      window.playerNames[playerKey] = p.pseudo;
+
+      if (slot === (onlineMySlot || window.onlineMySlot)) {
+        window.control.set(slot, 'HUMAN');
+      } else {
+        window.control.set(slot, 'REMOTE');
+      }
+    }
+
+    log('launchOnlineGame: my slot=', window.onlineMySlot,
+        'control A=', window.control.get('A'),
+        'control B=', window.control.get('B'));
+
+    const lobbyScreen = document.getElementById('lobby-screen');
+    if (lobbyScreen) lobbyScreen.style.display = 'none';
+
+    window.startGame();
+  }
+
+  // ── Broadcast de mes coups ──
+
+  function broadcastMove(action, ix, iy, key) {
+    const ch = window.__onlineChannel;
+    if (!window.isOnlineGame || !ch) return;
+    ch.send({
+      type: 'broadcast',
+      event: 'move',
+      payload: { slot: onlineMySlot, action, ix, iy, key }
+    });
+  }
+
+  function broadcastSlide(moves) {
+    const ch = window.__onlineChannel;
+    if (!window.isOnlineGame || !ch) return;
+    ch.send({
+      type: 'broadcast',
+      event: 'slide',
+      payload: { slot: onlineMySlot, moves }
+    });
+  }
+
+  function broadcastEndTurn() {
+    const ch = window.__onlineChannel;
+    if (!window.isOnlineGame || !ch) return;
+    ch.send({
+      type: 'broadcast',
+      event: 'end_turn',
+      payload: { slot: onlineMySlot }
+    });
+  }
+
+  function broadcastPlayerLeft() {
+    const ch = window.__onlineChannel;
+    if (!window.isOnlineGame || !ch) return;
+    ch.send({
+      type: 'broadcast',
+      event: 'player_left',
+      payload: { slot: onlineMySlot, pseudo: onlineMyPseudo }
+    });
+  }
+
+  // ── Recevoir les coups des autres ──
+
+  function applyRemoteMove(slot, action, ix, iy, key) {
+    if (!isOnlineGame) return;
+    const pid = slot;
+    if (!window.alive.get(pid)) return;
+
+    log('applyRemoteMove:', { slot, action, ix, iy, key });
+
+    let moveInfo = null;
+    if (action === 'circle') {
+      moveInfo = window.placeCircle(pid, key);
+    } else {
+      moveInfo = window.placeCross(pid, ix, iy);
+    }
+
+    window.afterMove(pid, moveInfo);
+    window.setBadges();
+    window.requestRedraw();
+    // NE PAS décrémenter movesLeft
+    // NE PAS appeler endTurn
+    // Le passage de tour est géré uniquement par le message end_turn
+  }
+
+  function applyRemoteSlide(slot, moves) {
+    if (!isOnlineGame) return;
+    const pid = slot;
+    if (!window.alive.get(pid)) return;
+
+    log('applyRemoteSlide:', { slot, movesCount: moves.length });
+
+    for (const mv of moves) {
+      if (window.getGameOver()) break;
+
+      let moveInfo = null;
+      if (mv.action === 'circle') {
+        moveInfo = window.placeCircle(pid, mv.key);
+      } else {
+        moveInfo = window.placeCross(pid, mv.ix, mv.iy);
+      }
+
+      window.afterMove(pid, moveInfo);
+      if (window.getGameOver()) break;
+    }
+
+    window.setBadges();
+    window.requestRedraw();
+    // NE PAS appeler endTurn — on attend le message end_turn
+  }
+
+  // ── Gestion déconnexion ──
+
+  function handlePlayerLeft(slot) {
+    if (!isOnlineGame) return;
+    log('Player left:', slot, '→ replacing with AI');
+    window.control.set(slot, 'AI');
+    if (window.currentPlayerId() === slot) {
+      window.maybeStartAITurn();
+    }
+    window.setBadges();
+    window.requestRedraw();
+  }
+
+  // --- Quitter le lobby ---
+  async function leaveOnlineGame() {
+    stopLobbyPolling();
+    if (supabaseClient && onlineGameId) {
+      try {
+        await supabaseClient.rpc('leave_online_game', {
+          p_game_id: onlineGameId,
+          p_pseudo: onlineMyPseudo
+        });
+      } catch (e) { log('leaveOnlineGame:', e.message); }
+    }
+    broadcastPlayerLeft();
+    disconnectGameChannel();
+    isOnlineGame = false; window.isOnlineGame = false;
+    onlineGameId = null; window.onlineGameId = null;
+    onlineGameCode = null; window.onlineGameCode = null;
+    onlineMySlot = null; window.onlineMySlot = null;
+    onlineMyPseudo = null; window.onlineMyPseudo = null;
+    onlineIsHost = false; window.onlineIsHost = false;
+    onlinePlayers = []; window.onlinePlayers = [];
+    showOnlineScreen();
+  }
+
+  // --- Matchmaking ---
+  async function startMatchmaking() {
+    if (!supabaseClient) { log('startMatchmaking: no supabaseClient'); return; }
+    const pseudo = document.getElementById('matchmaking-pseudo').value.trim();
+    if (!pseudo) { alert(t('onlinePseudoRequired')); return; }
+    document.getElementById('matchmaking-searching').style.display = 'block';
+    try {
+      const { data, error } = await supabaseClient.rpc('join_matchmaking', {
+        p_pseudo: pseudo,
+        p_player_count: selectedMatchmakingCount
+      });
+      if (error) { log('startMatchmaking error:', error.message); document.getElementById('matchmaking-searching').style.display = 'none'; return; }
+      if (data && data.game_id) {
+        onlineGameId = data.game_id; window.onlineGameId = onlineGameId;
+        onlineGameCode = data.code; window.onlineGameCode = onlineGameCode;
+        onlineMySlot = data.slot; window.onlineMySlot = onlineMySlot;
+        onlineMyPseudo = pseudo; window.onlineMyPseudo = onlineMyPseudo;
+        onlineMaxPlayers = selectedMatchmakingCount; window.onlineMaxPlayers = onlineMaxPlayers;
+        onlineIsHost = (data.slot === 'A'); window.onlineIsHost = onlineIsHost;
+        onlinePlayers = data.players || []; window.onlinePlayers = onlinePlayers;
+        document.getElementById('lobby-code').textContent = onlineGameCode || '------';
+        updateLobbyDisplay();
+        showLobby();
+        startLobbyPolling();
+        // Se connecter au channel Realtime pour recevoir game_start
+        await connectToGameChannel();
+      }
+    } catch (e) { log('startMatchmaking exception:', e.message); document.getElementById('matchmaking-searching').style.display = 'none'; }
+  }
+
+  // --- Exposer au HTML (onclick dans IIFE) ---
+  window.showOnlineScreen = showOnlineScreen;
+  window.showCreateGameScreen = showCreateGameScreen;
+  window.showJoinGameScreen = showJoinGameScreen;
+  window.showMatchmakingScreen = showMatchmakingScreen;
+  window.showLobby = showLobby;
+  window.selectOnlinePlayerCount = selectOnlinePlayerCount;
+  window.selectMatchmakingCount = selectMatchmakingCount;
+  window.createOnlineGame = createOnlineGame;
+  window.joinOnlineGame = joinOnlineGame;
+  window.copyLobbyCode = copyLobbyCode;
+  window.startOnlineGame = startOnlineGame;
+  window.leaveOnlineGame = leaveOnlineGame;
+  window.startMatchmaking = startMatchmaking;
+  window.broadcastMove = broadcastMove;
+  window.broadcastSlide = broadcastSlide;
+  window.broadcastEndTurn = broadcastEndTurn;
+  window.isOnlineGame = false;
+  // Exports moteur pour debug console + fonctions hors IIFE
+  window.control = control;
+  window.playerNames = playerNames;
+  window.PLAYERS = PLAYERS;
+  window.currentPlayerId = currentPlayerId;
+  window.maybeStartAITurn = maybeStartAITurn;
+  window.endTurn = endTurn;
+  window.placeCross = placeCross;
+  window.placeCircle = placeCircle;
+  window.afterMove = afterMove;
+  window.setBadges = setBadges;
+  window.requestRedraw = requestRedraw;
 
   function showRankingScreen() {
     const menu = document.getElementById('main-menu');
@@ -1792,6 +2488,14 @@ function opponentTargetPoint(pid, prof) {
 
   // --- IA scheduler ---
   let aiTimer = null;
+  // Exports état jeu (après déclarations)
+  window.alive = alive;
+  window.marks = marks;
+  window.started = started;
+  window.getMovesLeft = function() { return movesLeft; };
+  window.setMovesLeft = function(val) { movesLeft = val; };
+  window.getGameOver = function() { return gameOver; };
+  window.PLAYER_COUNT_REF = function() { return PLAYER_COUNT; };
 
   // --- Drag / Slide ---
   let dragPlacing = false;
@@ -2371,11 +3075,16 @@ function opponentTargetPoint(pid, prof) {
     return fromIdx;
   }
 
-  function endTurn(silent=false) {
+  function endTurn(silent=false, isRemote=false) {
     if (gameOver) return;
     if (gamePaused) return;
     stopAI();
     if (typeof clearDrag === 'function') clearDrag();
+
+    // Broadcast fin de tour UNIQUEMENT si c'est MOI qui joue et que ce n'est PAS un ordre distant
+    if (window.isOnlineGame && !isRemote && currentPlayerId() === window.onlineMySlot) {
+      if (window.broadcastEndTurn) window.broadcastEndTurn();
+    }
 
     currentIdx = nextAliveIndex(currentIdx);
     movesLeft = MOVES_PER_TURN;
@@ -2389,9 +3098,31 @@ function opponentTargetPoint(pid, prof) {
     if (gameOver) return;
     const pid = currentPlayerId();
     if (!alive.get(pid)) { endTurn(true); return; }
+
+    // IA locale : elle joue automatiquement
     if (control.get(pid) === "AI") {
-      scheduleAITick(0);
+      scheduleAITick(500);
+      return;
     }
+
+    // REMOTE : c'est le tour d'un joueur distant → on attend son broadcast, on ne fait RIEN
+    if (control.get(pid) === "REMOTE") {
+      message = "En attente de l'adversaire...";
+      log('⏳ [MULTI] Waiting for remote player ' + pid);
+      setBadges();
+      requestRedraw();
+      return;
+    }
+
+    // HUMAN + c'est mon tour en mode online
+    if (window.isOnlineGame && pid === (window.onlineMySlot || '')) {
+      message = t('yourTurn');
+      setBadges();
+      requestRedraw();
+      return;
+    }
+
+    // HUMAN en mode local : rien de spécial
   }
 
   function togglePause() {
@@ -2880,6 +3611,7 @@ function pickAIMove(pid) {
         return;
       }
       moveInfo = placeCross(pid, cur.ix, cur.iy);
+      broadcastMove('cross', cur.ix, cur.iy, null);
     } else if (existing.owner !== pid && existing.kind === "X") {
       if (!canCircle(pid, k)) {
         message = t('circleBlocked');
@@ -2888,6 +3620,7 @@ function pickAIMove(pid) {
         return;
       }
       moveInfo = placeCircle(pid, k);
+      broadcastMove('circle', null, null, k);
     } else {
       message = t('actionImpossible');
       setBadges();
@@ -3743,7 +4476,7 @@ function drawGrid() {
 
     const pid = currentPlayerId();
     if (!alive.get(pid)) { endTurn(true); return; }
-    if (control.get(pid) === "AI") return;
+    if (control.get(pid) === "AI" || control.get(pid) === "REMOTE") return;
 
     const cur = activeCursor();
     if (k === "o") { cur.iy = clamp(cur.iy - 1, 0, NODES - 1); message=""; setBadges(); requestRedraw(); return; }
@@ -3981,7 +4714,7 @@ function drawGrid() {
   canvas.addEventListener("mousemove", (e) => {
     if (gameOver) return;
     const pid = currentPlayerId();
-    if (control.get(pid) === "AI") return;
+    if (control.get(pid) === "AI" || control.get(pid) === "REMOTE") return;
     if (!alive.get(pid)) return;
 
     const n = mouseToNode(e.clientX, e.clientY);
@@ -4007,7 +4740,7 @@ function drawGrid() {
   canvas.addEventListener("mousedown", (e) => {
     if (gameOver) return;
     const pid = currentPlayerId();
-    if (control.get(pid) === "AI") return;
+    if (control.get(pid) === "AI" || control.get(pid) === "REMOTE") return;
     if (!alive.get(pid)) return;
 
     const n = mouseToNode(e.clientX, e.clientY);
@@ -4073,6 +4806,17 @@ function drawGrid() {
       if (gameOver) break;
     }
 
+    // Broadcast le slide complet en mode online
+    if (isOnlineGame && placed > 0) {
+      const slideMoves = dragOkPath.slice(0, placed).map(node => ({
+        action: node.action || 'cross',
+        ix: node.ix,
+        iy: node.iy,
+        key: node.k
+      }));
+      broadcastSlide(slideMoves);
+    }
+
     clearDrag();
     message = placed > 0 ? `${placed} ${t('linePlaced')}` : t('lineInvalid');
     setBadges();
@@ -4086,7 +4830,7 @@ function drawGrid() {
     if (!dragPlacing) return;
 
     const pid = currentPlayerId();
-    if (gameOver || control.get(pid) === "AI" || !alive.get(pid)) { clearDrag(); return; }
+    if (gameOver || control.get(pid) === "AI" || control.get(pid) === "REMOTE" || !alive.get(pid)) { clearDrag(); return; }
 
     // si pas bougé => comportement original (un seul coup au clic)
     if (!dragMoved) {
@@ -4152,7 +4896,7 @@ function drawGrid() {
 
             if (gameOver) return;
             const pid = currentPlayerId();
-            if (control.get(pid) === "AI") return;
+            if (control.get(pid) === "AI" || control.get(pid) === "REMOTE") return;
             if (!alive.get(pid)) return;
 
             const n = mouseToNode(touch.clientX, touch.clientY);
@@ -4177,7 +4921,7 @@ function drawGrid() {
         // Zoom = 1 → comportement normal du jeu
         if (gameOver) return;
         const pid = currentPlayerId();
-        if (control.get(pid) === "AI") return;
+        if (control.get(pid) === "AI" || control.get(pid) === "REMOTE") return;
         if (!alive.get(pid)) return;
 
         const n = mouseToNode(touch.clientX, touch.clientY);
@@ -4249,7 +4993,7 @@ function drawGrid() {
         // === MODE DRAG DE JEU (après appui long en mode zoomé) ===
         if (gameOver) return;
         const pid = currentPlayerId();
-        if (control.get(pid) === "AI") return;
+        if (control.get(pid) === "AI" || control.get(pid) === "REMOTE") return;
         if (!alive.get(pid)) return;
 
         const n = mouseToNode(touch.clientX, touch.clientY);
@@ -4290,7 +5034,7 @@ function drawGrid() {
       // === MODE NORMAL (zoom = 1) ===
       if (gameOver) return;
       const pid = currentPlayerId();
-      if (control.get(pid) === "AI") return;
+      if (control.get(pid) === "AI" || control.get(pid) === "REMOTE") return;
       if (!alive.get(pid)) return;
 
       const n = mouseToNode(touch.clientX, touch.clientY);
@@ -4336,7 +5080,7 @@ function drawGrid() {
 
       if (!dragPlacing) return;
       const pid = currentPlayerId();
-      if (gameOver || control.get(pid) === "AI" || !alive.get(pid)) { clearDrag(); return; }
+      if (gameOver || control.get(pid) === "AI" || control.get(pid) === "REMOTE" || !alive.get(pid)) { clearDrag(); return; }
 
       if (!dragMoved) {
         clearDrag();
@@ -4356,7 +5100,7 @@ function drawGrid() {
           const touch = e.changedTouches[0];
           if (gameOver) { isPanning = false; return; }
           const pid = currentPlayerId();
-          if (control.get(pid) === "AI" || !alive.get(pid)) { isPanning = false; return; }
+          if (control.get(pid) === "AI" || control.get(pid) === "REMOTE" || !alive.get(pid)) { isPanning = false; return; }
 
           const n = mouseToNode(touch.clientX, touch.clientY);
           const cur = cursors.get(pid);
@@ -4379,7 +5123,7 @@ function drawGrid() {
     // Mode normal (zoom = 1)
     if (!dragPlacing) return;
     const pid = currentPlayerId();
-    if (gameOver || control.get(pid) === "AI" || !alive.get(pid)) { clearDrag(); return; }
+    if (gameOver || control.get(pid) === "AI" || control.get(pid) === "REMOTE" || !alive.get(pid)) { clearDrag(); return; }
 
     if (!dragMoved) {
       clearDrag();
