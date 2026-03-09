@@ -39,6 +39,10 @@
     background: rgba(0,255,255,0.15) !important;
     box-shadow: 0 0 10px rgba(0,255,255,0.3);
   }
+  @keyframes notifPulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(0,255,255,0.3); }
+    50% { box-shadow: 0 0 25px rgba(0,255,255,0.6); }
+  }
 </style>
 </head>
 <body>
@@ -48,6 +52,30 @@
 
 <!-- S'assurer que les menus sont au-dessus du canvas -->
 <div id="game-wrapper" style="position: relative; z-index: 1;">
+  <!-- Notification partie prête -->
+  <div id="online-notif" onclick="returnToLobby()" style="
+    display: none;
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.95);
+    border: 2px solid #0ff;
+    border-radius: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    z-index: 9999;
+    width: 85%;
+    max-width: 300px;
+    box-shadow: 0 0 20px rgba(0,255,255,0.4);
+    animation: notifPulse 2s infinite;
+    text-align: center;
+  ">
+    <p style="color: #0ff; font-family: Orbitron; font-size: 11px; margin: 0 0 4px 0;" data-lang="notifTitle">⚡ PARTIE PRÊTE</p>
+    <p style="color: #fff; font-family: Orbitron; font-size: 10px; margin: 0;" data-lang="notifMessage">Vos adversaires vous attendent !</p>
+    <p style="color: #3ddc84; font-family: 'Press Start 2P', monospace; font-size: 10px; margin: 6px 0 0 0; text-align: center;" data-lang="notifAction">▶ LET'S PLAY</p>
+  </div>
+
   <!-- Badges joueurs cachés quand le menu est affiché -->
   <div class="players" id="playersRow" style="display: none;"></div>
   
@@ -238,18 +266,29 @@
     <div class="menu-card">
       <h1 class="glow-text">🌐 <span data-lang="playOnline">JOUER EN LIGNE</span></h1>
 
+      <!-- Pseudo unique -->
+      <div class="menu-section" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <p style="color: #0ff; font-family: Orbitron; font-size: 12px; letter-spacing: 1px;" data-lang="onlineYourPseudo">TON PSEUDO</p>
+        <input type="text" id="online-pseudo" class="player-input" placeholder="Pseudo..." maxlength="15"
+               style="border-color:#0ff; box-shadow:0 0 8px rgba(0,255,255,0.4); font-size:16px; padding:12px 16px; text-align:center; width: 220px;">
+        <p id="online-pseudo-error" style="color: #ff5d5d; font-size: 11px; display: none; font-family: Orbitron;" data-lang="onlinePseudoRequired">Pseudo requis</p>
+      </div>
+
+      <!-- Boutons -->
       <div class="menu-section" style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
         <button class="futuristic-btn" onclick="showCreateGameScreen()" data-lang="onlineCreate">CRÉER UNE PARTIE</button>
         <button class="futuristic-btn" onclick="showJoinGameScreen()" data-lang="onlineJoin">REJOINDRE</button>
-        <button class="futuristic-btn" onclick="showMatchmakingScreen()" data-lang="onlineMatchmaking">MATCHMAKING</button>
       </div>
 
-      <div class="menu-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #333; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-        <p style="color: #888; font-family: Orbitron; font-size: 11px;" data-lang="rejoinTitle">TU AS UNE PARTIE EN COURS ?</p>
-        <input type="text" id="rejoin-pseudo" class="player-input" placeholder="Pseudo..." maxlength="15"
-               style="border-color:#ffd84d; box-shadow:0 0 8px rgba(255,216,77,0.3); font-size:14px; padding:10px 14px; text-align:center; width: 220px;">
-        <button class="futuristic-btn" onclick="rejoinPendingGame()" style="border-color: #ffd84d; color: #ffd84d;" data-lang="rejoinBtn">🔄 REPRENDRE</button>
-        <p id="rejoin-error" style="color: #ff5d5d; font-size: 11px; display: none;"></p>
+      <!-- Encadré parties en attente -->
+      <div class="menu-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #333;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px;">
+          <p style="color: #0ff; font-family: Orbitron; font-size: 12px; margin: 0; letter-spacing: 1px;" data-lang="openGamesTitle">PARTIES EN ATTENTE</p>
+          <button class="futuristic-btn small" onclick="refreshOpenGames()" style="padding: 3px 8px; font-size: 9px;">🔄</button>
+        </div>
+        <div id="open-games-list" style="background: rgba(0,0,0,0.6); padding: 10px; border-radius: 10px; border: 1px solid #0ff; box-shadow: 0 0 10px rgba(0,255,255,0.1); max-height: 200px; overflow-y: auto; min-height: 60px;">
+          <p style="color: #555; font-family: Orbitron; font-size: 11px; text-align: center;" data-lang="openGamesLoading">Chargement...</p>
+        </div>
       </div>
 
       <div class="menu-section" style="margin-top: 15px;">
@@ -263,13 +302,25 @@
     <div class="menu-card">
       <h1 class="glow-text" data-lang="onlineCreate">CRÉER UNE PARTIE</h1>
       <div class="menu-section">
-        <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 15px;" data-lang="onlineYourPseudo">TON PSEUDO</p>
-        <input type="text" id="create-pseudo" class="player-input" placeholder="Pseudo..." maxlength="15"
-               style="border-color:#0ff; box-shadow:0 0 8px rgba(0,255,255,0.4); font-size:15px; padding:12px 16px; text-align:center; margin-bottom: 20px;">
         <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 10px;" data-lang="onlinePlayerCount">NOMBRE DE JOUEURS</p>
         <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 20px;">
           <button id="create-2p" class="futuristic-btn small selected" onclick="selectOnlinePlayerCount(2)">2J</button>
           <button id="create-4p" class="futuristic-btn small" onclick="selectOnlinePlayerCount(4)">4J</button>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px;">
+          <label style="color: #888; font-family: Orbitron; font-size: 11px; cursor: pointer;" for="create-private" data-lang="privateGame">PARTIE PRIVÉE</label>
+          <div id="create-private-toggle" onclick="togglePrivateGame()" style="
+            width: 44px; height: 24px; border-radius: 12px;
+            background: rgba(255,255,255,0.1); border: 2px solid #555;
+            position: relative; cursor: pointer; transition: all 0.3s;
+          ">
+            <div id="create-private-knob" style="
+              width: 18px; height: 18px; border-radius: 50%;
+              background: #555; position: absolute; top: 1px; left: 1px;
+              transition: all 0.3s;
+            "></div>
+          </div>
+          <span id="create-private-icon" style="font-size: 16px;">🌐</span>
         </div>
         <div style="display: flex; gap: 12px; justify-content: center;">
           <button class="futuristic-btn primary" onclick="createOnlineGame()" data-lang="onlineCreateBtn">CRÉER</button>
@@ -284,9 +335,6 @@
     <div class="menu-card">
       <h1 class="glow-text" data-lang="onlineJoin">REJOINDRE</h1>
       <div class="menu-section">
-        <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 15px;" data-lang="onlineYourPseudo">TON PSEUDO</p>
-        <input type="text" id="join-pseudo" class="player-input" placeholder="Pseudo..." maxlength="15"
-               style="border-color:#0ff; box-shadow:0 0 8px rgba(0,255,255,0.4); font-size:15px; padding:12px 16px; text-align:center; margin-bottom: 20px;">
         <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 10px;" data-lang="onlineEnterCode">CODE DE LA PARTIE</p>
         <input type="text" id="join-code" class="player-input" placeholder="EX: VOLT3X" maxlength="6"
                style="border-color:#ff0; box-shadow:0 0 8px rgba(255,255,0,0.3); font-size:22px; padding:14px 16px; text-align:center; letter-spacing:6px; text-transform:uppercase; margin-bottom: 20px; font-weight:bold;">
@@ -311,33 +359,10 @@
         </div>
         <div id="lobby-players" style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: 1px solid #444; margin-bottom: 20px; min-height: 80px;"></div>
         <p id="lobby-status" style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 15px;" data-lang="onlineWaiting">En attente de joueurs...</p>
-        <div style="display: flex; gap: 12px; justify-content: center;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
           <button id="lobby-start-btn" class="futuristic-btn primary" onclick="startOnlineGame()" style="display: none;" data-lang="startGame">COMMENCER</button>
-          <button class="futuristic-btn danger" onclick="leaveOnlineGame()" data-lang="onlineLeave">QUITTER</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Écran matchmaking -->
-  <div id="matchmaking-screen" class="menu-overlay" style="display: none;">
-    <div class="menu-card">
-      <h1 class="glow-text" data-lang="onlineMatchmaking">MATCHMAKING</h1>
-      <div class="menu-section">
-        <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 15px;" data-lang="onlineYourPseudo">TON PSEUDO</p>
-        <input type="text" id="matchmaking-pseudo" class="player-input" placeholder="Pseudo..." maxlength="15"
-               style="border-color:#0ff; box-shadow:0 0 8px rgba(0,255,255,0.4); font-size:15px; padding:12px 16px; text-align:center; margin-bottom: 20px;">
-        <p style="color: #888; font-family: Orbitron; font-size: 12px; margin-bottom: 10px;" data-lang="onlinePlayerCount">NOMBRE DE JOUEURS</p>
-        <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 20px;">
-          <button id="mm-2p" class="futuristic-btn small selected" onclick="selectMatchmakingCount(2)">2J</button>
-          <button id="mm-4p" class="futuristic-btn small" onclick="selectMatchmakingCount(4)">4J</button>
-        </div>
-        <div style="display: flex; gap: 12px; justify-content: center;">
-          <button class="futuristic-btn primary" onclick="startMatchmaking()" data-lang="onlineSearch">RECHERCHER</button>
-          <button class="futuristic-btn" onclick="showOnlineScreen()" data-lang="back">RETOUR</button>
-        </div>
-        <div id="matchmaking-searching" style="display: none; margin-top: 20px; text-align: center;">
-          <p style="color: #0ff; font-family: Orbitron; font-size: 13px; animation: pulse 1.5s ease-in-out infinite;" data-lang="onlineSearching">⏳ Recherche en cours...</p>
+          <button class="futuristic-btn" onclick="lobbyGoToMenu()" data-lang="lobbyMenu">📋 MENU</button>
+          <button class="futuristic-btn danger small" onclick="leaveOnlineGame()" style="font-size: 10px; padding: 5px 15px; opacity: 0.7;" data-lang="onlineLeaveGame">QUITTER LA PARTIE</button>
         </div>
       </div>
     </div>
@@ -1251,12 +1276,12 @@ function opponentTargetPoint(pid, prof) {
     if (joinGameScreen) joinGameScreen.style.display = 'none';
     const lobbyScreen = document.getElementById('lobby-screen');
     if (lobbyScreen) lobbyScreen.style.display = 'none';
-    const matchmakingScreen = document.getElementById('matchmaking-screen');
-    if (matchmakingScreen) matchmakingScreen.style.display = 'none';
-    // Arrêter le polling lobby si actif
-    stopLobbyPolling();
-    // Nettoyer la connexion online si active
-    if (isOnlineGame) {
+    // NE PAS arrêter le polling si une partie est en attente dans le lobby
+    if (!window.__pendingLobby) {
+      stopLobbyPolling();
+    }
+    // Nettoyer la connexion online SEULEMENT si une vraie partie est en cours
+    if (isOnlineGame && !window.__pendingLobby) {
       broadcastPlayerLeft();
       disconnectGameChannel();
       isOnlineGame = false;
@@ -1305,7 +1330,7 @@ function opponentTargetPoint(pid, prof) {
   let onlineChannel = null;
   let onlinePollingTimer = null;
   let selectedOnlinePlayerCount = 2;
-  let selectedMatchmakingCount = 2;
+  let selectedPrivateGame = false;
 
   // --- Utilitaire : afficher un seul écran ---
   function showScreen(id) {
@@ -1313,7 +1338,7 @@ function opponentTargetPoint(pid, prof) {
       'main-menu', 'player-names-screen', 'player-names-screen-4',
       'ranking-screen', 'rules-screen',
       'online-screen', 'create-game-screen', 'join-game-screen',
-      'lobby-screen', 'matchmaking-screen'
+      'lobby-screen'
     ];
     screens.forEach(s => {
       const el = document.getElementById(s);
@@ -1329,10 +1354,36 @@ function opponentTargetPoint(pid, prof) {
   }
 
   // --- Navigation ---
-  function showOnlineScreen()       { showScreen('online-screen'); applyLanguage(); }
-  function showCreateGameScreen()   { showScreen('create-game-screen'); applyLanguage(); }
-  function showJoinGameScreen()     { showScreen('join-game-screen'); document.getElementById('join-error').style.display = 'none'; applyLanguage(); }
-  function showMatchmakingScreen()  { showScreen('matchmaking-screen'); applyLanguage(); }
+  function showOnlineScreen() {
+    showScreen('online-screen');
+    applyLanguage();
+    refreshOpenGames();
+    const pseudoInput = document.getElementById('online-pseudo');
+    const errEl = document.getElementById('online-pseudo-error');
+    if (pseudoInput && errEl) {
+      pseudoInput.oninput = () => { errEl.style.display = 'none'; };
+    }
+  }
+  function showCreateGameScreen() {
+    const pseudo = getOnlinePseudo();
+    if (!pseudo) return;
+    showScreen('create-game-screen');
+    applyLanguage();
+    selectedPrivateGame = false;
+    const toggle = document.getElementById('create-private-toggle');
+    const knob = document.getElementById('create-private-knob');
+    const icon = document.getElementById('create-private-icon');
+    if (toggle) { toggle.style.background = 'rgba(255,255,255,0.1)'; toggle.style.borderColor = '#555'; }
+    if (knob) { knob.style.left = '1px'; knob.style.background = '#555'; }
+    if (icon) { icon.textContent = '🌐'; }
+  }
+  function showJoinGameScreen() {
+    const pseudo = getOnlinePseudo();
+    if (!pseudo) return;
+    showScreen('join-game-screen');
+    document.getElementById('join-error').style.display = 'none';
+    applyLanguage();
+  }
   function showLobby()              { showScreen('lobby-screen'); applyLanguage(); }
 
   // --- Sélection nombre de joueurs ---
@@ -1342,10 +1393,24 @@ function opponentTargetPoint(pid, prof) {
     document.getElementById('create-4p').classList.toggle('selected', n === 4);
   }
 
-  function selectMatchmakingCount(n) {
-    selectedMatchmakingCount = n;
-    document.getElementById('mm-2p').classList.toggle('selected', n === 2);
-    document.getElementById('mm-4p').classList.toggle('selected', n === 4);
+  function togglePrivateGame() {
+    selectedPrivateGame = !selectedPrivateGame;
+    const toggle = document.getElementById('create-private-toggle');
+    const knob = document.getElementById('create-private-knob');
+    const icon = document.getElementById('create-private-icon');
+    if (selectedPrivateGame) {
+      toggle.style.background = 'rgba(255,93,93,0.3)';
+      toggle.style.borderColor = '#ff5d5d';
+      knob.style.left = '23px';
+      knob.style.background = '#ff5d5d';
+      icon.textContent = '🔒';
+    } else {
+      toggle.style.background = 'rgba(255,255,255,0.1)';
+      toggle.style.borderColor = '#555';
+      knob.style.left = '1px';
+      knob.style.background = '#555';
+      icon.textContent = '🌐';
+    }
   }
 
   // --- Polling du lobby ---
@@ -1372,6 +1437,28 @@ function opponentTargetPoint(pid, prof) {
       if (players) {
         onlinePlayers = players; window.onlinePlayers = onlinePlayers;
         updateLobbyDisplay();
+      }
+
+      // Notification si on est au menu et que la partie est complète
+      if (window.__pendingLobby && players && players.length >= onlineMaxPlayers) {
+        showOnlineNotification();
+        window.__pendingLobby = false;
+      }
+
+      // Vérifier si je suis devenu host
+      const { data: gameInfo, error: gameInfoError } = await supabaseClient
+        .from('online_games')
+        .select('host_pseudo, status')
+        .eq('id', onlineGameId)
+        .single();
+
+      if (!gameInfoError && gameInfo) {
+        if (gameInfo.host_pseudo === onlineMyPseudo && !onlineIsHost) {
+          log('I am now the host!');
+          onlineIsHost = true;
+          window.onlineIsHost = true;
+          updateLobbyDisplay();
+        }
       }
 
       // Vérifier si la partie a été lancée (pour les non-hosts)
@@ -1416,15 +1503,30 @@ function opponentTargetPoint(pid, prof) {
     if (statusEl) statusEl.textContent = ready ? t('onlineReady') : t('onlineWaiting');
   }
 
+  // --- Helper pseudo global ---
+  function getOnlinePseudo() {
+    const el = document.getElementById('online-pseudo');
+    const pseudo = el ? el.value.trim() : '';
+    const errEl = document.getElementById('online-pseudo-error');
+    if (!pseudo) {
+      if (errEl) errEl.style.display = 'block';
+      showOnlineScreen();
+      return null;
+    }
+    if (errEl) errEl.style.display = 'none';
+    return pseudo;
+  }
+
   // --- Créer une partie ---
   async function createOnlineGame() {
     if (!supabaseClient) { log('createOnlineGame: no supabaseClient'); return; }
-    const pseudo = document.getElementById('create-pseudo').value.trim();
-    if (!pseudo) { alert(t('onlinePseudoRequired')); return; }
+    const pseudo = getOnlinePseudo();
+    if (!pseudo) return;
     try {
       const { data, error } = await supabaseClient.rpc('create_online_game', {
         p_pseudo: pseudo,
-        p_max_players: selectedOnlinePlayerCount
+        p_max_players: selectedOnlinePlayerCount,
+        p_private: selectedPrivateGame
       });
       if (error) { log('createOnlineGame error:', error.message); return; }
       onlineGameId = data.game_id; window.onlineGameId = onlineGameId;
@@ -1437,6 +1539,10 @@ function opponentTargetPoint(pid, prof) {
       document.getElementById('lobby-code').textContent = onlineGameCode;
       updateLobbyDisplay();
       showLobby();
+      if (selectedPrivateGame) {
+        const statusEl = document.getElementById('lobby-status');
+        if (statusEl) statusEl.textContent = '🔒 ' + (t('privateGameStatus') || 'Partie privée — partagez le code');
+      }
       startLobbyPolling();
       // Se connecter au channel Realtime
       await connectToGameChannel();
@@ -1446,11 +1552,11 @@ function opponentTargetPoint(pid, prof) {
   // --- Rejoindre une partie ---
   async function joinOnlineGame() {
     if (!supabaseClient) { log('joinOnlineGame: no supabaseClient'); return; }
-    const pseudo = document.getElementById('join-pseudo').value.trim();
+    const pseudo = getOnlinePseudo();
+    if (!pseudo) return;
     const code = document.getElementById('join-code').value.trim().toUpperCase();
     const errEl = document.getElementById('join-error');
     errEl.style.display = 'none';
-    if (!pseudo) { errEl.textContent = t('onlinePseudoRequired'); errEl.style.display = 'block'; return; }
     if (!code || code.length < 4) { errEl.textContent = t('onlineCodeRequired'); errEl.style.display = 'block'; return; }
     try {
       const { data, error } = await supabaseClient.rpc('join_online_game', {
@@ -1499,6 +1605,21 @@ function opponentTargetPoint(pid, prof) {
 
       if (error) { alert('Erreur : ' + error.message); return; }
 
+      // Utiliser les joueurs frais de la RPC (avec slots réassignés)
+      const freshPlayers = data.players || onlinePlayers;
+      onlinePlayers = freshPlayers;
+      window.onlinePlayers = onlinePlayers;
+
+      // Mettre à jour mon slot (la RPC a pu le réassigner)
+      for (const p of freshPlayers) {
+        if (p.pseudo === onlineMyPseudo) {
+          onlineMySlot = p.slot;
+          window.onlineMySlot = onlineMySlot;
+          log('My slot updated to:', onlineMySlot);
+          break;
+        }
+      }
+
       stopLobbyPolling();
       console.log('STEP 4: polling stopped');
 
@@ -1516,11 +1637,11 @@ function opponentTargetPoint(pid, prof) {
       ch.send({
         type: 'broadcast',
         event: 'game_start',
-        payload: { players: onlinePlayers, player_count: onlinePlayers.length }
+        payload: { players: freshPlayers, player_count: freshPlayers.length }
       });
       console.log('STEP 7: broadcast sent');
 
-      launchOnlineGame(onlinePlayers);
+      launchOnlineGame(freshPlayers);
       console.log('STEP 8: game launched');
 
     } catch (e) { console.error('startOnlineGame CATCH:', e); alert('Erreur : ' + e.message); }
@@ -1634,11 +1755,22 @@ function opponentTargetPoint(pid, prof) {
   function launchOnlineGame(players) {
     isOnlineGame = true;
     window.isOnlineGame = true;
+    const resetBtn = document.getElementById('reset');
+    if (resetBtn) resetBtn.style.display = 'none';
 
     const count = players.length;
     window.setPlayerCount(count);
 
     const slotToPlayer = { A: 'player1', B: 'player2', C: 'player3', D: 'player4' };
+
+    // Mettre à jour mon slot d'après les données reçues
+    for (const p of players) {
+      if (p.pseudo === (onlineMyPseudo || window.onlineMyPseudo)) {
+        onlineMySlot = p.slot;
+        window.onlineMySlot = p.slot;
+        break;
+      }
+    }
 
     for (let i = 0; i < count; i++) {
       const p = players[i];
@@ -1771,6 +1903,8 @@ function opponentTargetPoint(pid, prof) {
 
   // --- Quitter le lobby ---
   async function leaveOnlineGame() {
+    const resetBtn = document.getElementById('reset');
+    if (resetBtn) resetBtn.style.display = '';
     stopLobbyPolling();
     if (supabaseClient && onlineGameId) {
       try {
@@ -1792,35 +1926,6 @@ function opponentTargetPoint(pid, prof) {
     showOnlineScreen();
   }
 
-  // --- Matchmaking ---
-  async function startMatchmaking() {
-    if (!supabaseClient) { log('startMatchmaking: no supabaseClient'); return; }
-    const pseudo = document.getElementById('matchmaking-pseudo').value.trim();
-    if (!pseudo) { alert(t('onlinePseudoRequired')); return; }
-    document.getElementById('matchmaking-searching').style.display = 'block';
-    try {
-      const { data, error } = await supabaseClient.rpc('join_matchmaking', {
-        p_pseudo: pseudo,
-        p_player_count: selectedMatchmakingCount
-      });
-      if (error) { log('startMatchmaking error:', error.message); document.getElementById('matchmaking-searching').style.display = 'none'; return; }
-      if (data && data.game_id) {
-        onlineGameId = data.game_id; window.onlineGameId = onlineGameId;
-        onlineGameCode = data.code; window.onlineGameCode = onlineGameCode;
-        onlineMySlot = data.slot; window.onlineMySlot = onlineMySlot;
-        onlineMyPseudo = pseudo; window.onlineMyPseudo = onlineMyPseudo;
-        onlineMaxPlayers = selectedMatchmakingCount; window.onlineMaxPlayers = onlineMaxPlayers;
-        onlineIsHost = (data.slot === 'A'); window.onlineIsHost = onlineIsHost;
-        onlinePlayers = data.players || []; window.onlinePlayers = onlinePlayers;
-        document.getElementById('lobby-code').textContent = onlineGameCode || '------';
-        updateLobbyDisplay();
-        showLobby();
-        startLobbyPolling();
-        // Se connecter au channel Realtime pour recevoir game_start
-        await connectToGameChannel();
-      }
-    } catch (e) { log('startMatchmaking exception:', e.message); document.getElementById('matchmaking-searching').style.display = 'none'; }
-  }
 
   // --- Reprendre une partie en attente ---
   async function rejoinPendingGame() {
@@ -1877,21 +1982,135 @@ function opponentTargetPoint(pid, prof) {
     }
   }
 
+  // --- Liste des parties en attente ---
+  async function refreshOpenGames() {
+    const container = document.getElementById('open-games-list');
+    if (!container) return;
+    if (!supabaseClient) {
+      container.innerHTML = '<p style="color:#555; font-family:Orbitron; font-size:11px; text-align:center;">Non connecté</p>';
+      return;
+    }
+
+    container.innerHTML = '<p style="color:#555; font-family:Orbitron; font-size:11px; text-align:center;">⏳</p>';
+
+    try {
+      const { data, error } = await supabaseClient.rpc('list_open_games');
+      if (error) { log('refreshOpenGames error:', error.message); return; }
+
+      const games = data || [];
+
+      if (games.length === 0) {
+        container.innerHTML = '<p style="color:#555; font-family:Orbitron; font-size:11px; text-align:center;" data-lang="openGamesNone">Aucune partie en attente</p>';
+        applyLanguage();
+        return;
+      }
+
+      container.innerHTML = '';
+      for (const g of games) {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:10px 8px; border-bottom:1px solid rgba(0,255,255,0.15); cursor:pointer; transition: background 0.2s;';
+        row.onmouseover = () => { row.style.background = 'rgba(0,255,255,0.08)'; };
+        row.onmouseout = () => { row.style.background = 'transparent'; };
+        row.onclick = () => {
+          const pseudo = getOnlinePseudo();
+          if (!pseudo) return;
+          showScreen('join-game-screen');
+          applyLanguage();
+          document.getElementById('join-error').style.display = 'none';
+          const codeInput = document.getElementById('join-code');
+          if (codeInput) codeInput.value = g.code;
+        };
+
+        const codeEl = document.createElement('span');
+        codeEl.style.cssText = 'font-family:"Press Start 2P",monospace; font-size:13px; color:#0ff; letter-spacing:3px;';
+        codeEl.textContent = g.code;
+
+        const infoEl = document.createElement('div');
+        infoEl.style.cssText = 'display:flex; flex-direction:column; align-items:flex-end; gap:2px;';
+
+        const countEl = document.createElement('span');
+        countEl.style.cssText = 'font-family:Orbitron; font-size:13px; font-weight:bold;';
+        const almostFull = g.current_players >= g.max_players - 1;
+        countEl.style.color = almostFull ? '#ffd84d' : '#3ddc84';
+        countEl.textContent = g.current_players + '/' + g.max_players + (g.max_players === 2 ? ' ⚡' : ' ⚡⚡');
+
+        const hostEl = document.createElement('span');
+        hostEl.style.cssText = 'font-family:Orbitron; font-size:9px; color:#666;';
+        hostEl.textContent = g.host_pseudo;
+
+        infoEl.appendChild(countEl);
+        infoEl.appendChild(hostEl);
+
+        row.appendChild(codeEl);
+        row.appendChild(infoEl);
+        container.appendChild(row);
+      }
+    } catch (e) {
+      log('refreshOpenGames exception:', e.message);
+      container.innerHTML = '<p style="color:#f44; font-family:Orbitron; font-size:11px; text-align:center;">Erreur</p>';
+    }
+  }
+
+  // --- Lobby : retour au menu sans quitter la partie ---
+  function lobbyGoToMenu() {
+    const lobbyScreen = document.getElementById('lobby-screen');
+    if (lobbyScreen) lobbyScreen.style.display = 'none';
+    window.__pendingLobby = true;
+    const menu = document.getElementById('main-menu');
+    if (menu) {
+      menu.style.display = 'flex';
+      menu.style.visibility = 'visible';
+      menu.style.pointerEvents = 'auto';
+      menu.style.opacity = '1';
+    }
+  }
+
+  function returnToLobby() {
+    const notif = document.getElementById('online-notif');
+    if (notif) notif.style.display = 'none';
+    window.__pendingLobby = false;
+    const menu = document.getElementById('main-menu');
+    if (menu) menu.style.display = 'none';
+    const screens = ['player-names-screen', 'player-names-screen-4', 'ranking-screen', 'rules-screen', 'online-screen', 'create-game-screen', 'join-game-screen'];
+    for (const id of screens) {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    }
+    const sheet = document.querySelector('.sheet');
+    if (sheet) sheet.style.display = 'none';
+    document.getElementById('playersRow').style.display = 'none';
+    document.getElementById('gameControls').style.display = 'none';
+    updateLobbyDisplay();
+    const lobbyScreen = document.getElementById('lobby-screen');
+    if (lobbyScreen) lobbyScreen.style.display = 'flex';
+  }
+
+  function showOnlineNotification() {
+    const notif = document.getElementById('online-notif');
+    if (notif) notif.style.display = 'block';
+  }
+
+  function hideOnlineNotification() {
+    const notif = document.getElementById('online-notif');
+    if (notif) notif.style.display = 'none';
+  }
+
   // --- Exposer au HTML (onclick dans IIFE) ---
   window.showOnlineScreen = showOnlineScreen;
   window.showCreateGameScreen = showCreateGameScreen;
   window.showJoinGameScreen = showJoinGameScreen;
-  window.showMatchmakingScreen = showMatchmakingScreen;
   window.showLobby = showLobby;
   window.selectOnlinePlayerCount = selectOnlinePlayerCount;
-  window.selectMatchmakingCount = selectMatchmakingCount;
+  window.togglePrivateGame = togglePrivateGame;
   window.createOnlineGame = createOnlineGame;
   window.joinOnlineGame = joinOnlineGame;
   window.copyLobbyCode = copyLobbyCode;
   window.startOnlineGame = startOnlineGame;
   window.leaveOnlineGame = leaveOnlineGame;
-  window.startMatchmaking = startMatchmaking;
   window.rejoinPendingGame = rejoinPendingGame;
+  window.refreshOpenGames = refreshOpenGames;
+  window.lobbyGoToMenu = lobbyGoToMenu;
+  window.returnToLobby = returnToLobby;
   window.broadcastMove = broadcastMove;
   window.broadcastSlide = broadcastSlide;
   window.broadcastEndTurn = broadcastEndTurn;
@@ -4583,7 +4802,9 @@ function drawGrid() {
       menu.style.pointerEvents = 'auto';
       menu.style.opacity = '1';
     }
-    
+    const resetBtn = document.getElementById('reset');
+    if (resetBtn) resetBtn.style.display = '';
+
     // Cacher les éléments du jeu
     document.getElementById('playersRow').style.display = 'none';
     document.getElementById('gameControls').style.display = 'none';
