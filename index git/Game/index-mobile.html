@@ -1706,6 +1706,22 @@ function opponentTargetPoint(pid, prof) {
         if (status === 'SUBSCRIBED') {
           window.__channelReady = true;
           resolve();
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          log('⚠️ Channel disconnected:', status, '— attempting reconnect...');
+          window.__channelReady = false;
+          setTimeout(async () => {
+            if (window.isOnlineGame || window.__pendingLobby) {
+              log('Reconnecting channel...');
+              window.__onlineChannel = null;
+              window.__channelReady = false;
+              try {
+                await connectToGameChannel();
+                log('✅ Channel reconnected');
+              } catch (e) {
+                log('❌ Reconnection failed:', e.message);
+              }
+            }
+          }, 2000);
         }
       });
     });
@@ -1757,6 +1773,8 @@ function opponentTargetPoint(pid, prof) {
     window.isOnlineGame = true;
     const resetBtn = document.getElementById('reset');
     if (resetBtn) resetBtn.style.display = 'none';
+    const menuBtn = document.getElementById('menu');
+    if (menuBtn) menuBtn.style.display = 'none';
 
     const count = players.length;
     window.setPlayerCount(count);
@@ -1905,6 +1923,8 @@ function opponentTargetPoint(pid, prof) {
   async function leaveOnlineGame() {
     const resetBtn = document.getElementById('reset');
     if (resetBtn) resetBtn.style.display = '';
+    const menuBtn = document.getElementById('menu');
+    if (menuBtn) menuBtn.style.display = '';
     stopLobbyPolling();
     if (supabaseClient && onlineGameId) {
       try {
@@ -4770,7 +4790,8 @@ function drawGrid() {
     if (k === "b") { toggleBoardBg(); return; }
     if (k === "x") { toggleExpertMode(); return; }
     if (k === "w") { endTurn(); return; }
-    if (k === "escape") { 
+    if (k === "escape") {
+      if (window.isOnlineGame) return;
       const menu = document.getElementById('main-menu');
       if (menu) {
         menu.style.display = 'flex';
@@ -4795,6 +4816,8 @@ function drawGrid() {
   document.getElementById("toggleExpert").addEventListener("click", toggleExpertMode);
   document.getElementById("options-btn").addEventListener("click", toggleOptionsPanel);
   document.getElementById("menu").addEventListener("click", () => {
+    if (window.isOnlineGame) { log('Menu button blocked in online mode'); return; }
+
     const menu = document.getElementById('main-menu');
     if (menu) {
       menu.style.display = 'flex';
