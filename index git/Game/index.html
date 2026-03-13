@@ -35,9 +35,12 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <style>
   .futuristic-btn.selected {
-    border-color: #0ff !important;
-    background: rgba(0,255,255,0.15) !important;
-    box-shadow: 0 0 10px rgba(0,255,255,0.3);
+    background: linear-gradient(135deg, #00ffff 0%, #0088cc 100%) !important;
+    color: #0a0a0a !important;
+    border-color: #00ffff !important;
+    box-shadow:
+      0 0 25px rgba(0, 255, 255, 0.7),
+      0 0 50px rgba(0, 255, 255, 0.4);
   }
   @keyframes notifPulse {
     0%, 100% { box-shadow: 0 0 10px rgba(0,255,255,0.3); }
@@ -282,11 +285,26 @@
 
       <!-- Encadré parties en attente -->
       <div class="menu-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #333;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px;">
-          <p style="color: #0ff; font-family: Orbitron; font-size: 12px; margin: 0; letter-spacing: 1px;" data-lang="openGamesTitle">PARTIES EN ATTENTE</p>
-          <button class="futuristic-btn small" onclick="refreshOpenGames()" style="padding: 3px 8px; font-size: 9px;">🔄</button>
+        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px;">
+          <p style="color: #0ff; font-family: Orbitron; font-size: 12px; margin: 0; letter-spacing: 1px; text-align: center;" data-lang="openGamesTitle">PARTIES EN ATTENTE</p>
         </div>
-        <div id="open-games-list" style="background: rgba(0,0,0,0.6); padding: 10px; border-radius: 10px; border: 1px solid #0ff; box-shadow: 0 0 10px rgba(0,255,255,0.1); max-height: 200px; overflow-y: auto; min-height: 60px;">
+        <div id="open-games-list" style="background: rgba(0,0,0,0.6); padding: 24px 10px 10px 10px; border-radius: 10px; border: 1px solid #0ff; box-shadow: 0 0 10px rgba(0,255,255,0.1); max-height: 200px; overflow-y: auto; min-height: 60px; position: relative;">
+          <button onclick="refreshOpenGames()" style="
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 22px;
+            height: 22px;
+            min-width: 0;
+            border-radius: 50%;
+            border: 1px solid #0ff;
+            background: rgba(0,0,0,0.7);
+            color: #0ff;
+            font-size: 12px;
+            padding: 0;
+            box-shadow: 0 0 6px rgba(0,255,255,0.4);
+            z-index: 2;
+          ">🔄</button>
           <p style="color: #555; font-family: Orbitron; font-size: 11px; text-align: center;" data-lang="openGamesLoading">Chargement...</p>
         </div>
       </div>
@@ -362,7 +380,10 @@
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
           <button id="lobby-start-btn" class="futuristic-btn primary" onclick="startOnlineGame()" style="display: none;" data-lang="startGame">COMMENCER</button>
           <button class="futuristic-btn" onclick="lobbyGoToMenu()" data-lang="lobbyMenu">📋 MENU</button>
-          <button class="futuristic-btn danger small" onclick="leaveOnlineGame()" style="font-size: 10px; padding: 5px 15px; opacity: 0.7;" data-lang="onlineLeaveGame">QUITTER LA PARTIE</button>
+          <div style="display: flex; gap: 10px;">
+            <button id="lobby-cancel-btn" class="futuristic-btn danger small" onclick="cancelOnlineGame()" style="font-size: 10px; padding: 5px 12px; opacity: 0.7; display: none;" data-lang="onlineCancelGame">❌ ANNULER</button>
+            <button class="futuristic-btn danger small" onclick="leaveOnlineGame()" style="font-size: 10px; padding: 5px 12px; opacity: 0.7;" data-lang="onlineLeaveGame">QUITTER</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1329,6 +1350,7 @@ function opponentTargetPoint(pid, prof) {
   let onlinePlayers = [];
   let onlineChannel = null;
   let onlinePollingTimer = null;
+  let heartbeatTimer = null;
   let selectedOnlinePlayerCount = 2;
   let selectedPrivateGame = false;
 
@@ -1362,6 +1384,13 @@ function opponentTargetPoint(pid, prof) {
     const errEl = document.getElementById('online-pseudo-error');
     if (pseudoInput && errEl) {
       pseudoInput.oninput = () => { errEl.style.display = 'none'; };
+    }
+    // Pré-remplir le pseudo depuis localStorage
+    if (pseudoInput && !pseudoInput.value) {
+      try {
+        const saved = localStorage.getItem('voltclash_pseudo');
+        if (saved) pseudoInput.value = saved;
+      } catch(e) {}
     }
   }
   function showCreateGameScreen() {
@@ -1499,6 +1528,9 @@ function opponentTargetPoint(pid, prof) {
     const ready = onlinePlayers.length >= onlineMaxPlayers;
     const startBtn = document.getElementById('lobby-start-btn');
     if (startBtn) startBtn.style.display = (ready && onlineIsHost) ? 'block' : 'none';
+    // Afficher le bouton Annuler seulement pour le host
+    const cancelBtn = document.getElementById('lobby-cancel-btn');
+    if (cancelBtn) cancelBtn.style.display = onlineIsHost ? '' : 'none';
     const statusEl = document.getElementById('lobby-status');
     if (statusEl) statusEl.textContent = ready ? t('onlineReady') : t('onlineWaiting');
   }
@@ -1514,6 +1546,8 @@ function opponentTargetPoint(pid, prof) {
       return null;
     }
     if (errEl) errEl.style.display = 'none';
+    // Sauvegarder en localStorage
+    try { localStorage.setItem('voltclash_pseudo', pseudo); } catch(e) {}
     return pseudo;
   }
 
@@ -1546,6 +1580,7 @@ function opponentTargetPoint(pid, prof) {
       startLobbyPolling();
       // Se connecter au channel Realtime
       await connectToGameChannel();
+      startHeartbeat();
     } catch (e) { log('createOnlineGame exception:', e.message); }
   }
 
@@ -1577,6 +1612,7 @@ function opponentTargetPoint(pid, prof) {
       startLobbyPolling();
       // Se connecter au channel Realtime pour recevoir game_start
       await connectToGameChannel();
+      startHeartbeat();
     } catch (e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
   }
 
@@ -1727,7 +1763,33 @@ function opponentTargetPoint(pid, prof) {
     });
   }
 
+  function startHeartbeat() {
+    stopHeartbeat();
+    sendHeartbeat();
+    heartbeatTimer = setInterval(sendHeartbeat, 30000);
+  }
+
+  function stopHeartbeat() {
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+  }
+
+  async function sendHeartbeat() {
+    if (!supabaseClient || !onlineGameId || !onlineMyPseudo) return;
+    try {
+      await supabaseClient.rpc('heartbeat_player', {
+        p_game_id: onlineGameId,
+        p_pseudo: onlineMyPseudo
+      });
+    } catch (e) {
+      log('heartbeat error:', e.message);
+    }
+  }
+
   function disconnectGameChannel() {
+    stopHeartbeat();
     if (window.__onlineChannel) {
       supabaseClient.removeChannel(window.__onlineChannel);
       window.__onlineChannel = null;
@@ -1773,9 +1835,6 @@ function opponentTargetPoint(pid, prof) {
     window.isOnlineGame = true;
     const resetBtn = document.getElementById('reset');
     if (resetBtn) resetBtn.style.display = 'none';
-    const menuBtn = document.getElementById('menu');
-    if (menuBtn) menuBtn.style.display = 'none';
-
     const count = players.length;
     window.setPlayerCount(count);
 
@@ -1919,8 +1978,48 @@ function opponentTargetPoint(pid, prof) {
     window.requestRedraw();
   }
 
+  async function cancelOnlineGame() {
+    if (!supabaseClient || !onlineGameId) return;
+    
+    // Confirmer
+    if (!confirm(t('onlineCancelConfirm') || 'Annuler cette partie ?')) return;
+
+    try {
+      const { data, error } = await supabaseClient.rpc('cancel_online_game', {
+        p_game_id: onlineGameId,
+        p_pseudo: onlineMyPseudo
+      });
+      if (error) { log('cancelOnlineGame error:', error.message); alert(error.message); return; }
+      
+      log('Game cancelled');
+      stopHeartbeat();
+    } catch (e) { log('cancelOnlineGame exception:', e.message); }
+
+    // Broadcast aux autres joueurs que la partie est annulée
+    broadcastPlayerLeft();
+    
+    // Nettoyer et retourner au menu
+    disconnectGameChannel();
+    stopLobbyPolling();
+    isOnlineGame = false; window.isOnlineGame = false;
+    onlineGameId = null; window.onlineGameId = null;
+    onlineGameCode = null; window.onlineGameCode = null;
+    onlineMySlot = null; window.onlineMySlot = null;
+    onlineMyPseudo = null; window.onlineMyPseudo = null;
+    onlineIsHost = false; window.onlineIsHost = false;
+    onlinePlayers = []; window.onlinePlayers = [];
+    window.__pendingLobby = false;
+    
+    // Cacher la notification si visible
+    const notif = document.getElementById('online-notif');
+    if (notif) notif.style.display = 'none';
+    
+    showOnlineScreen();
+  }
+
   // --- Quitter le lobby ---
   async function leaveOnlineGame() {
+    stopHeartbeat();
     const resetBtn = document.getElementById('reset');
     if (resetBtn) resetBtn.style.display = '';
     const menuBtn = document.getElementById('menu');
@@ -2028,7 +2127,8 @@ function opponentTargetPoint(pid, prof) {
       container.innerHTML = '';
       for (const g of games) {
         const row = document.createElement('div');
-        row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:10px 8px; border-bottom:1px solid rgba(0,255,255,0.15); cursor:pointer; transition: background 0.2s;';
+        // Grille 2 colonnes : code à gauche, infos à droite (alignement homogène)
+        row.style.cssText = 'display:grid; grid-template-columns: 1fr auto; align-items:center; column-gap:14px; padding:10px 12px; border-bottom:1px solid rgba(0,255,255,0.15); cursor:pointer; transition: background 0.2s;';
         row.onmouseover = () => { row.style.background = 'rgba(0,255,255,0.08)'; };
         row.onmouseout = () => { row.style.background = 'transparent'; };
         row.onclick = () => {
@@ -2042,21 +2142,23 @@ function opponentTargetPoint(pid, prof) {
         };
 
         const codeEl = document.createElement('span');
-        codeEl.style.cssText = 'font-family:"Press Start 2P",monospace; font-size:13px; color:#0ff; letter-spacing:3px;';
+        codeEl.style.cssText = 'font-family:"Press Start 2P",monospace; font-size:13px; color:#0ff; letter-spacing:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
         codeEl.textContent = g.code;
 
         const infoEl = document.createElement('div');
-        infoEl.style.cssText = 'display:flex; flex-direction:column; align-items:flex-end; gap:2px;';
+        infoEl.style.cssText = 'display:flex; flex-direction:column; align-items:flex-end; gap:2px; min-width:56px;';
 
         const countEl = document.createElement('span');
-        countEl.style.cssText = 'font-family:Orbitron; font-size:13px; font-weight:bold;';
+        countEl.style.cssText = 'font-family:Orbitron; font-size:13px; font-weight:bold; white-space:nowrap; text-align:right;';
         const almostFull = g.current_players >= g.max_players - 1;
         countEl.style.color = almostFull ? '#ffd84d' : '#3ddc84';
         countEl.textContent = g.current_players + '/' + g.max_players + (g.max_players === 2 ? ' ⚡' : ' ⚡⚡');
 
         const hostEl = document.createElement('span');
-        hostEl.style.cssText = 'font-family:Orbitron; font-size:9px; color:#666;';
-        hostEl.textContent = g.host_pseudo;
+        hostEl.style.cssText = 'font-family:Orbitron; font-size:9px; white-space:nowrap; max-width:120px; overflow:hidden; text-overflow:ellipsis; text-align:right;';
+        const onlineIndicator = g.host_online ? '🟢' : '🔴';
+        hostEl.style.color = g.host_online ? '#3ddc84' : '#666';
+        hostEl.textContent = onlineIndicator + ' ' + g.host_pseudo;
 
         infoEl.appendChild(countEl);
         infoEl.appendChild(hostEl);
@@ -2127,6 +2229,7 @@ function opponentTargetPoint(pid, prof) {
   window.copyLobbyCode = copyLobbyCode;
   window.startOnlineGame = startOnlineGame;
   window.leaveOnlineGame = leaveOnlineGame;
+  window.cancelOnlineGame = cancelOnlineGame;
   window.rejoinPendingGame = rejoinPendingGame;
   window.refreshOpenGames = refreshOpenGames;
   window.lobbyGoToMenu = lobbyGoToMenu;
@@ -4775,6 +4878,35 @@ function drawGrid() {
     
     if (k === "t") { togglePause(); return; }
 
+    if (k === "escape") {
+      if (window.isOnlineGame) {
+        if (confirm(t('onlineLeaveConfirm') || 'Quitter la partie en ligne ?')) {
+          leaveOnlineGame();
+          gameOver = true;
+          stopAI();
+          const resetBtn = document.getElementById('reset');
+          if (resetBtn) resetBtn.style.display = '';
+          document.getElementById('playersRow').style.display = 'none';
+          document.getElementById('gameControls').style.display = 'none';
+        }
+        return;
+      }
+      const menu = document.getElementById('main-menu');
+      if (menu) {
+        menu.style.display = 'flex';
+        menu.style.visibility = 'visible';
+        menu.style.pointerEvents = 'auto';
+        menu.style.opacity = '1';
+      }
+      document.getElementById('playersRow').style.display = 'none';
+      document.getElementById('gameControls').style.display = 'none';
+      gameOver = true;
+      stopAI();
+      setBadges();
+      requestRedraw();
+      return;
+    }
+
     if (gameOver) return;
 
     const pid = currentPlayerId();
@@ -4790,25 +4922,6 @@ function drawGrid() {
     if (k === "b") { toggleBoardBg(); return; }
     if (k === "x") { toggleExpertMode(); return; }
     if (k === "w") { endTurn(); return; }
-    if (k === "escape") {
-      if (window.isOnlineGame) return;
-      const menu = document.getElementById('main-menu');
-      if (menu) {
-        menu.style.display = 'flex';
-        menu.style.visibility = 'visible';
-        menu.style.pointerEvents = 'auto';
-        menu.style.opacity = '1';
-      }
-      
-      // Cacher les éléments du jeu
-      document.getElementById('playersRow').style.display = 'none';
-      document.getElementById('gameControls').style.display = 'none';
-
-      // Réinitialiser le jeu
-      gameOver = false;
-      originalReset();
-      return;
-    }
   }
 
   document.getElementById("reset").addEventListener("click", reset);
@@ -4816,7 +4929,18 @@ function drawGrid() {
   document.getElementById("toggleExpert").addEventListener("click", toggleExpertMode);
   document.getElementById("options-btn").addEventListener("click", toggleOptionsPanel);
   document.getElementById("menu").addEventListener("click", () => {
-    if (window.isOnlineGame) { log('Menu button blocked in online mode'); return; }
+    if (window.isOnlineGame) {
+      if (confirm(t('onlineLeaveConfirm') || 'Quitter la partie en ligne ?')) {
+        leaveOnlineGame();
+        gameOver = true;
+        stopAI();
+        const resetBtn = document.getElementById('reset');
+        if (resetBtn) resetBtn.style.display = '';
+        document.getElementById('playersRow').style.display = 'none';
+        document.getElementById('gameControls').style.display = 'none';
+      }
+      return;
+    }
 
     const menu = document.getElementById('main-menu');
     if (menu) {
@@ -4828,7 +4952,6 @@ function drawGrid() {
     const resetBtn = document.getElementById('reset');
     if (resetBtn) resetBtn.style.display = '';
 
-    // Cacher les éléments du jeu
     document.getElementById('playersRow').style.display = 'none';
     document.getElementById('gameControls').style.display = 'none';
 
