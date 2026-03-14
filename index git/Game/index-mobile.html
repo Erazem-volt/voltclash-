@@ -275,6 +275,12 @@
         <input type="text" id="online-pseudo" class="player-input" placeholder="Pseudo..." maxlength="15"
                style="border-color:#0ff; box-shadow:0 0 8px rgba(0,255,255,0.4); font-size:16px; padding:12px 16px; text-align:center; width: 220px;">
         <p id="online-pseudo-error" style="color: #ff5d5d; font-size: 11px; display: none; font-family: Orbitron;" data-lang="onlinePseudoRequired">Pseudo requis</p>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">
+          <label style="color: #888; font-family: Orbitron; font-size: 10px;" data-lang="pinLabel">🔒 CODE</label>
+          <input type="password" id="online-pin" class="player-input" placeholder="••••" maxlength="4" inputmode="numeric" pattern="[0-9]*"
+                 style="border-color:#ffd84d; box-shadow:0 0 6px rgba(255,216,77,0.3); font-size:18px; padding:8px 12px; text-align:center; width: 80px; letter-spacing: 6px;">
+        </div>
+        <p id="online-pin-error" style="color: #ff5d5d; font-size: 10px; display: none; font-family: Orbitron;"></p>
       </div>
 
       <!-- Boutons -->
@@ -1392,9 +1398,21 @@ function opponentTargetPoint(pid, prof) {
         if (saved) pseudoInput.value = saved;
       } catch(e) {}
     }
+    // Pré-remplir le PIN depuis localStorage
+    const pinInput = document.getElementById('online-pin');
+    if (pinInput && !pinInput.value) {
+      try {
+        const savedPin = localStorage.getItem('voltclash_pin');
+        if (savedPin) pinInput.value = savedPin;
+      } catch(e) {}
+    }
+    const pinErrEl = document.getElementById('online-pin-error');
+    if (pinInput && pinErrEl) {
+      pinInput.oninput = () => { pinErrEl.style.display = 'none'; };
+    }
   }
-  function showCreateGameScreen() {
-    const pseudo = getOnlinePseudo();
+  async function showCreateGameScreen() {
+    const pseudo = await getOnlinePseudo();
     if (!pseudo) return;
     showScreen('create-game-screen');
     applyLanguage();
@@ -1406,12 +1424,12 @@ function opponentTargetPoint(pid, prof) {
     if (knob) { knob.style.left = '1px'; knob.style.background = '#555'; }
     if (icon) { icon.textContent = '🌐'; }
   }
-  function showJoinGameScreen() {
-    const pseudo = getOnlinePseudo();
+  async function showJoinGameScreen() {
+    const pseudo = await getOnlinePseudo();
     if (!pseudo) return;
     showScreen('join-game-screen');
-    document.getElementById('join-error').style.display = 'none';
     applyLanguage();
+    if (typeof refreshOpenGames === 'function') refreshOpenGames();
   }
   function showLobby()              { showScreen('lobby-screen'); applyLanguage(); }
 
@@ -1536,25 +1554,67 @@ function opponentTargetPoint(pid, prof) {
   }
 
   // --- Helper pseudo global ---
-  function getOnlinePseudo() {
+  async function getOnlinePseudo() {
     const el = document.getElementById('online-pseudo');
     const pseudo = el ? el.value.trim() : '';
     const errEl = document.getElementById('online-pseudo-error');
+    const pinEl = document.getElementById('online-pin');
+    const pinErrEl = document.getElementById('online-pin-error');
+    const pin = pinEl ? pinEl.value.trim() : '';
+
+    if (errEl) errEl.style.display = 'none';
+    if (pinErrEl) pinErrEl.style.display = 'none';
+
     if (!pseudo) {
       if (errEl) errEl.style.display = 'block';
       showOnlineScreen();
       return null;
     }
-    if (errEl) errEl.style.display = 'none';
-    // Sauvegarder en localStorage
-    try { localStorage.setItem('voltclash_pseudo', pseudo); } catch(e) {}
+
+    if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+      if (pinErrEl) {
+        pinErrEl.textContent = t('pinRequired') || 'Code secret : 4 chiffres requis';
+        pinErrEl.style.display = 'block';
+      }
+      showOnlineScreen();
+      return null;
+    }
+
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient.rpc('verify_pseudo_pin', {
+          p_pseudo: pseudo,
+          p_pin: pin
+        });
+        if (error) {
+          if (pinErrEl) {
+            pinErrEl.textContent = error.message;
+            pinErrEl.style.display = 'block';
+          }
+          return null;
+        }
+        log('PIN verified:', data.status);
+      } catch (e) {
+        if (pinErrEl) {
+          pinErrEl.textContent = e.message;
+          pinErrEl.style.display = 'block';
+        }
+        return null;
+      }
+    }
+
+    try {
+      localStorage.setItem('voltclash_pseudo', pseudo);
+      localStorage.setItem('voltclash_pin', pin);
+    } catch(e) {}
+
     return pseudo;
   }
 
   // --- Créer une partie ---
   async function createOnlineGame() {
     if (!supabaseClient) { log('createOnlineGame: no supabaseClient'); return; }
-    const pseudo = getOnlinePseudo();
+    const pseudo = await getOnlinePseudo();
     if (!pseudo) return;
     try {
       const { data, error } = await supabaseClient.rpc('create_online_game', {
@@ -1587,7 +1647,7 @@ function opponentTargetPoint(pid, prof) {
   // --- Rejoindre une partie ---
   async function joinOnlineGame() {
     if (!supabaseClient) { log('joinOnlineGame: no supabaseClient'); return; }
-    const pseudo = getOnlinePseudo();
+    const pseudo = await getOnlinePseudo();
     if (!pseudo) return;
     const code = document.getElementById('join-code').value.trim().toUpperCase();
     const errEl = document.getElementById('join-error');
@@ -2137,8 +2197,8 @@ function opponentTargetPoint(pid, prof) {
         row.style.cssText = 'display:grid; grid-template-columns: 1fr auto; align-items:center; column-gap:14px; padding:10px 12px; border-bottom:1px solid rgba(0,255,255,0.15); cursor:pointer; transition: background 0.2s;';
         row.onmouseover = () => { row.style.background = 'rgba(0,255,255,0.08)'; };
         row.onmouseout = () => { row.style.background = 'transparent'; };
-        row.onclick = () => {
-          const pseudo = getOnlinePseudo();
+        row.onclick = async () => {
+          const pseudo = await getOnlinePseudo();
           if (!pseudo) return;
           showScreen('join-game-screen');
           applyLanguage();
