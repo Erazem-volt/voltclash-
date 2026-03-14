@@ -1715,8 +1715,8 @@ function opponentTargetPoint(pid, prof) {
       });
 
       ch.on('broadcast', { event: 'move' }, (payload) => {
-        log('Received move:', payload);
         const data = payload.payload;
+        log('📩 [MULTI] Received move from:', data.slot, 'action:', data.action, 'currentPlayer:', currentPlayerId());
         applyRemoteMove(data.slot, data.action, data.ix, data.iy, data.key);
       });
 
@@ -1727,7 +1727,8 @@ function opponentTargetPoint(pid, prof) {
       });
 
       ch.on('broadcast', { event: 'end_turn' }, (payload) => {
-        log('📩 [MULTI] Received end_turn from:', payload.payload && payload.payload.slot);
+        const fromSlot = payload.payload && payload.payload.slot;
+        log('📩 [MULTI] Received end_turn from:', fromSlot, 'currentPlayer:', currentPlayerId(), 'mySlot:', window.onlineMySlot);
         endTurn(true, true);  // silent=true, isRemote=true
       });
 
@@ -1804,8 +1805,8 @@ function opponentTargetPoint(pid, prof) {
     log('attachGameListeners: attaching listeners to', ch.topic);
 
     ch.on('broadcast', { event: 'move' }, (payload) => {
-      log('Received move:', payload);
       const data = payload.payload;
+      log('📩 [MULTI] Received move from:', data.slot, 'action:', data.action, 'currentPlayer:', currentPlayerId());
       applyRemoteMove(data.slot, data.action, data.ix, data.iy, data.key);
     });
 
@@ -1816,7 +1817,8 @@ function opponentTargetPoint(pid, prof) {
     });
 
     ch.on('broadcast', { event: 'end_turn' }, (payload) => {
-      log('📩 [MULTI] Received end_turn');
+      const fromSlot = payload.payload && payload.payload.slot;
+      log('📩 [MULTI] Received end_turn from:', fromSlot, 'currentPlayer:', currentPlayerId(), 'mySlot:', window.onlineMySlot);
       endTurn(true, true);
     });
 
@@ -1883,6 +1885,7 @@ function opponentTargetPoint(pid, prof) {
       event: 'move',
       payload: { slot: onlineMySlot, action, ix, iy, key }
     });
+    log('📤 [MULTI] broadcastMove:', { slot: onlineMySlot, action, ix, iy, key });
   }
 
   function broadcastSlide(moves) {
@@ -1922,7 +1925,13 @@ function opponentTargetPoint(pid, prof) {
     const pid = slot;
     if (!window.alive.get(pid)) return;
 
-    log('applyRemoteMove:', { slot, action, ix, iy, key });
+    // GUARD : ignorer si c'est un move pour mon propre slot (écho)
+    if (pid === window.onlineMySlot) {
+      log('⚠️ [MULTI] Ignoring move for my own slot:', pid);
+      return;
+    }
+
+    log('📩 [MULTI] applyRemoteMove:', { slot, action, ix, iy, key });
 
     let moveInfo = null;
     if (action === 'circle') {
@@ -1934,9 +1943,6 @@ function opponentTargetPoint(pid, prof) {
     window.afterMove(pid, moveInfo);
     window.setBadges();
     window.requestRedraw();
-    // NE PAS décrémenter movesLeft
-    // NE PAS appeler endTurn
-    // Le passage de tour est géré uniquement par le message end_turn
   }
 
   function applyRemoteSlide(slot, moves) {
@@ -3484,16 +3490,35 @@ function opponentTargetPoint(pid, prof) {
   function endTurn(silent=false, isRemote=false) {
     if (gameOver) return;
     if (gamePaused) return;
+
+    // GUARD anti-doublon en mode online
+    if (window.isOnlineGame && isRemote) {
+      const currentPid = currentPlayerId();
+      const currentControl = control.get(currentPid);
+      if (currentControl === 'HUMAN') {
+        log('⚠️ [MULTI] Ignoring duplicate remote endTurn — already my turn (', currentPid, ')');
+        return;
+      }
+    }
+
     stopAI();
     if (typeof clearDrag === 'function') clearDrag();
 
+    const beforePid = currentPlayerId();
+    log('endTurn: before=', beforePid, 'isRemote=', isRemote, 'silent=', silent);
+
     // Broadcast fin de tour UNIQUEMENT si c'est MOI qui joue et que ce n'est PAS un ordre distant
-    if (window.isOnlineGame && !isRemote && currentPlayerId() === window.onlineMySlot) {
+    if (window.isOnlineGame && !isRemote && beforePid === window.onlineMySlot) {
       if (window.broadcastEndTurn) window.broadcastEndTurn();
+      log('📤 [MULTI] Broadcasted end_turn from', beforePid);
     }
 
     currentIdx = nextAliveIndex(currentIdx);
     movesLeft = MOVES_PER_TURN;
+
+    const afterPid = currentPlayerId();
+    log('endTurn: after=', afterPid, 'movesLeft=', movesLeft);
+
     if (!silent) message = "";
     setBadges();
     requestRedraw();
