@@ -249,7 +249,17 @@
     <div class="menu-card">
       <h1 class="glow-text" data-lang="rankingTitle">CLASSEMENT</h1>
       <div class="menu-section">
-        <p style="color: #888; font-family: Orbitron; margin-bottom: 20px;" data-lang="scoreBoard">TABLEAU DES SCORES</p>
+        <!-- Onglets LOCAL / ONLINE -->
+        <div style="display: flex; justify-content: center; gap: 0; margin-bottom: 20px;">
+          <button id="ranking-tab-local" onclick="switchRankingTab('local')" class="futuristic-btn small" style="
+            border-radius: 8px 0 0 8px; padding: 8px 20px; font-size: 12px;
+            border-color: #0ff; background: rgba(0,255,255,0.15); color: #0ff;
+          ">⚡ LOCAL</button>
+          <button id="ranking-tab-online" onclick="switchRankingTab('online')" class="futuristic-btn small" style="
+            border-radius: 0 8px 8px 0; padding: 8px 20px; font-size: 12px;
+            border-color: #555; background: transparent; color: #888;
+          ">🌐 ONLINE</button>
+        </div>
         <div id="ranking-list" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid #444; max-height: 400px; overflow-y: auto;">
           <!-- Le classement sera généré ici -->
         </div>
@@ -609,20 +619,35 @@ async function saveResultOnline(winnerName, loserNames, playerCount) {
   }
 }
 
-async function loadOnlineRanking() {
+async function loadOnlineRanking(mode) {
   if (!supabaseClient) return null;
   try {
-    const { data, error } = await supabaseClient
-      .from('players')
-      .select('pseudo, points, wins, games')
-      .order('points', { ascending: false })
-      .order('wins', { ascending: false })
-      .limit(50);
-    if (error) {
-      console.warn('Supabase load error:', error.message);
-      return null;
+    if (mode === 'online') {
+      const { data, error } = await supabaseClient
+        .from('players')
+        .select('pseudo, online_points, online_wins, online_games')
+        .gt('online_games', 0)
+        .order('online_points', { ascending: false })
+        .order('online_wins', { ascending: false })
+        .limit(50);
+      if (error) { console.warn('Supabase load error:', error.message); return null; }
+      return data ? data.map(p => ({
+        pseudo: p.pseudo,
+        points: p.online_points || 0,
+        wins: p.online_wins || 0,
+        games: p.online_games || 0
+      })) : null;
+    } else {
+      const { data, error } = await supabaseClient
+        .from('players')
+        .select('pseudo, points, wins, games')
+        .gt('games', 0)
+        .order('points', { ascending: false })
+        .order('wins', { ascending: false })
+        .limit(50);
+      if (error) { console.warn('Supabase load error:', error.message); return null; }
+      return data;
     }
-    return data;
   } catch (e) {
     console.warn('Supabase offline:', e.message);
     return null;
@@ -1146,6 +1171,7 @@ function opponentTargetPoint(pid, prof) {
   window.showRulesScreen = showRulesScreen;
   window.showRankingScreen = showRankingScreen;
   window.clearRanking = clearRanking;
+  window.switchRankingTab = switchRankingTab;
   
   // Auto-switch Humain/IA quand on tape un pseudo
   // (les selects control sont dans renderPlayersRow, on stocke le choix dans une map temporaire)
@@ -2236,6 +2262,7 @@ function opponentTargetPoint(pid, prof) {
   window.leaveOnlineGame = leaveOnlineGame;
   window.cancelOnlineGame = cancelOnlineGame;
 
+
   window.rejoinPendingGame = rejoinPendingGame;
   window.refreshOpenGames = refreshOpenGames;
   window.lobbyGoToMenu = lobbyGoToMenu;
@@ -2257,6 +2284,30 @@ function opponentTargetPoint(pid, prof) {
   window.setBadges = setBadges;
   window.requestRedraw = requestRedraw;
 
+  let currentRankingTab = 'local';
+
+  function switchRankingTab(tab) {
+    currentRankingTab = tab;
+    const localBtn = document.getElementById('ranking-tab-local');
+    const onlineBtn = document.getElementById('ranking-tab-online');
+    if (tab === 'local') {
+      localBtn.style.borderColor = '#0ff';
+      localBtn.style.background = 'rgba(0,255,255,0.15)';
+      localBtn.style.color = '#0ff';
+      onlineBtn.style.borderColor = '#555';
+      onlineBtn.style.background = 'transparent';
+      onlineBtn.style.color = '#888';
+    } else {
+      onlineBtn.style.borderColor = '#0ff';
+      onlineBtn.style.background = 'rgba(0,255,255,0.15)';
+      onlineBtn.style.color = '#0ff';
+      localBtn.style.borderColor = '#555';
+      localBtn.style.background = 'transparent';
+      localBtn.style.color = '#888';
+    }
+    displayRanking();
+  }
+
   function showRankingScreen() {
     const menu = document.getElementById('main-menu');
     const rankingScreen = document.getElementById('ranking-screen');
@@ -2272,6 +2323,13 @@ function opponentTargetPoint(pid, prof) {
   
   function saveResult(winnerName, loserNames, playerCount) {
     log('>>> saveResult:', winnerName, loserNames, playerCount);
+
+    // Parties online → stats online Supabase uniquement (pas de localStorage)
+    if (window.isOnlineGame) {
+      saveResultOnline(winnerName, loserNames, playerCount);
+      return;
+    }
+
     // Ignorer si pas de vrai gagnant humain
     if (winnerName === '__NO_WINNER__') {
       let stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
@@ -2326,18 +2384,16 @@ function opponentTargetPoint(pid, prof) {
   }
   
   async function displayRanking() {
-    log('displayRanking called');
+    log('displayRanking called, tab:', currentRankingTab);
     const rankingList = document.getElementById('ranking-list');
 
-    // Afficher un loader
-    rankingList.innerHTML = '<p style="color: #0ff; text-align: center;">⏳ Chargement...</p>';
+    rankingList.innerHTML = '<p style="color: #0ff; text-align: center;">⏳</p>';
 
-    // Essayer de charger depuis Supabase
-    let players = await loadOnlineRanking();
+    let players = await loadOnlineRanking(currentRankingTab);
     let isOnline = true;
 
-    // Fallback sur localStorage si Supabase indisponible
-    if (!players) {
+    // Fallback localStorage seulement pour le mode local
+    if (!players && currentRankingTab === 'local') {
       isOnline = false;
       const stats = JSON.parse(localStorage.getItem('voltclash_stats') || '{}');
       players = Object.entries(stats).map(([name, data]) => ({
@@ -2349,19 +2405,18 @@ function opponentTargetPoint(pid, prof) {
       players.sort((a, b) => b.points - a.points || b.wins - a.wins);
     }
 
+    if (!players) players = [];
+
     log('Ranking data:', players);
     if (players.length === 0) {
-      rankingList.innerHTML = '<p style="color: #888; text-align: center;">' + t('noStats') + '</p>';
+      const emptyMsg = currentRankingTab === 'online'
+        ? (t('noOnlineStats') || 'Aucune partie en ligne jouée')
+        : t('noStats');
+      rankingList.innerHTML = '<p style="color: #888; text-align: center;">' + emptyMsg + '</p>';
       return;
     }
 
-    // Indicateur en ligne / hors ligne
-    const badge = isOnline
-      ? '<span style="color:#0f0; font-size:11px;">🌐 EN LIGNE</span>'
-      : '<span style="color:#f80; font-size:11px;">📴 LOCAL</span>';
-
-    let html = '<div style="text-align:center; margin-bottom:10px;">' + badge + '</div>';
-
+    let html = '';
     players.forEach((player, index) => {
       const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
       html += `
