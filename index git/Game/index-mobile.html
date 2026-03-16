@@ -4138,12 +4138,14 @@ function pickAIMove(pid) {
     row.innerHTML = "";
 
     let activePlayers = PLAYERS.slice(0, PLAYER_COUNT);
+    const currentPid = currentPlayerId();
+
     for (const p of activePlayers) {
       const chip = document.createElement("div");
       chip.className = "pchip";
       chip.style.opacity = alive.get(p.id) ? "1" : "0.35";
-      chip.style.borderColor = (p.id === currentPlayerId()) ? p.color : "#333";
-      chip.style.boxShadow = (p.id === currentPlayerId()) ? `0 0 0 2px ${p.color}33 inset` : "none";
+      chip.style.borderColor = (p.id === currentPid) ? p.color : "#333";
+      chip.style.boxShadow = (p.id === currentPid) ? `0 0 0 2px ${p.color}33 inset` : "none";
 
       const dot = document.createElement("span");
       dot.className = "dot";
@@ -4152,7 +4154,14 @@ function pickAIMove(pid) {
       const label = document.createElement("span");
       const pseudo = getPlayerName(p.id);
       const isAI = control.get(p.id) === "AI";
-      label.innerHTML = `<span style="color:${p.color};">${pseudo}</span>${isAI ? ' <span style="font-size:10px; color:#888; opacity:0.7;">[IA]</span>' : ''}`;
+
+      // Compteur de coups restants — uniquement pour le joueur actif
+      let movesIndicator = '';
+      if (p.id === currentPid && alive.get(p.id) && !gameOver) {
+        movesIndicator = ` <span style="font-size:10px; color:${p.color}; opacity:0.7; font-family:'Orbitron',monospace;">${movesLeft}</span>`;
+      }
+
+      label.innerHTML = `<span style="color:${p.color};">${pseudo}</span>${isAI ? ' <span style="font-size:10px; color:#888; opacity:0.7;">[IA]</span>' : ''}${movesIndicator}`;
 
       chip.appendChild(dot);
       chip.appendChild(label);
