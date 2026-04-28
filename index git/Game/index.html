@@ -34,6 +34,22 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <style>
+  @keyframes fadeInOut {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+  @media (min-width: 768px) {
+    html, body {
+      overflow: hidden !important;
+    }
+    #game-wrapper {
+      max-height: 100vh !important;
+      overflow: hidden !important;
+    }
+    #status {
+      display: none !important;
+    }
+  }
   .futuristic-btn.selected {
     background: linear-gradient(135deg, #00ffff 0%, #0088cc 100%) !important;
     color: #0a0a0a !important;
@@ -417,6 +433,7 @@
         <button id="btn-2players" class="futuristic-btn" onclick="showPlayerNamesScreen()" data-lang="play2">2 JOUEURS</button>
         <button id="btn-4players" class="futuristic-btn" onclick="show4PlayerNamesScreen()" data-lang="play4">4 JOUEURS</button>
         <button id="btn-online" class="futuristic-btn primary" onclick="showOnlineScreen()" style="margin-top: 10px;">🌐 <span data-lang="playOnline">JOUER EN LIGNE</span></button>
+        <div id="online-status" style="display:none;text-align:center;font-family:'Orbitron',monospace;font-size:9px;color:#888;margin-top:6px;letter-spacing:1px;animation:fadeInOut 3s ease-in-out infinite;">1 game waiting</div>
       </div>
       <div class="menu-section">
         <p style="color: #888; font-family: Orbitron;" data-lang="musicLabel">MUSIQUE</p>
@@ -601,6 +618,34 @@ let displayW, displayH;
 const SUPABASE_URL = 'https://zlkgpqsfjxjesfivndwh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_JDu4-flooLPtFWPCBK9O9g_0JVSYztq';
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+// ── WAITING GAMES INDICATOR ──
+async function checkWaitingGames() {
+  if (!supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from('online_games')
+      .select('id')
+      .eq('status', 'waiting');
+    if (error) return;
+    const statusDiv = document.querySelector('#online-status');
+    if (!statusDiv) return;
+    if (data && data.length > 0) {
+      statusDiv.style.display = 'block';
+      const count = data.length;
+      if (currentLang === 'en') {
+        statusDiv.textContent = count + (count === 1 ? ' game waiting' : ' games waiting');
+      } else {
+        statusDiv.textContent = count + (count === 1 ? ' partie en attente' : ' parties en attente');
+      }
+    } else {
+      statusDiv.style.display = 'none';
+    }
+  } catch (e) {}
+}
+
+checkWaitingGames();
+setInterval(checkWaitingGames, 30000);
 
 function normalizePseudo(name) {
   const trimmed = (name || '').trim();
@@ -837,6 +882,14 @@ let gameOptionsVisible = false;
 // ║  5. IIFE — DÉMARRAGE & CONSTANTES JEU                   ║
 // ╚══════════════════════════════════════════════════════════╝
 (() => {
+  // Bloquer le scroll vertical (desktop uniquement)
+  if (!IS_MOBILE) {
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    const gw = document.querySelector('#game-wrapper');
+    if (gw) { gw.style.maxHeight = '100vh'; gw.style.overflow = 'hidden'; }
+  }
+
   // ----------------------------
   // Config
   // ----------------------------
@@ -1405,8 +1458,13 @@ function opponentTargetPoint(pid, prof) {
     menu.style.visibility = 'visible';
     menu.style.pointerEvents = 'auto';
     menu.style.opacity = '1';
+
+    // Battle Board : charger les messages et pré-remplir le pseudo
+    loadBoardMessages();
+    const savedPseudo = localStorage.getItem('voltclash_pseudo');
+    if (savedPseudo) { const bp = document.querySelector('#board-pseudo'); if (bp) bp.value = savedPseudo; }
   }
-  
+
   function showRulesScreen() {
     const menu = document.getElementById('main-menu');
     const rulesScreen = document.getElementById('rules-screen');
@@ -2885,6 +2943,31 @@ function opponentTargetPoint(pid, prof) {
   canvas.height = Math.round(displayH * dpr);
   ctx.scale(dpr, dpr);
 
+  // --- ZOOM MOLETTE (desktop) ---
+  window.currentZoom = 1;
+  const WHEEL_ZOOM_MIN = 1;
+  const WHEEL_ZOOM_MAX = 1.8;
+  const WHEEL_ZOOM_STEP = 0.1;
+
+  const zoomCanvas = document.querySelector('#c');
+  if (zoomCanvas) {
+    zoomCanvas.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.deltaY < 0) {
+        window.currentZoom = Math.min(WHEEL_ZOOM_MAX, +(window.currentZoom + WHEEL_ZOOM_STEP).toFixed(1));
+      } else {
+        window.currentZoom = Math.max(WHEEL_ZOOM_MIN, +(window.currentZoom - WHEEL_ZOOM_STEP).toFixed(1));
+      }
+      if (window.currentZoom <= 1) { window.panX = 0; window.panY = 0; }
+      if (window.applyPanTransform) {
+        window.applyPanTransform();
+      } else {
+        zoomCanvas.style.transform = 'scale(' + window.currentZoom + ')';
+      }
+    }, { passive: false });
+  }
+
   // ================================
   // ZOOM & PAN (mobile)
   // ================================
@@ -2950,6 +3033,10 @@ function opponentTargetPoint(pid, prof) {
     zoomLevel = 1;
     panX = 0;
     panY = 0;
+    window.currentZoom = 1;
+    window.panX = 0;
+    window.panY = 0;
+    if (window.applyPanTransform) window.applyPanTransform();
     requestRedraw();
   }
 
@@ -2974,8 +3061,8 @@ function opponentTargetPoint(pid, prof) {
       x = c.x;
       y = c.y;
     } else {
-      x = clientX - rect.left;
-      y = clientY - rect.top;
+      x = (clientX - rect.left) / (window.currentZoom || 1);
+      y = (clientY - rect.top) / (window.currentZoom || 1);
     }
     const ix = clamp(Math.round((x - MARGIN_PX) / CELL_PX), 0, NODES - 1);
     const iy = clamp(Math.round((y - MARGIN_PX) / CELL_PX), 0, NODES - 1);
@@ -5344,10 +5431,6 @@ function drawGrid() {
       return;
     }
 
-    if (e.button === 2) {
-      endTurn();
-      return;
-    }
   });
 
   // Validation commune du drag (mouseup / touchend)
@@ -5437,6 +5520,92 @@ function drawGrid() {
       clientY: touch.clientY
     };
   }
+
+  // ── PAN AU CLIC DROIT (desktop uniquement) ──
+  (function() {
+    if (IS_MOBILE) return;
+
+    const panCanvas = document.querySelector('#c');
+    const panParent = document.querySelector('.sheet');
+    if (!panCanvas || !panParent) return;
+
+    const CANVAS_SIZE = 708;
+    const PARENT_OFFSET = 13;
+
+    const parentW = panParent.offsetWidth;
+    const parentH = panParent.offsetHeight;
+    panParent.style.width = parentW + 'px';
+    panParent.style.height = parentH + 'px';
+    panParent.style.maxWidth = parentW + 'px';
+    panParent.style.maxHeight = parentH + 'px';
+    panParent.style.overflow = 'hidden';
+    panParent.style.position = 'relative';
+
+    window.panX = 0;
+    window.panY = 0;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let panStartX = 0;
+    let panStartY = 0;
+
+    function applyPanTransform() {
+      if (window.currentZoom <= 1) {
+        panCanvas.style.position = '';
+        panCanvas.style.left = '';
+        panCanvas.style.top = '';
+        panCanvas.style.margin = '';
+        panCanvas.style.transform = 'scale(1)';
+        window.panX = 0;
+        window.panY = 0;
+        return;
+      }
+      const extra = CANVAS_SIZE * (window.currentZoom - 1);
+      window.panX = Math.max(-extra, Math.min(0, window.panX));
+      window.panY = Math.max(-extra, Math.min(0, window.panY));
+      panCanvas.style.position = 'absolute';
+      panCanvas.style.margin = '0';
+      panCanvas.style.transformOrigin = '0 0';
+      panCanvas.style.left = (PARENT_OFFSET + window.panX) + 'px';
+      panCanvas.style.top = (PARENT_OFFSET + window.panY) + 'px';
+      panCanvas.style.transform = 'scale(' + window.currentZoom + ')';
+    }
+
+    window.applyPanTransform = applyPanTransform;
+
+    panCanvas.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+    });
+
+    panCanvas.addEventListener('mousedown', function(e) {
+      if (e.button !== 2) return;
+      e.preventDefault();
+      if (window.currentZoom <= 1) return;
+      isDragging = true;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      panStartX = window.panX;
+      panStartY = window.panY;
+      panParent.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', function(e) {
+      if (!isDragging) return;
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+      window.panX = panStartX + dx;
+      window.panY = panStartY + dy;
+      applyPanTransform();
+    });
+
+    window.addEventListener('mouseup', function(e) {
+      if (e.button !== 2) return;
+      isDragging = false;
+      panParent.style.cursor = '';
+    });
+
+    console.log('Pan system initialized');
+  })();
 
   // ╔══════════════════════════════════════════════════════════╗
   // ║  30. ÉVÉNEMENTS TOUCH (MOBILE)                          ║
@@ -5768,6 +5937,10 @@ function drawGrid() {
     zoomLevel = 1;
     panX = 0;
     panY = 0;
+    window.currentZoom = 1;
+    window.panX = 0;
+    window.panY = 0;
+    if (window.applyPanTransform) window.applyPanTransform();
 
     // Nettoyage complet
     marks.clear();
@@ -6022,13 +6195,13 @@ let lastTime = performance.now();
           ctx.strokeStyle = color;
           ctx.lineWidth = lineWidth;
           ctx.beginPath();
-          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.arc(x, y, Math.max(0, radius), 0, Math.PI * 2);
           ctx.stroke();
 
           ctx.globalAlpha = opacity * 0.4;
           ctx.lineWidth = lineWidth * 0.5;
           ctx.beginPath();
-          ctx.arc(x, y, radius * 0.7, 0, Math.PI * 2);
+          ctx.arc(x, y, Math.max(0, radius * 0.7), 0, Math.PI * 2);
           ctx.stroke();
 
           ctx.restore();
